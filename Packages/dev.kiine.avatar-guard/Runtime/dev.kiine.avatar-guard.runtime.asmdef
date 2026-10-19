@@ -1,0 +1,8 @@
+{
+  "name": "dev.kiine.avatar-guard.runtime",
+  "rootNamespace": "Kiine.AvatarGuard",
+  "references": [],
+  "overrideReferences": true,
+  "precompiledReferences": ["VRCSDKBase.dll"],
+  "autoReferenced": true
+}

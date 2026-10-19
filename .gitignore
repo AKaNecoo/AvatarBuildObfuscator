@@ -1,0 +1,6 @@
+/Artifacts/
+/Evidence~/
+*.user
+*.csproj
+*.sln
+.DS_Store

@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Preserve Unity's exported metadata bytes and GUIDs across checkout platforms.
+*.meta -text whitespace=-blank-at-eol

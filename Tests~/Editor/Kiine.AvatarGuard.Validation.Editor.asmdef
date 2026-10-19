@@ -1,0 +1,8 @@
+{
+  "name": "Kiine.AvatarGuard.Validation.Editor",
+  "references": ["dev.kiine.avatar-guard.runtime", "dev.kiine.avatar-guard.editor", "nadena.dev.ndmf", "nadena.dev.ndmf.runtime", "Kiine.AvatarGuard.Validation.Runtime"],
+  "includePlatforms": ["Editor"],
+  "overrideReferences": true,
+  "precompiledReferences": ["VRCSDK3A.dll", "VRCSDKBase.dll", "VRCCore-Editor.dll"],
+  "autoReferenced": true
+}
