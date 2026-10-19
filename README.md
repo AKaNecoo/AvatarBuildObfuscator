@@ -6,6 +6,8 @@
 
 **这是一款名称混淆与形变裁剪工具。它不加密贴图或网格，不需要 OSC，也不能阻止别人从上传文件中提取贴图和保留的动态 BlendShape。** 烘焙后的最终外观仍然包含在网格中。
 
+**构建后，Unity 的 Hierarchy / Scene / Project 中仍显示原名是正常现象。** 保守和激进模式都只处理 NDMF 构建副本。判断是否生效，请查看 Console 中的 `[Avatar Build Obfuscator]` 数量与跳过原因，以及实际构建产物。当前激进模式的主要额外处理范围是 MMD 等兼容形变；它也保留骨骼、层级和运行参数名。
+
 ## 安装与使用
 
 使用 Unity **2022.3** 的 VRChat Avatar 工程，先通过 VCC 安装 Avatar SDK 与 [NDMF](https://github.com/bdunderscore/ndmf)。已安装 Modular Avatar 的工程通常已有 NDMF。Git 安装本工具不会替代 VCC 安装这些依赖。Avatar Optimizer 是可选依赖，已有设置不会被本工具修改，也不需要更换 Shader。
@@ -25,6 +27,16 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 **这条地址只需安装时输入一次。以后更新：**在 **Package Manager** 中选中 **Avatar Build Obfuscator**，点击 **Update** 获取 `main` 分支的新提交，无需重新输入地址。
 
 Unity 会锁定已安装的提交，不会在每次打开工程时自动拉取。`?path=…` 指定仓库中的包目录，不能省略；`#main` 让后续手动更新跟随该分支。参见 [Unity Git 安装说明](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)与 [Git 更新及锁定提交说明](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks)。
+
+### 测试版与稳定版
+
+`beta` 接收完成修改和相应验证后的日常更新；`main` 用于稳定版本，不随每次测试更新推进。测试版可能存在尚未发现的问题。需要跟进测试版时，使用以下地址安装：
+
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
+```
+
+从 Git 稳定版切换到测试版时，在 **Add package from git URL…** 中输入测试版地址一次，即可更新同一个包的分支引用。之后选中该包并点击 **Update**，跟进 `beta` 的更新。`#main` 安装不会自动切换到 `beta`；切回稳定版时重新添加上面的 `#main` 地址。
 
 ### 从 Unity 安装包导入
 

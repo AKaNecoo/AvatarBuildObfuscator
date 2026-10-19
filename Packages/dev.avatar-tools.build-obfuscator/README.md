@@ -2,6 +2,8 @@
 
 在 `VRCAvatarDescriptor` 所在的 Avatar 根对象添加 **Avatar Tools / Build Obfuscator**，填写你自己的**用户名**，构建时由 NDMF 自动运行。用户名支持中文，仅用于派生 `o_…` 形式的乱码名称，不直接拼接到资源名中；新组件默认留空。
 
+**Hierarchy / Scene / Project 中的源名称在构建后仍保持原样。** 两种模式只处理构建副本。构建后在 Console 搜索 `[Avatar Build Obfuscator]` 查看处理数量和跳过原因，并检查实际构建产物。当前激进模式主要额外处理 MMD 兼容形变，不扩大骨骼、层级或运行参数的改名范围。
+
 - **保守（默认）**：资源名混淆、普通静态 BlendShape 烘焙移除、动态形变名混淆；保留 MMD、日文/中文兼容形变。
 - **激进**：进一步处理未引用的 MMD 兼容形变；可能影响依赖固定名称的外部世界和工具。
 - 两档均保留动画、口型、眨眼需要的形变；未知驱动、网格替换、特殊数据与手动排除项会保留。
@@ -11,6 +13,8 @@
 用户名不是密码。不提供贴图/网格加密，不需要 OSC。上传内容中的贴图和保留的动态形变仍可提取。
 
 说明、源码与验证记录：<https://github.com/AKaNecoo/AvatarBuildObfuscator>
+
+Git 安装地址末尾的 `#main` 跟随稳定版，`#beta` 跟随日常测试更新。更换分支时在 Package Manager 的 **Add package from git URL…** 中重新添加对应完整地址一次，以后点击 **Update** 更新所选分支。完整安装说明见仓库 README。
 
 ## English
 

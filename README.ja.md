@@ -4,6 +4,8 @@
 
 `VRCAvatarDescriptor` があるアバターのルートに **Avatar Tools / Build Obfuscator** を追加すると、NDMF のビルド用コピーに対してアセット名・BlendShape 名の難読化と、固定 BlendShape のベイク・削除を実行します。各ユーザーが自分のユーザー名を入力します（Unicode 対応）。ユーザー名から `o_…` 形式の不透明な名前を生成し、名前にユーザー名そのものは付けません。新規コンポーネントのユーザー名は空欄です。
 
+**ビルド後も Unity の Hierarchy / Scene / Project に元の名前が表示されるのは正常です。** 両モードとも NDMF のビルド用コピーだけを処理します。Console の `[Avatar Build Obfuscator]` に表示される件数・スキップ理由と、実際のビルド結果で確認してください。激進モードは主に MMD 互換形状の処理範囲を広げますが、ボーン・階層・実行時パラメーター名は保持します。
+
 ## 導入
 
 Unity 2022.3 の VRChat Avatar プロジェクトに、VCC で Avatar SDK と [NDMF](https://github.com/bdunderscore/ndmf) を先に導入してください。本ツールを Git から導入しても、これらの VPM 依存パッケージは自動導入されません。AAO は任意で、既存の設定は変更しません。
@@ -23,6 +25,16 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 **URL の入力は初回だけです。以後の更新は、Package Manager で Avatar Build Obfuscator を選び、Update を押してください。** `main` の新しいコミットを取得でき、URL の再入力は不要です。
 
 Unity は導入済みのコミットを固定するため、プロジェクトを開くたびに自動更新することはありません。パッケージはサブフォルダーにあるため `?path=…` を省略しないでください。`#main` が手動更新時に追跡するブランチです。[Unity の Git 導入手順](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)と[コミットの固定・更新](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks)を参照してください。
+
+### ベータ版と安定版
+
+`beta` には変更と必要な検証が完了した日常の更新を反映します。`main` は安定版用で、ベータ版の更新ごとには進めません。ベータ版には未発見の問題が残る可能性があります。ベータ版を利用する場合は、次の URL でインストールしてください。
+
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
+```
+
+Git 版から切り替える場合は、**Add package from git URL…** でこの URL を一度入力します。同じパッケージの参照先が `beta` に切り替わり、その後は選択して **Update** を押すと更新できます。`#main` 版は自動で `beta` に切り替わりません。安定版に戻す場合は `#main` の URL を再入力してください。
 
 ### Unity パッケージからインポート
 

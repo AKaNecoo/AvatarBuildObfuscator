@@ -4,6 +4,8 @@
 
 Add **Avatar Tools / Build Obfuscator** to the root GameObject containing `VRCAvatarDescriptor`. NDMF runs it on the build copy, after Modular Avatar, VRCFury, TexTransTool and Avatar Optimizer when present. Each user enters their own username (Unicode supported). It derives an opaque `o_…` naming sequence; resource names do not include the literal username. New components start with an empty username.
 
+**Original names remaining in Unity's Hierarchy / Scene / Project after a build are expected.** Both modes process only the NDMF build copy. Check the `[Avatar Build Obfuscator]` counts and skip reasons in the Console, and inspect the build output. Aggressive mode mainly expands processing of MMD compatibility shapes; it also preserves bone, hierarchy and runtime parameter names.
+
 ## Install
 
 Use a Unity 2022.3 VRChat Avatar project with the Avatar SDK and [NDMF](https://github.com/bdunderscore/ndmf) already installed through VCC. Installing this tool through Git does not install those VPM dependencies for you. AAO is optional and its configuration is not changed.
@@ -23,6 +25,16 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 **Enter this URL once. To update later:** select **Avatar Build Obfuscator** in **Package Manager** and click **Update** to fetch new commits from `main`. You do not need to enter the URL again.
 
 Unity locks the installed commit; it does not fetch updates every time the project opens. Keep `?path=…` because the package lives in a repository subfolder. `#main` selects the branch used for manual updates. See Unity's [Git installation guide](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html) and [locked Git dependencies](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks).
+
+### Beta and stable updates
+
+`beta` receives ongoing changes after the relevant validation. `main` is reserved for stable versions and does not advance with every beta update. Beta versions may have undiscovered issues. To follow beta updates, install with:
+
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
+```
+
+To switch a Git installation to beta, enter this URL once using **Add package from git URL…**. This changes the branch reference for the same package. Later, select the package and click **Update** to follow `beta`. A `#main` installation stays on stable; add the `#main` URL again to switch back.
 
 ### Import a Unity package
 
