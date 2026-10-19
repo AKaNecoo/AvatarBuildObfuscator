@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -9,20 +8,20 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using Object = UnityEngine.Object;
 
-namespace Kiine.AvatarGuard.Editor
+namespace AvatarTools.Obfuscation.Editor
 {
     public sealed class GuardSettings
     {
         public ProtectionMode Mode;
-        public string Prefix;
+        public string UserName;
         public bool RenameAssets, FreezeShapes, RenameShapes;
         public HashSet<string> PreserveShapes;
         public HashSet<SkinnedMeshRenderer> Exclusions;
 
-        public GuardSettings(AvatarGuard component)
+        public GuardSettings(AvatarBuildObfuscator component)
         {
             Mode = component.mode;
-            Prefix = SanitizePrefix(component.namePrefix);
+            UserName = UsernameNameGenerator.NormalizeUserName(component.userName);
             RenameAssets = component.renameAssets;
             FreezeShapes = component.freezeUnusedBlendShapes;
             RenameShapes = component.renameDynamicBlendShapes;
@@ -30,13 +29,6 @@ namespace Kiine.AvatarGuard.Editor
             Exclusions = new HashSet<SkinnedMeshRenderer>(component.excludedRenderers ?? new SkinnedMeshRenderer[0]);
         }
 
-        public static string SanitizePrefix(string input)
-        {
-            var result = new StringBuilder();
-            foreach (var c in (input ?? "").Trim())
-                result.Append(char.IsControl(c) || "/\\:*?\"<>|".IndexOf(c) >= 0 ? '_' : c);
-            return result.Length == 0 ? "一个木禾" : result.ToString();
-        }
     }
 
     [Serializable]
@@ -60,6 +52,7 @@ namespace Kiine.AvatarGuard.Editor
         private readonly GameObject root;
         private readonly GuardSettings settings;
         private readonly Action<Object> saveAsset;
+        private readonly UsernameNameGenerator names;
         private readonly GuardReport report = new GuardReport();
         private readonly HashSet<Object> owned = new HashSet<Object>();
         private readonly Dictionary<Object, Object> sharedAssets = new Dictionary<Object, Object>();
@@ -85,6 +78,7 @@ namespace Kiine.AvatarGuard.Editor
         {
             root = buildCopy != null ? buildCopy : throw new ArgumentNullException(nameof(buildCopy));
             settings = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            names = new UsernameNameGenerator(settings.UserName);
             saveAsset = saver;
         }
 
@@ -134,7 +128,7 @@ namespace Kiine.AvatarGuard.Editor
             {
                 if (component == null) { unknownDriver = true; report.Note("发现 Missing Script，形变数据保留"); continue; }
                 if (component is Animation) { unknownDriver = true; report.Note("发现 Legacy Animation，形变数据保留"); }
-                if (component is MonoBehaviour && !(component is AvatarGuard) && !IsKnownNamespace(component.GetType()))
+                if (component is MonoBehaviour && !(component is AvatarBuildObfuscator) && !IsKnownNamespace(component.GetType()))
                 {
                     unknownDriver = true;
                     report.Note("未知组件 " + component.GetType().FullName + "，形变数据保留");
@@ -390,7 +384,7 @@ namespace Kiine.AvatarGuard.Editor
         {
             foreach (var component in root.GetComponentsInChildren<Component>(true))
             {
-                if (component == null || component is Transform || component is AvatarGuard) continue;
+                if (component == null || component is Transform || component is AvatarBuildObfuscator) continue;
                 var relativeRoot = component is Animator animator ? animator.transform : root.transform;
                 using (var so = new SerializedObject(component))
                 {
@@ -566,6 +560,6 @@ namespace Kiine.AvatarGuard.Editor
             saveAsset?.Invoke(value);
         }
 
-        private string NewName() { return settings.Prefix + "_" + Guid.NewGuid().ToString("N"); }
+        private string NewName() { return names.Next(); }
     }
 }

@@ -1,4 +1,4 @@
-# Validation — 0.1.0
+# Validation — 0.2.0
 
 Validated on 2026-10-19 in a connected Windows Unity Editor. This records Editor/build evidence, not a completed VRChat client or device acceptance test.
 
@@ -14,11 +14,13 @@ Validated on 2026-10-19 in a connected Windows Unity Editor. This records Editor
 
 ## Synthetic Editor checks
 
-**26 passed, 0 failed.** Each case captures Unity Error / Assert / Exception logs and fails if any occur during the assertion body.
+**29 passed, 0 failed.** Each case captures Unity Error / Assert / Exception logs and fails if any occur during the assertion body.
 
-Checks cover Chinese prefix handling; bake weights 0/35/100 with before/after `SkinnedMeshRenderer.BakeMesh` geometry and normal comparisons; dynamic animation curves; MMD behavior in both modes; SDK visemes and eyelid index remapping; child Animator relative roots; one controller shared by two Animator roots; persistent controllers and nested BlendTrees with forced saves and byte comparison; synced motion/behaviour overrides; AnimatorOverrideController; constant curves; manual preservation/exclusion; mesh swaps; special frames and extrapolated weights; proxy identities; unknown components; asset-name renaming disabled; cyclic expression menus; unreadable-texture identity retention; and readable RGBA32/DXT1/DXT5/BC7 GPU pixel comparisons.
+Checks cover username-derived deterministic sequences (2,048 distinct outputs), different usernames, Unicode normalization, path-safe opaque names, empty defaults and required username input; bake weights 0/35/100 with before/after `SkinnedMeshRenderer.BakeMesh` geometry and normal comparisons; dynamic animation curves; MMD behavior in both modes; SDK visemes and eyelid index remapping; child Animator relative roots; one controller shared by two Animator roots; persistent controllers and nested BlendTrees with forced saves and byte comparison; synced motion/behaviour overrides; AnimatorOverrideController; constant curves; manual preservation/exclusion; mesh swaps; special frames and extrapolated weights; proxy identities; unknown components; asset-name renaming disabled; cyclic expression menus; unreadable-texture identity retention; and readable RGBA32/DXT1/DXT5/BC7 GPU pixel comparisons.
 
-`Tests~/Editor/GuardValidation.cs` is an opt-in harness. To reproduce, copy `Tests~/Editor` and `Tests~/Runtime` into separate Editor/Runtime folders under a test project's Assets directory, retain their asmdefs, and call `GuardValidation.RunAll(outputJsonPath)` from an Editor script. Its synthetic fixtures are written only under `Assets/__KiineGuardValidation_20261019/Fixtures`.
+The existing 0.1.0 demo component was upgraded with its script .meta GUID retained. Its previously entered value migrated from `namePrefix` to `userName`; the new type and value also survived saving, closing and reopening the demo scene. New components start with an empty username. The old type/field names occur only in compatibility migration metadata and historical upgrade notes.
+
+`Tests~/Editor/GuardValidation.cs` is an opt-in harness. To reproduce, copy `Tests~/Editor` and `Tests~/Runtime` into separate Editor/Runtime folders under a test project's Assets directory, retain their asmdefs, and call `GuardValidation.RunAll(outputJsonPath)` from an Editor script. Its synthetic fixtures are written only under `Assets/__AvatarBuildObfuscatorValidation_20261019/Fixtures`.
 
 ## Complete avatar builds
 
@@ -41,13 +43,13 @@ Three fresh NDMF builds of one existing avatar were compared. The avatar already
 | Missing actual animation paths | 0 | 0 | 0 |
 | Missing BlendShape bindings | 0 | 0 | 0 |
 | Humanoid bones | 53 | 53 | 53 |
-| AvatarGuard components in output | 0 | 0 | 0 |
+| AvatarBuildObfuscator components in output | 0 | 0 | 0 |
 | Unity Error/Assert/Exception logs during build/render | 0 | 0 | 0 |
-| Build + inspection + render time, seconds | 14.28 | 14.64 | 14.07 |
+| Build + inspection + render time, seconds | 18.73 | 17.62 | 18.69 |
 
 AAO inserts 87 deliberate `$AvatarOptimizerClipLengthDummy$` bindings in every build. They are counted separately, not treated as actual missing targets. Runtime parameter names are not rewritten by this package; upstream tools can generate fresh internal parameter names per build.
 
-At 512×768, a single static rendered frame differed from baseline at 3 pixels for Conservative and 4 pixels for Aggressive out of 393,216 pixels. Mean absolute channel differences were 0.000145 and 0.000764 on a 0–255 scale. This is a static appearance check, not proof of every animation, expression, runtime integration or viewing angle.
+At 512×768, a single static rendered frame differed from baseline at 3 pixels for Conservative and 7 pixels for Aggressive out of 393,216 pixels. Mean absolute channel differences were 0.000359 and 0.000364 on a 0–255 scale. This is a static appearance check, not proof of every animation, expression, runtime integration or viewing angle.
 
 The final comparison scene was saved, closed and reopened. All three outputs retained the expected shape counts, 53 humanoid bones, and zero missing actual paths or shape bindings after reload.
 
@@ -55,7 +57,7 @@ The final comparison scene was saved, closed and reopened. All three outputs ret
 
 A SHA-256 manifest was taken before deployment for **21,666 existing files** under Assets, Packages and ProjectSettings. After verification, **0 original files changed and 0 were missing**. Source files, importers, GUIDs, controller sources and the original scene were included. Library, Temp, Logs and UserSettings were not part of this source-file comparison. Private manifests and avatar data are excluded from this repository.
 
-Unity exports only `Assets/KiineAvatarGuard` with `ExportPackageOptions.Recurse`, without dependency inclusion. `Tools/verify_release.py` compares exported asset bytes and `.meta` files against the package source and rejects paths outside that folder. No avatar meshes, textures, scenes, generated build assets, account credentials or test fixtures are included in the release.
+Unity exports only `Assets/AvatarBuildObfuscator` with `ExportPackageOptions.Recurse`, without dependency inclusion. `Tools/verify_release.py` compares exported asset bytes and `.meta` files against the package source and rejects paths outside that folder. No avatar meshes, textures, scenes, generated build assets, account credentials or test fixtures are included in the release.
 
 ## Issues caught before release
 

@@ -1,18 +1,22 @@
 using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Kiine.AvatarGuard
+namespace AvatarTools.Obfuscation
 {
     public enum ProtectionMode { Conservative, Aggressive }
 
     /// <summary>Editor-only build instructions. NDMF runs them on its build copy.</summary>
-    [AddComponentMenu("一个木禾/Avatar Guard")]
+    [AddComponentMenu("Avatar Tools/Build Obfuscator")]
     [DisallowMultipleComponent]
-    [HelpURL("https://github.com/AKaNecoo/KiineAvatarGuard")]
-    public sealed class AvatarGuard : MonoBehaviour, VRC.SDKBase.IEditorOnly
+    [HelpURL("https://github.com/AKaNecoo/AvatarBuildObfuscator")]
+    [MovedFrom(true, "Kiine.AvatarGuard", "dev.kiine.avatar-guard.runtime", "AvatarGuard")]
+    public sealed class AvatarBuildObfuscator : MonoBehaviour, VRC.SDKBase.IEditorOnly
     {
         public ProtectionMode mode = ProtectionMode.Conservative;
-        [Tooltip("中文可用。资源名称会变成：前缀_唯一随机串。")]
-        public string namePrefix = "一个木禾";
+        [FormerlySerializedAs("namePrefix")]
+        [Tooltip("填写你自己的用户名，支持中文。用户名用于派生混淆种子，不作为资源名称前缀。")]
+        public string userName = "";
         public bool renameAssets = true;
         public bool freezeUnusedBlendShapes = true;
         public bool renameDynamicBlendShapes = true;

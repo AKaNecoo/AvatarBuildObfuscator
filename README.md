@@ -1,22 +1,22 @@
-# 一个木禾 · Avatar Guard
+# Avatar Build Obfuscator
 
 [English](README.en.md) · [日本語](README.ja.md)
 
-在 VRChat Avatar 根对象添加一个组件，在构建时自动混淆资源与动态 BlendShape 名称，并烘焙、移除能确认不再需要变化的 BlendShape。默认前缀是 **一个木禾**，支持中文，可自行修改。
+在 VRChat Avatar 根对象添加一个组件，在构建时自动混淆资源与动态 BlendShape 名称，并烘焙、移除能确认不再需要变化的 BlendShape。每个人在组件中填写自己的**用户名**，支持中文。用户名用于派生混淆种子，生成 `o_…` 形式的不透明资源名，名称中不直接附加用户名。新组件不预填作者姓名。
 
 **这是一款名称混淆与形变裁剪工具。它不加密贴图或网格，不需要 OSC，也不能阻止别人从上传文件中提取贴图和保留的动态 BlendShape。** 烘焙后的最终外观仍然包含在网格中。
 
 ## 安装与使用
 
 1. 使用 Unity **2022.3** 的 VRChat Avatar 工程，先通过 VCC 安装 Avatar SDK 与 [NDMF](https://github.com/bdunderscore/ndmf)。已安装 Modular Avatar 的工程通常已有 NDMF。
-2. 从 [Releases](https://github.com/AKaNecoo/KiineAvatarGuard/releases) 下载 `KiineAvatarGuard-0.1.0.unitypackage`，导入工程。项目中只安装一份本工具。
-3. 选择挂有 `VRCAvatarDescriptor` 的 Avatar 根对象，选择 **Add Component → 一个木禾 → Avatar Guard**。
-4. 选择 **保守** 或 **激进**，设置名称前缀。默认三个处理选项全部开启。
-5. 使用 VRChat SDK 正常构建/上传。NDMF 会先处理构建副本，随后本工具处理副本中的资源。Console 的 `[Avatar Guard]` 日志会列出数量与跳过原因。
+2. 从 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) 下载 `AvatarBuildObfuscator-0.2.0.unitypackage`，导入工程。项目中只安装一份本工具。
+3. 选择挂有 `VRCAvatarDescriptor` 的 Avatar 根对象，选择 **Add Component → Avatar Tools → Build Obfuscator**。
+4. 填写你自己的**用户名**，选择 **保守** 或 **激进**。默认三个处理选项全部开启。
+5. 使用 VRChat SDK 正常构建/上传。NDMF 会先处理构建副本，随后本工具处理副本中的资源。Console 的 `[Avatar Build Obfuscator]` 日志会列出数量与跳过原因。
 
 Avatar Optimizer 不是必需依赖。若已安装，本工具在它完成优化后处理，不修改它的设置。不需要更换 Shader。
 
-源码包也包含标准 VPM/UPM 目录 `Packages/dev.kiine.avatar-guard`；开发者可在依赖已安装的工程中作为本地包导入。
+源码包也包含标准 VPM/UPM 目录 `Packages/dev.avatar-tools.build-obfuscator`；开发者可在依赖已安装的工程中作为本地包导入。
 
 ## 两种模式
 
@@ -52,3 +52,9 @@ Avatar Optimizer 不是必需依赖。若已安装，本工具在它完成优化
 ## 许可证
 
 [MIT](LICENSE)。依赖的 NDMF、VRChat SDK、可选的 Avatar Optimizer 使用各自的许可证，未捆绑在本发布包中。
+
+## 从 0.1.0 升级
+
+0.2.0 使用通用名称 Avatar Build Obfuscator，仓库、组件菜单和安装目录已更名。旧组件的 `namePrefix` 字段会迁移成 `userName`，原先填写的值只用于派生混淆名。脚本 .meta GUID 保持不变，并包含类型迁移标记。在已有工程中升级后，检查用户名字段再构建；UPM/VPM 用户请移除旧包引用后安装新版，避免双重安装。
+
+相同用户名与相同调用顺序会生成同一名称序列；上游优化器可能改变遍历顺序，不保证每个资源跨所有构建始终使用相同名称。用户名不是密码，名称混淆不提供加密保密性。

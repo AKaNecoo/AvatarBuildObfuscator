@@ -8,17 +8,17 @@ import tarfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = ROOT / "Packages/dev.kiine.avatar-guard"
+PACKAGE = ROOT / "Packages/dev.avatar-tools.build-obfuscator"
 ARTIFACTS = ROOT / "Artifacts"
 VERSION = json.loads((PACKAGE / "package.json").read_text(encoding="utf-8"))["version"]
-EXPORT = ARTIFACTS / f"KiineAvatarGuard-{VERSION}.unitypackage"
+EXPORT = ARTIFACTS / f"AvatarBuildObfuscator-{VERSION}.unitypackage"
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 if sys.argv[1:] == ["zip"]:
     ARTIFACTS.mkdir(exist_ok=True)
-    with zipfile.ZipFile(ARTIFACTS / f"dev.kiine.avatar-guard-{VERSION}.zip", "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(ARTIFACTS / f"dev.avatar-tools.build-obfuscator-{VERSION}.zip", "w", zipfile.ZIP_DEFLATED) as z:
         for p in sorted(PACKAGE.rglob("*")):
             if p.is_file():
                 z.write(p, p.relative_to(PACKAGE).as_posix())
@@ -32,10 +32,10 @@ with tarfile.open(EXPORT, "r:gz") as archive:
     for record in paths:
         imported = archive.extractfile(record).read().decode("utf-8-sig").strip()
         assert ".." not in PurePosixPath(imported).parts, imported
-        assert imported == "Assets/KiineAvatarGuard" or imported.startswith("Assets/KiineAvatarGuard/"), imported
-        if imported == "Assets/KiineAvatarGuard":
+        assert imported == "Assets/AvatarBuildObfuscator" or imported.startswith("Assets/AvatarBuildObfuscator/"), imported
+        if imported == "Assets/AvatarBuildObfuscator":
             continue
-        relative = imported[len("Assets/KiineAvatarGuard/"):]
+        relative = imported[len("Assets/AvatarBuildObfuscator/"):]
         source = PACKAGE / relative
         assert source.exists(), imported
         if source.is_dir():
@@ -55,7 +55,7 @@ for meta in PACKAGE.rglob("*.meta"):
 assert len(guids) == len(set(guids)), "Duplicate .meta GUID"
 result = {"version": VERSION, "verified_source_files": len(seen), "unique_guids": len(guids),
           "artifacts": [{"name": p.name, "bytes": p.stat().st_size, "sha256": sha(p)}
-                        for p in sorted(ARTIFACTS.iterdir()) if p.suffix in (".unitypackage", ".zip")]}
+                        for p in (EXPORT, ARTIFACTS / f"dev.avatar-tools.build-obfuscator-{VERSION}.zip")]}
 (ARTIFACTS / "verification.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
 (ARTIFACTS / "SHA256SUMS.txt").write_text("".join(x["sha256"] + "  " + x["name"] + "\n" for x in result["artifacts"]), encoding="utf-8")
 print(json.dumps(result, ensure_ascii=False, indent=2))

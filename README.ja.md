@@ -1,12 +1,12 @@
-# 一个木禾 · Avatar Guard
+# Avatar Build Obfuscator
 
 [中文](README.md) · [English](README.en.md)
 
-`VRCAvatarDescriptor` があるアバターのルートに **一个木禾 / Avatar Guard** を追加すると、NDMF のビルド用コピーに対してアセット名・BlendShape 名の難読化と、固定 BlendShape のベイク・削除を実行します。既定の接頭辞は `一个木禾` です。中国語などの Unicode 名を使用できます。
+`VRCAvatarDescriptor` があるアバターのルートに **Avatar Tools / Build Obfuscator** を追加すると、NDMF のビルド用コピーに対してアセット名・BlendShape 名の難読化と、固定 BlendShape のベイク・削除を実行します。各ユーザーが自分のユーザー名を入力します（Unicode 対応）。ユーザー名から `o_…` 形式の不透明な名前を生成し、名前にユーザー名そのものは付けません。新規コンポーネントのユーザー名は空欄です。
 
 ## 導入
 
-Unity 2022.3 の VRChat Avatar プロジェクトに、VCC で Avatar SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。[Releases](https://github.com/AKaNecoo/KiineAvatarGuard/releases) の `.unitypackage` をインポートし、ルートにコンポーネントを追加して通常通りビルドします。同じツールを二重に導入しないでください。AAO は任意で、既存の設定は変更しません。
+Unity 2022.3 の VRChat Avatar プロジェクトに、VCC で Avatar SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` をインポートし、ルートにコンポーネントを追加し、自分のユーザー名を入力して通常通りビルドします。同じツールを二重に導入しないでください。AAO は任意で、既存の設定は変更しません。
 
 ## モード
 

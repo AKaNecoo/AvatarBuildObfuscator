@@ -1,12 +1,12 @@
-# Kiine Avatar Guard
+# Avatar Build Obfuscator
 
 [中文](README.md) · [日本語](README.ja.md)
 
-Add **一个木禾 / Avatar Guard** to the root GameObject containing `VRCAvatarDescriptor`. NDMF runs it on the build copy, after Modular Avatar, VRCFury, TexTransTool and Avatar Optimizer when present. The default name prefix is `一个木禾`; Unicode prefixes are supported.
+Add **Avatar Tools / Build Obfuscator** to the root GameObject containing `VRCAvatarDescriptor`. NDMF runs it on the build copy, after Modular Avatar, VRCFury, TexTransTool and Avatar Optimizer when present. Each user enters their own username (Unicode supported). It derives an opaque `o_…` naming sequence; resource names do not include the literal username. New components start with an empty username.
 
 ## Install
 
-Use a Unity 2022.3 VRChat Avatar project with the Avatar SDK and [NDMF](https://github.com/bdunderscore/ndmf) already installed through VCC. Import the `.unitypackage` from [Releases](https://github.com/AKaNecoo/KiineAvatarGuard/releases), add the component to your avatar root, and build normally. Install only one copy of this tool. AAO is optional and its configuration is not changed.
+Use a Unity 2022.3 VRChat Avatar project with the Avatar SDK and [NDMF](https://github.com/bdunderscore/ndmf) already installed through VCC. Import the `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases), add the component to your avatar root, enter your own username, and build normally. Install only one copy of this tool. AAO is optional and its configuration is not changed.
 
 ## Modes
 

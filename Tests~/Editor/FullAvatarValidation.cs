@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kiine.AvatarGuard;
+using AvatarTools.Obfuscation;
+using AvatarTools.Obfuscation.Editor;
 using nadena.dev.ndmf;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -12,7 +13,7 @@ using UnityEngine.SceneManagement;
 using VRC.SDK3.Avatars.Components;
 using Object = UnityEngine.Object;
 
-namespace Kiine.AvatarGuard.Validation
+namespace AvatarTools.Obfuscation.Validation
 {
     public static class FullAvatarValidation
     {
@@ -21,7 +22,7 @@ namespace Kiine.AvatarGuard.Validation
             public string mode, image;
             public double seconds, meanPixelDifference;
             public int objects, renderers, shapes, materials, textures, controllers, clips,
-                prefixedMeshes, prefixedShapes, prefixedMaterials, prefixedTextures, prefixedClips,
+                obfuscatedMeshes, obfuscatedShapes, obfuscatedMaterials, obfuscatedTextures, obfuscatedClips,
                 missingPaths, missingShapes, proxyBindings, markerComponents, humanoidBones, differentPixels;
             public bool humanoid;
             public int unityErrors;
@@ -80,14 +81,15 @@ namespace Kiine.AvatarGuard.Validation
                 foreach (var transform in clone.GetComponentsInChildren<Transform>(true))
                     if (PrefabUtility.IsAnyPrefabInstanceRoot(transform.gameObject))
                         PrefabUtility.UnpackPrefabInstance(transform.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
-                foreach (var component in clone.GetComponentsInChildren<AvatarGuard>(true)) Object.DestroyImmediate(component);
+                foreach (var component in clone.GetComponentsInChildren<AvatarBuildObfuscator>(true)) Object.DestroyImmediate(component);
                 // An earlier, separately audited plugin must not affect the baseline or this package's evidence.
                 foreach (var component in clone.GetComponentsInChildren<MonoBehaviour>(true))
                     if (component != null && component.GetType().FullName == "HateRipper.AvatarObfuscator.AvatarObfuscator")
                         Object.DestroyImmediate(component);
                 if (index > 0)
                 {
-                    var marker = clone.AddComponent<AvatarGuard>();
+                    var marker = clone.AddComponent<AvatarBuildObfuscator>();
+                    marker.userName = "Validation User";
                     marker.mode = index == 1 ? ProtectionMode.Conservative : ProtectionMode.Aggressive;
                 }
                 using (new OverrideTemporaryDirectoryScope(GuardValidation.Folder + "/BuildGenerated"))
@@ -146,14 +148,14 @@ namespace Kiine.AvatarGuard.Validation
             {
                 if (r.sharedMesh == null) continue;
                 m.shapes += r.sharedMesh.blendShapeCount;
-                if (r.sharedMesh.name.StartsWith("一个木禾_")) m.prefixedMeshes++;
+                if (UsernameNameGenerator.IsGeneratedName(r.sharedMesh.name)) m.obfuscatedMeshes++;
                 for (int i = 0; i < r.sharedMesh.blendShapeCount; i++)
-                    if (r.sharedMesh.GetBlendShapeName(i).StartsWith("一个木禾_")) m.prefixedShapes++;
+                    if (UsernameNameGenerator.IsGeneratedName(r.sharedMesh.GetBlendShapeName(i))) m.obfuscatedShapes++;
             }
             var mats = renderers.SelectMany(r => r.sharedMaterials).Where(x => x != null).Distinct().ToArray();
-            m.materials = mats.Length; m.prefixedMaterials = mats.Count(x => x.name.StartsWith("一个木禾_"));
+            m.materials = mats.Length; m.obfuscatedMaterials = mats.Count(x => UsernameNameGenerator.IsGeneratedName(x.name));
             var textures = mats.SelectMany(x => x.GetTexturePropertyNames().Select(x.GetTexture)).Where(x => x != null).Distinct().ToArray();
-            m.textures = textures.Length; m.prefixedTextures = textures.Count(x => x.name.StartsWith("一个木禾_"));
+            m.textures = textures.Length; m.obfuscatedTextures = textures.Count(x => UsernameNameGenerator.IsGeneratedName(x.name));
             var sites = new List<Tuple<RuntimeAnimatorController, Transform>>();
             var descriptor = avatar.GetComponent<VRCAvatarDescriptor>();
             foreach (var layer in descriptor.baseAnimationLayers.Concat(descriptor.specialAnimationLayers))
@@ -162,7 +164,7 @@ namespace Kiine.AvatarGuard.Validation
                 if (a.runtimeAnimatorController != null) sites.Add(Tuple.Create(a.runtimeAnimatorController, a.transform));
             var controllers = sites.Select(x => x.Item1).Distinct().ToArray(); m.controllers = controllers.Length;
             var clips = controllers.SelectMany(c => c.animationClips).Distinct().ToArray(); m.clips = clips.Length;
-            m.prefixedClips = clips.Count(c => c.name.StartsWith("一个木禾_"));
+            m.obfuscatedClips = clips.Count(c => UsernameNameGenerator.IsGeneratedName(c.name));
             foreach (var controller in controllers.OfType<AnimatorController>())
                 m.parameterNames.AddRange(controller.parameters.Select(p => p.name));
             m.parameterNames = m.parameterNames.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToList();
@@ -184,7 +186,7 @@ namespace Kiine.AvatarGuard.Validation
                     { m.missingShapes++; if (m.bindingProblems.Count < 20) m.bindingProblems.Add(b.path + ":" + b.propertyName); }
                 }
             }
-            m.markerComponents = avatar.GetComponentsInChildren<AvatarGuard>(true).Length;
+            m.markerComponents = avatar.GetComponentsInChildren<AvatarBuildObfuscator>(true).Length;
             var animator = avatar.GetComponent<Animator>(); m.humanoid = animator != null && animator.avatar != null && animator.avatar.isHuman;
             if (m.humanoid)
                 for (int i = 0; i < (int)HumanBodyBones.LastBone; i++)

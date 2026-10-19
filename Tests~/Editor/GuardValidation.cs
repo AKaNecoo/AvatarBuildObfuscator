@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using Kiine.AvatarGuard;
-using Kiine.AvatarGuard.Editor;
+using AvatarTools.Obfuscation;
+using AvatarTools.Obfuscation.Editor;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -12,12 +12,12 @@ using VRC.SDK3.Avatars.Components;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using Object = UnityEngine.Object;
 
-namespace Kiine.AvatarGuard.Validation
+namespace AvatarTools.Obfuscation.Validation
 {
     /// <summary>Opt-in Editor validation. Creates synthetic fixtures only under Folder.</summary>
     public static class GuardValidation
     {
-        public const string Folder = "Assets/__KiineGuardValidation_20261019";
+        public const string Folder = "Assets/__AvatarBuildObfuscatorValidation_20261019";
         [Serializable] public sealed class Case { public string name, status, detail; }
         [Serializable] public sealed class Results { public List<Case> cases = new List<Case>(); public int passed, failed; }
         private static readonly List<Object> cleanup = new List<Object>();
@@ -27,9 +27,28 @@ namespace Kiine.AvatarGuard.Validation
         {
             Directory.CreateDirectory(Folder + "/Fixtures"); AssetDatabase.Refresh();
             results = new Results();
-            Run("Chinese prefix and invalid separator sanitization", () => {
-                Check(GuardSettings.SanitizePrefix("一个木禾") == "一个木禾", "Chinese prefix changed");
-                Check(GuardSettings.SanitizePrefix("木/禾\\名\n") == "木_禾_名", "Unsafe separators survived");
+            Run("Same username generates the same opaque sequence", () => {
+                var a = new UsernameNameGenerator("示例用户"); var b = new UsernameNameGenerator("示例用户");
+                var names = new HashSet<string>();
+                for (int i = 0; i < 2048; i++) {
+                    string value = a.Next();
+                    Check(value == b.Next() && UsernameNameGenerator.IsGeneratedName(value), "Sequence not deterministic or unsafe name");
+                    Check(names.Add(value) && !value.Contains("示例用户"), "Duplicate name or literal username");
+                }
+            });
+            Run("Different usernames generate different sequences", () => {
+                var a = new UsernameNameGenerator("UserA"); var b = new UsernameNameGenerator("UserB");
+                for (int i = 0; i < 64; i++) Check(a.Next() != b.Next(), "Username did not influence output");
+            });
+            Run("Unicode normalization and input separators never enter resource names", () => {
+                Check(new UsernameNameGenerator(" café ").Next() == new UsernameNameGenerator("cafe\u0301").Next(), "NFC/trim mismatch");
+                Check(UsernameNameGenerator.IsGeneratedName(new UsernameNameGenerator("示例/用户\\:").Next()), "Path characters entered output");
+            });
+            Run("New components require each user's own username", () => {
+                var root = Track(new GameObject("NewComponent")); var marker = root.AddComponent<AvatarBuildObfuscator>();
+                Check(marker.userName == "", "Author identity was prefilled");
+                bool rejected = false; try { new GuardSettings(marker); } catch (ArgumentException) { rejected = true; }
+                Check(rejected, "Blank username accepted");
             });
             foreach (float weight in new[] { 0f, 35f, 100f })
             {
@@ -88,7 +107,7 @@ namespace Kiine.AvatarGuard.Validation
         private static T Track<T>(T value) where T : Object { cleanup.Add(value); return value; }
         private static GameObject Root()
         {
-            var root = Track(new GameObject("GuardFixture")); root.AddComponent<AvatarGuard>(); return root;
+            var root = Track(new GameObject("GuardFixture")); root.AddComponent<AvatarBuildObfuscator>().userName = "Synthetic User"; return root;
         }
         private static Mesh Mesh(params string[] names)
         {
@@ -126,8 +145,8 @@ namespace Kiine.AvatarGuard.Validation
         }
         private static GuardReport Process(GameObject root, ProtectionMode mode = ProtectionMode.Conservative)
         {
-            root.GetComponent<AvatarGuard>().mode = mode;
-            return new GuardProcessor(root, new GuardSettings(root.GetComponent<AvatarGuard>()), x => Track(x)).Run();
+            root.GetComponent<AvatarBuildObfuscator>().mode = mode;
+            return new GuardProcessor(root, new GuardSettings(root.GetComponent<AvatarBuildObfuscator>()), x => Track(x)).Run();
         }
         private static Mesh Baked(SkinnedMeshRenderer renderer)
         { var mesh = Track(new Mesh()); renderer.BakeMesh(mesh); return mesh; }
@@ -148,7 +167,7 @@ namespace Kiine.AvatarGuard.Validation
             var output = root.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single();
             Check(output != clip, "Clip shared with source");
             var name = renderer.sharedMesh.GetBlendShapeName(0);
-            Check(name.StartsWith("一个木禾_"), "Chinese shape prefix missing");
+            Check(UsernameNameGenerator.IsGeneratedName(name) && !name.Contains("Synthetic User"), "Shape name exposed username");
             Check(AnimationUtility.GetCurveBindings(output).Single().propertyName == "blendShape." + name, "Curve not rewritten");
             Check(AnimationUtility.GetCurveBindings(clip).Single().propertyName == "blendShape.ExpressionDrive", "Source curve mutated");
         }
@@ -258,7 +277,7 @@ namespace Kiine.AvatarGuard.Validation
         private static void ManualPreserve()
         {
             var root = Root(); var a = Renderer(root, "A", Mesh("Keep")); var b = Renderer(root, "B", Mesh("Other"));
-            var marker = root.GetComponent<AvatarGuard>(); marker.preserveBlendShapes = new[] { "Keep" }; marker.excludedRenderers = new[] { b };
+            var marker = root.GetComponent<AvatarBuildObfuscator>(); marker.preserveBlendShapes = new[] { "Keep" }; marker.excludedRenderers = new[] { b };
             var report = Process(root, ProtectionMode.Aggressive);
             Check(report.FrozenShapes == 0 && report.RenamedShapes == 0 && a.sharedMesh.GetBlendShapeName(0) == "Keep" && b.sharedMesh.GetBlendShapeName(0) == "Other", "Manual keep ignored");
         }
@@ -298,7 +317,7 @@ namespace Kiine.AvatarGuard.Validation
         {
             var root = Root(); var r = Renderer(root, "Body", Mesh("Driven"));
             var source = Clip("Body", "Driven"); var controller = Controller(root, source);
-            root.GetComponent<AvatarGuard>().renameAssets = false; var report = Process(root);
+            root.GetComponent<AvatarBuildObfuscator>().renameAssets = false; var report = Process(root);
             var copied = root.GetComponent<Animator>().runtimeAnimatorController;
             Check(report.RenamedAssets == 0 && copied != controller && copied.name == controller.name, "Asset rename flag ignored");
             Check(AnimationUtility.GetCurveBindings(copied.animationClips.Single()).Single().propertyName == "blendShape." + r.sharedMesh.GetBlendShapeName(0), "Binding stale without asset rename");
@@ -332,7 +351,7 @@ namespace Kiine.AvatarGuard.Validation
             input.Apply(false, false); var before = Pixels(input);
             var material = Track(new Material(Shader.Find("Unlit/Texture"))); material.mainTexture = input; r.sharedMaterial = material;
             Process(root); var output = r.sharedMaterial.mainTexture;
-            Check(output != input && output.name.StartsWith("一个木禾_"), "Texture not renamed on a copy");
+            Check(output != input && UsernameNameGenerator.IsGeneratedName(output.name), "Texture not renamed on a copy");
             Check(before.SequenceEqual(Pixels(output)), "GPU pixel content changed");
             Check(before.SequenceEqual(Pixels(input)), "Source texture changed");
         }

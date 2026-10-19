@@ -4,9 +4,9 @@ import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-PACKAGE = ROOT / "Packages/dev.kiine.avatar-guard"
+PACKAGE = ROOT / "Packages/dev.avatar-tools.build-obfuscator"
 PROJECT = Path(sys.argv[1]).resolve()
-TARGET = PROJECT / "Assets/KiineAvatarGuard"
+TARGET = PROJECT / "Assets/AvatarBuildObfuscator"
 shutil.copyfile(ROOT / "LICENSE", PACKAGE / "LICENSE")
 copied = 0
 for meta in TARGET.rglob("*.meta"):

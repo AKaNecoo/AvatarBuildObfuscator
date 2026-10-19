@@ -1,6 +1,6 @@
 {
-  "name": "dev.kiine.avatar-guard.runtime",
-  "rootNamespace": "Kiine.AvatarGuard",
+  "name": "dev.avatar-tools.build-obfuscator.runtime",
+  "rootNamespace": "AvatarTools.Obfuscation",
   "references": [],
   "overrideReferences": true,
   "precompiledReferences": ["VRCSDKBase.dll"],

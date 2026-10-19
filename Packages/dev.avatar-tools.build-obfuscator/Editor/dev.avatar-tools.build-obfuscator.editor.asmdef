@@ -1,0 +1,9 @@
+{
+  "name": "dev.avatar-tools.build-obfuscator.editor",
+  "rootNamespace": "AvatarTools.Obfuscation.Editor",
+  "references": ["dev.avatar-tools.build-obfuscator.runtime", "nadena.dev.ndmf", "nadena.dev.ndmf.runtime"],
+  "includePlatforms": ["Editor"],
+  "overrideReferences": true,
+  "precompiledReferences": ["VRCSDK3A.dll", "VRCSDKBase.dll"],
+  "autoReferenced": true
+}

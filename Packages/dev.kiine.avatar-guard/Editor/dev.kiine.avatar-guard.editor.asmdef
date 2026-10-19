@@ -1,9 +1,0 @@
-{
-  "name": "dev.kiine.avatar-guard.editor",
-  "rootNamespace": "Kiine.AvatarGuard.Editor",
-  "references": ["dev.kiine.avatar-guard.runtime", "nadena.dev.ndmf", "nadena.dev.ndmf.runtime"],
-  "includePlatforms": ["Editor"],
-  "overrideReferences": true,
-  "precompiledReferences": ["VRCSDK3A.dll", "VRCSDKBase.dll"],
-  "autoReferenced": true
-}
