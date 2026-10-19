@@ -6,7 +6,35 @@
 
 ## 導入
 
-Unity 2022.3 の VRChat Avatar プロジェクトに、VCC で Avatar SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` をインポートし、ルートにコンポーネントを追加し、自分のユーザー名を入力して通常通りビルドします。同じツールを二重に導入しないでください。AAO は任意で、既存の設定は変更しません。
+Unity 2022.3 の VRChat Avatar プロジェクトに、VCC で Avatar SDK と [NDMF](https://github.com/bdunderscore/ndmf) を先に導入してください。本ツールを Git から導入しても、これらの VPM 依存パッケージは自動導入されません。AAO は任意で、既存の設定は変更しません。
+
+### Git からインストール（推奨）
+
+先に [Git](https://git-scm.com/) をインストールしてください。Windows では、Unity が `PATH` から Git を見つけられる必要があります。
+
+1. **Window → Package Manager** を開きます。
+2. **＋ → Add package from git URL…** を選びます。
+3. 次の URL 全体を貼り付けて **Add** を押し、コンパイルの完了を待ちます。
+
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
+```
+
+**URL の入力は初回だけです。以後の更新は、Package Manager で Avatar Build Obfuscator を選び、Update を押してください。** `main` の新しいコミットを取得でき、URL の再入力は不要です。
+
+Unity は導入済みのコミットを固定するため、プロジェクトを開くたびに自動更新することはありません。パッケージはサブフォルダーにあるため `?path=…` を省略しないでください。`#main` が手動更新時に追跡するブランチです。[Unity の Git 導入手順](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)と[コミットの固定・更新](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks)を参照してください。
+
+### Unity パッケージからインポート
+
+[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` をインポートする方法もあります。この導入方法は新版の Unity パッケージをインポートして更新し、Git の更新ボタンは使用しません。
+
+**同じツールを二重に導入しないでください。** Unity パッケージ版から Git 版へ切り替える場合は、先に `Assets/AvatarBuildObfuscator` のプラグインファイルを削除してください。アバター、シーン、その他のアセットは残し、Git 版の導入後に既存コンポーネントとユーザー名の設定を確認してください。
+
+### コンポーネントを追加
+
+`VRCAvatarDescriptor` があるルートに **Avatar Tools → Build Obfuscator** を追加し、自分のユーザー名とモードを設定して通常通りビルドします。
+
+特定バージョンに固定する場合は、URL 末尾の `#main` を `#v0.2.0` などの公開タグに置き換えます。固定タグは `main` の更新を追跡しません。
 
 ## モード
 

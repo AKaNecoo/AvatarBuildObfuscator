@@ -6,7 +6,35 @@ Add **Avatar Tools / Build Obfuscator** to the root GameObject containing `VRCAv
 
 ## Install
 
-Use a Unity 2022.3 VRChat Avatar project with the Avatar SDK and [NDMF](https://github.com/bdunderscore/ndmf) already installed through VCC. Import the `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases), add the component to your avatar root, enter your own username, and build normally. Install only one copy of this tool. AAO is optional and its configuration is not changed.
+Use a Unity 2022.3 VRChat Avatar project with the Avatar SDK and [NDMF](https://github.com/bdunderscore/ndmf) already installed through VCC. Installing this tool through Git does not install those VPM dependencies for you. AAO is optional and its configuration is not changed.
+
+### Install with Git (recommended)
+
+Install [Git](https://git-scm.com/) first. On Windows, Unity must be able to find Git through `PATH`.
+
+1. Open **Window → Package Manager**.
+2. Choose **＋ → Add package from git URL…**.
+3. Paste this complete URL, click **Add**, and wait for compilation:
+
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
+```
+
+**Enter this URL once. To update later:** select **Avatar Build Obfuscator** in **Package Manager** and click **Update** to fetch new commits from `main`. You do not need to enter the URL again.
+
+Unity locks the installed commit; it does not fetch updates every time the project opens. Keep `?path=…` because the package lives in a repository subfolder. `#main` selects the branch used for manual updates. See Unity's [Git installation guide](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html) and [locked Git dependencies](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks).
+
+### Import a Unity package
+
+Alternatively, import a `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases). Update this installation by importing a newer Unity package, rather than using the Git update button.
+
+**Install only one copy.** Before switching from a Unity-package installation to Git, remove the plugin files under `Assets/AvatarBuildObfuscator`. Keep your avatar, scenes and other assets. After installing the Git package, check the existing component and username settings; duplicate installations cause assembly conflicts.
+
+### Add the component
+
+Add **Avatar Tools → Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username, choose a mode and build normally.
+
+To pin a release instead, replace `#main` with a published tag such as `#v0.2.0`. A pinned tag does not follow updates to `main`.
 
 ## Modes
 

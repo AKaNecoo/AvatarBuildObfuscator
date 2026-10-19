@@ -8,15 +8,37 @@
 
 ## 安装与使用
 
-1. 使用 Unity **2022.3** 的 VRChat Avatar 工程，先通过 VCC 安装 Avatar SDK 与 [NDMF](https://github.com/bdunderscore/ndmf)。已安装 Modular Avatar 的工程通常已有 NDMF。
-2. 从 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) 下载 `AvatarBuildObfuscator-0.2.0.unitypackage`，导入工程。项目中只安装一份本工具。
-3. 选择挂有 `VRCAvatarDescriptor` 的 Avatar 根对象，选择 **Add Component → Avatar Tools → Build Obfuscator**。
-4. 填写你自己的**用户名**，选择 **保守** 或 **激进**。默认三个处理选项全部开启。
-5. 使用 VRChat SDK 正常构建/上传。NDMF 会先处理构建副本，随后本工具处理副本中的资源。Console 的 `[Avatar Build Obfuscator]` 日志会列出数量与跳过原因。
+使用 Unity **2022.3** 的 VRChat Avatar 工程，先通过 VCC 安装 Avatar SDK 与 [NDMF](https://github.com/bdunderscore/ndmf)。已安装 Modular Avatar 的工程通常已有 NDMF。Git 安装本工具不会替代 VCC 安装这些依赖。Avatar Optimizer 是可选依赖，已有设置不会被本工具修改，也不需要更换 Shader。
 
-Avatar Optimizer 不是必需依赖。若已安装，本工具在它完成优化后处理，不修改它的设置。不需要更换 Shader。
+### 通过 Git 安装（推荐）
 
-源码包也包含标准 VPM/UPM 目录 `Packages/dev.avatar-tools.build-obfuscator`；开发者可在依赖已安装的工程中作为本地包导入。
+电脑需要安装 [Git](https://git-scm.com/)；Windows 上需确保 Unity 能通过 `PATH` 找到 Git。
+
+1. 打开 **Window → Package Manager**。
+2. 点击左上角 **＋ → Add package from git URL…**。
+3. 粘贴以下完整地址，点击 **Add**，等待导入和编译完成：
+
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
+```
+
+**这条地址只需安装时输入一次。以后更新：**在 **Package Manager** 中选中 **Avatar Build Obfuscator**，点击 **Update** 获取 `main` 分支的新提交，无需重新输入地址。
+
+Unity 会锁定已安装的提交，不会在每次打开工程时自动拉取。`?path=…` 指定仓库中的包目录，不能省略；`#main` 让后续手动更新跟随该分支。参见 [Unity Git 安装说明](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)与 [Git 更新及锁定提交说明](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks)。
+
+### 从 Unity 安装包导入
+
+也可以从 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) 下载 `.unitypackage` 并导入工程。此方式通过导入新版安装包更新，不使用 Package Manager 的 Git 更新按钮。
+
+**同一工程只安装一份。**如果已经通过 `.unitypackage` 导入，切换 Git 安装前先移除 `Assets/AvatarBuildObfuscator` 中的插件文件；保留 Avatar、场景和自己的其他资产。安装 Git 包后检查原组件与用户名设置，避免双重安装造成程序集冲突。
+
+### 添加组件并构建
+
+1. 选择挂有 `VRCAvatarDescriptor` 的 Avatar 根对象，选择 **Add Component → Avatar Tools → Build Obfuscator**。
+2. 填写你自己的**用户名**，选择 **保守** 或 **激进**。默认三个处理选项全部开启。
+3. 使用 VRChat SDK 正常构建/上传。NDMF 会先处理构建副本，随后本工具处理副本中的资源。Console 的 `[Avatar Build Obfuscator]` 日志会列出数量与跳过原因。
+
+如需固定在某个版本，可将 Git 地址末尾的 `#main` 改为发布标签，例如 `#v0.2.0`；固定标签不会跟随 `main` 更新。源码也包含标准包目录 `Packages/dev.avatar-tools.build-obfuscator`，开发者可在依赖已安装的工程中作为本地包导入。
 
 ## 两种模式
 
