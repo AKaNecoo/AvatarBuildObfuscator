@@ -1,8 +1,10 @@
 # Avatar Build Obfuscator
 
+The username keeps its label-left/input-right row and uses a native bound text field for focus, IME and Undo. Search **Avatar Build Obfuscator** in Add Component and choose **Avatar Tools / Avatar Build Obfuscator**.
+
 [中文](README.md) · [日本語](README.ja.md)
 
-Add **Avatar Tools / Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-beta.2** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
+Add **Avatar Tools / Avatar Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-beta.3** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
 
 There is **no OSC, password or runtime shader decryption**. Uploaded textures, final geometry and required dynamic blendshapes remain extractable. Obfuscation does not provide confidentiality.
 

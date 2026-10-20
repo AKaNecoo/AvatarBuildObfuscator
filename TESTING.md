@@ -1,4 +1,4 @@
-# Validation — 0.3.0-beta.2
+# Validation — 0.3.0-beta.3
 
 Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
 
@@ -93,3 +93,13 @@ The actual Editor Play transition invokes the VRChat SDK preprocessing callbacks
 All 38 Inspector translation entries contain Chinese/English/Japanese text; all used Inspector keys resolve. Serialized language choices round-trip in all three languages without changing GuardSettings. The actual Chinese Inspector was visually inspected. No language/package dependency or source-scene save is required to use the selector.
 
 The full three-way mesh/pose/texture tables above were measured in beta.1 and are retained as that version's evidence; beta.2 reruns the synthetic suite and adds native Play-path verification. It does not claim those earlier tables were recomputed in this patch.
+
+## Beta.3 username input and component naming
+
+The local beta.3 package passes 51 UI assertions in a preview-scene fixture containing two independent bound Inspector views, plus all 52 synthetic processing checks. The UI checks exercise Chinese/English/Japanese label changes, real pointer hit testing, keyboard events across separate Editor updates, Unicode text, cross-view synchronization, Undo/Redo, clipboard paste and recreating an Inspector before continuing to type. They check both the component value and displayed field values. Windows IME candidate-window composition is not simulated by these Unicode key/paste checks.
+
+The fixture is opt-in: call InspectorInputValidation.Start(outputJsonPath). It opens a temporary tool window, starts after five seconds and requires the Unity window to remain active. Conditions allow up to two seconds for asynchronous binding propagation. Cleanup closes the window and preview scene, and clears Undo records for the fixture only. The fixture must remain editable: HideAndDontSave includes NotEditable and is unsuitable here. It uses HideInHierarchy/DontSave flags instead.
+
+The new standard Inspector keeps the label-left/input-right username row and other existing controls. A native bound TextField isolates text editing from the IMGUI layout loop. Localized caption changes are silent: a normal child Label text change was observed bubbling into Unity's string binding and restoring a stale username during a combined external value/language update. The regression above catches that behavior. The original intermittent beta.2 no-caret trigger has not been conclusively identified; passing this fixture is not a claim that every Editor/input-method condition has been reproduced.
+
+The component menu is Avatar Tools/Avatar Build Obfuscator and Unity ObjectNames.GetInspectorTitle returns Avatar Build Obfuscator. Runtime type, assembly, serialized fields and script GUID are retained. No build processor changes are part of beta.3. The beta.1 full-model tables, beta.2 native SDK Play transition and beta.2 source-integrity checkpoint remain historical results, not fresh beta.3 full-avatar/client runs.

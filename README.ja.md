@@ -1,8 +1,10 @@
 # Avatar Build Obfuscator
 
+ユーザー名は左ラベル・右入力欄の1行配置を維持し、フォーカス・IME・Undo をネイティブのバインド済みテキスト欄で処理します。Add Component では **Avatar Build Obfuscator** を検索し、**Avatar Tools / Avatar Build Obfuscator** を選択します。
+
 [中文](README.md) · [English](README.en.md)
 
-`VRCAvatarDescriptor` のあるルートに **Avatar Tools / Build Obfuscator** を追加し、自分のユーザー名を入力すると、NDMF のビルド用コピーを処理します。**0.3.0-beta.2** の名前は **`ユーザー名_IlIl…`**。Unicode の表示プレフィックスと、ASCII の大文字 `I` / 小文字 `l` 128 文字で構成します。正規化したユーザー名全体を生成シードにも使います。新規コンポーネントは空欄です。
+`VRCAvatarDescriptor` のあるルートに **Avatar Tools / Avatar Build Obfuscator** を追加し、自分のユーザー名を入力すると、NDMF のビルド用コピーを処理します。**0.3.0-beta.3** の名前は **`ユーザー名_IlIl…`**。Unicode の表示プレフィックスと、ASCII の大文字 `I` / 小文字 `l` 128 文字で構成します。正規化したユーザー名全体を生成シードにも使います。新規コンポーネントは空欄です。
 
 **OSC・パスワード・実行時 Shader 復号は不要**です。暗号化ではなく、テクスチャ、最終形状、必要な動的 BlendShape はアップロードデータに残ります。
 

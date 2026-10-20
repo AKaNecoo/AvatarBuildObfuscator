@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0-beta.3 — 2026-10-20
+
+- Replace the standard Inspector username input with a native UI Toolkit TextField bound to the existing serialized property, keeping the label-left/input-right layout. Other options and the legacy OnInspectorGUI path retain their existing interface. Size labels against actual Inspector geometry and reserve input width in narrow views.
+- Prevent translated caption ChangeEvents from entering the username binding and restoring stale text; synchronize external property changes without emitting input events.
+- Rename the Add Component entry and Inspector heading to Avatar Build Obfuscator; retain component class, assembly, fields and script GUID compatibility.
+- Add an opt-in preview-scene input fixture with two bound Inspectors, cross-frame keyboard input, Unicode paste, language changes, Undo/Redo and Inspector recreation.
+
 ## 0.3.0-beta.2 — 2026-10-20
 
 - Fix Play/SDK preprocessing: permit NDMF's actual default __Generated tree in addition to Assets output, keeping vendor-package and traversal rejection.

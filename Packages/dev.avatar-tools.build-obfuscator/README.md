@@ -1,10 +1,12 @@
-# Avatar Build Obfuscator 0.3.0-beta.2
+# Avatar Build Obfuscator 0.3.0-beta.3
+
+0.3.0-beta.3：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
 
 ## 中文
 
 顶部 **语言 / Language / 言語** 支持简体中文、English、日本語，选择保存在组件中，只影响界面显示。0.3.0-beta.2 修复了默认 NDMF 临时目录被误拒绝、导致 Play 预处理失败的问题。
 
-在 Avatar 根对象添加 **Avatar Tools / Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。支持中文，名称显示为 `用户名_IlIl…`，后缀由 128 个 ASCII I/l 组成。新组件用户名留空。
+在 Avatar 根对象添加 **Avatar Tools / Avatar Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。支持中文，名称显示为 `用户名_IlIl…`，后缀由 128 个 ASCII I/l 组成。新组件用户名留空。
 
 两档均处理支持的资源、层级/动画/Mask 路径、Humanoid 骨骼、自定义参数及动画内部名称。保守保护未知依赖；激进允许未知风险。可独立打乱 BlendShape 索引、GameObject 同级顺序和网格顶点顺序，无需解密。权重、眼皮索引、动画与骨骼映射同步，UI/重复同名等明确顺序依赖保留。
 

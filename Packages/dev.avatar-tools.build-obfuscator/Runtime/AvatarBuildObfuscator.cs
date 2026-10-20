@@ -8,7 +8,7 @@ namespace AvatarTools.Obfuscation
     public enum InspectorLanguage { SimplifiedChinese, English, Japanese }
 
     /// <summary>Editor-only build instructions. NDMF runs them on its build copy.</summary>
-    [AddComponentMenu("Avatar Tools/Build Obfuscator")]
+    [AddComponentMenu("Avatar Tools/Avatar Build Obfuscator")]
     [DisallowMultipleComponent]
     [HelpURL("https://github.com/AKaNecoo/AvatarBuildObfuscator")]
     [MovedFrom(true, "Kiine.AvatarGuard", "dev.kiine.avatar-guard.runtime", "AvatarGuard")]
