@@ -31,7 +31,7 @@ namespace AvatarTools.Obfuscation.Editor
                 throw new ArgumentException("Generated assets must be inside Assets or NDMF's __Generated tree");
             if (!AssetDatabase.IsValidFolder(generatedFolder)) return;
             var sources = WalkReferencedAssets().Where(x => x is Texture || x is AudioClip).ToArray();
-            var pending = new List<Tuple<Object, string>>();
+            var pending = new List<Tuple<Object, string, string>>();
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // CopyAsset normally refreshes and imports for every single file. Hundreds
             // of avatar textures/audio then repeatedly enter import/postprocessor work.
@@ -49,10 +49,19 @@ namespace AvatarTools.Obfuscation.Editor
                     if (EditorUtility.DisplayCancelableProgressBar("Avatar Build Obfuscator",
                         "复制构建资源 " + (i + 1) + "/" + sources.Length + "（完成后统一导入）", (float)i / sources.Length))
                         throw new OperationCanceledException("用户取消了构建资源复制");
-                    string destination = AssetDatabase.GenerateUniqueAssetPath(generatedFolder + "/" + NewName() + Path.GetExtension(path));
+                    string name = NewName();
+                    string destination = ImportedAssetPath(generatedFolder, name, Path.GetExtension(path));
+                    if (destination == null)
+                    {
+                        // Keep the source reference when even a compact independent copy
+                        // cannot fit. Do not retry through Instantiate later in the pass.
+                        sharedAssets[asset] = asset;
+                        report.Note("构建输出目录过长，保留无法安全复制的贴图/音频；请缩短工程路径或 Avatar 根对象名称");
+                        continue;
+                    }
                     if (!AssetDatabase.CopyAsset(path, destination))
                     { report.Note("导入资源无法复制，保留原资源：" + asset.GetType().Name); continue; }
-                    pending.Add(Tuple.Create(asset, destination));
+                    pending.Add(Tuple.Create(asset, destination, name));
                 }
             }
             finally
@@ -73,6 +82,10 @@ namespace AvatarTools.Obfuscation.Editor
                     (a.width != b.width || a.height != b.height || a.format != b.format || a.mipmapCount != b.mipmapCount ||
                      a.isReadable != b.isReadable || a.graphicsFormat != b.graphicsFormat))
                     throw new InvalidOperationException("复制贴图改变了导入格式：" + AssetDatabase.GetAssetPath(asset));
+                // The native audio importer still rejects Windows paths >= 260 chars.
+                // Disk names may be compact; the build object's name retains the
+                // complete username prefix and 128-bit I/l name used by other assets.
+                copy.name = item.Item3;
                 sharedAssets[asset] = copy;
                 nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(asset), copy);
                 Own(copy); report.RenamedAssets++;
@@ -80,6 +93,24 @@ namespace AvatarTools.Obfuscation.Editor
             }
             watch.Stop();
             report.Note("批量复制/导入 " + pending.Count + " 个贴图/音频，用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒");
+        }
+
+        private static string ImportedAssetPath(string folder, string name, string extension)
+        {
+            // Leave room below MAX_PATH for importer sidecars and unique-path suffixes.
+            // Apply this budget on all hosts so the generated project stays portable.
+            const int maxPath = 240, uniqueReserve = 8, minSuffix = 64;
+            int budget = maxPath - uniqueReserve - Path.GetFullPath(folder + "/").Length - extension.Length;
+            if (name.Length > budget)
+            {
+                int separator = name.Length - 129;
+                int prefixLength = Math.Min(separator, budget - minSuffix - 1);
+                if (prefixLength < 1) return null;
+                int suffixLength = Math.Min(128, budget - prefixLength - 1);
+                name = name.Substring(0, prefixLength) + "_" + name.Substring(separator + 1, suffixLength);
+            }
+            string path = AssetDatabase.GenerateUniqueAssetPath(folder + "/" + name + extension);
+            return Path.GetFullPath(path).Length <= maxPath ? path : null;
         }
 
         private IEnumerable<Object> WalkReferencedAssets()

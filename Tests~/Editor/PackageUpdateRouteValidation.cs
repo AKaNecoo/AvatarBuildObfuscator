@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace AvatarTools.Obfuscation.Validation
@@ -18,14 +19,21 @@ namespace AvatarTools.Obfuscation.Validation
         {
             public string stage, route, expectedSource, expectedCommit, expectedVersion, startedUtc, fromVersion, toVersion, source, channel;
             public string username, mode, language, scriptGuid;
+            public string sourceMarker;
             public bool originalAutomaticInstall, automaticWasEnabled, installerDeleted, settingsPreserved;
             public List<string> errors = new List<string>();
         }
         private static Type Service => Type.GetType("AvatarTools.Obfuscation.Editor.PackageUpdates, dev.avatar-tools.build-obfuscator.editor", true);
         private static object Property(string name) { return Service.GetProperty(name, Flags).GetValue(null, null); }
         private static object Settings => Property("Settings");
-        private static AvatarBuildObfuscator Marker => UnityEngine.SceneManagement.SceneManager.GetSceneByPath("Assets/Milfy.unity")
-            .GetRootGameObjects().Single(g => g.name == "Milfy_Lite").GetComponent<AvatarBuildObfuscator>();
+        private static AvatarBuildObfuscator Marker(Result value)
+        {
+            GlobalObjectId id;
+            if (!GlobalObjectId.TryParse(value.sourceMarker, out id)) throw new Exception("Invalid source component identity");
+            var marker = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(id) as AvatarBuildObfuscator;
+            if (marker == null) throw new Exception("Source component no longer exists");
+            return marker;
+        }
         static PackageUpdateRouteValidation()
         {
             EditorApplication.update += Tick;
@@ -36,15 +44,23 @@ namespace AvatarTools.Obfuscation.Validation
                 value.errors.Add(message); Write(value);
             };
         }
-        public static void Arm(string output, string route, string source, string commit, string version)
+        public static void Arm(string output, string route, string source, string commit, string version, int sourceInstanceId = 0)
         {
             var active = Read();
             if (active != null && active.stage == "waiting") throw new Exception("Route test already active");
+            settledAfter = 0;
             SessionState.SetString(Key, output);
-            var marker = Marker;
+            var marker = sourceInstanceId != 0 ? EditorUtility.InstanceIDToObject(sourceInstanceId) as AvatarBuildObfuscator :
+                UnityEngine.Object.FindObjectsOfType<AvatarBuildObfuscator>(true)
+                    .Where(c => c.gameObject.scene.IsValid() && !EditorSceneManager.IsPreviewScene(c.gameObject.scene)).Single();
+            if (marker == null || EditorUtility.IsPersistent(marker)) throw new Exception("Select a scene component to validate");
+            var identity = GlobalObjectId.GetGlobalObjectIdSlow(marker);
+            if (GlobalObjectId.GlobalObjectIdentifierToObjectSlow(identity) != marker)
+                throw new Exception("Source component requires a stable saved-scene identity");
             Write(new Result { stage = "waiting", route = route, expectedSource = source, expectedCommit = commit, expectedVersion = version,
                 startedUtc = DateTime.UtcNow.ToString("O"), fromVersion = (string)Property("CurrentVersion"),
                 username = marker.userName, mode = marker.mode.ToString(), language = marker.inspectorLanguage.ToString(),
+                sourceMarker = identity.ToString(),
                 originalAutomaticInstall = (bool)Settings.GetType().GetField("automaticInstall").GetValue(Settings) });
         }
         private static Result Read()
@@ -76,7 +92,7 @@ namespace AvatarTools.Obfuscation.Validation
                 if (settledAfter == 0) { settledAfter = EditorApplication.timeSinceStartup + 3; return; }
                 if (EditorApplication.timeSinceStartup < settledAfter) return;
             }
-            var marker = Marker;
+            var marker = Marker(value);
             value.toVersion = (string)Property("CurrentVersion");
             value.source = (bool)Property("Legacy") ? "Assets" : "Git";
             value.channel = (string)Property("Channel");

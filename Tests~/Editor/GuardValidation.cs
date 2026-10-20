@@ -89,6 +89,8 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Imported Crunch texture clones retain pixels and importer bytes", () => ImportedTexture(true));
             Run("NDMF default package output supports unreadable texture copies", () => ImportedTexture(false, true));
             Run("NDMF default package output supports Crunch texture copies", () => ImportedTexture(true, true));
+            Run("Long username audio copies fit native paths and preserve samples/source bytes", () => ImportedAudioPath(false));
+            Run("An overlong output folder retains the original audio without aborting", () => ImportedAudioPath(true));
             Run("Generated-folder guard rejects package sources and traversal", GeneratedFolderGuard);
             Run("Imported assets use one batch instead of an import per file", BatchedImports);
             Run("Custom Shader copies preserve properties and source files", ShaderCopy);
@@ -676,6 +678,55 @@ namespace AvatarTools.Obfuscation.Validation
             Check(output.format == texture.format && before.SequenceEqual(Pixels(output)), "Texture format/pixels changed");
             Check(sourceBytes.SequenceEqual(File.ReadAllBytes(path)) && sourceMeta.SequenceEqual(File.ReadAllBytes(path + ".meta")), "Source file/importer changed");
             Check(report.ImportedTextureCopies == 1, report.Summary);
+        }
+
+        private static void ImportedAudioPath(bool overlong)
+        {
+            string inputPath = Folder + "/Fixtures/Audio_" + Guid.NewGuid().ToString("N") + ".wav";
+            using (var writer = new BinaryWriter(File.Create(inputPath)))
+            {
+                const int count = 1024;
+                writer.Write(System.Text.Encoding.ASCII.GetBytes("RIFF")); writer.Write(36 + count * 2);
+                writer.Write(System.Text.Encoding.ASCII.GetBytes("WAVEfmt ")); writer.Write(16);
+                writer.Write((short)1); writer.Write((short)1); writer.Write(22050); writer.Write(44100);
+                writer.Write((short)2); writer.Write((short)16);
+                writer.Write(System.Text.Encoding.ASCII.GetBytes("data")); writer.Write(count * 2);
+                for (int i = 0; i < count; i++) writer.Write((short)(Math.Sin(i * .1) * 10000));
+            }
+            AssetDatabase.ImportAsset(inputPath, ImportAssetOptions.ForceSynchronousImport);
+            var importer = (AudioImporter)AssetImporter.GetAtPath(inputPath);
+            var defaults = importer.defaultSampleSettings;
+            defaults.loadType = AudioClipLoadType.DecompressOnLoad; defaults.compressionFormat = AudioCompressionFormat.PCM;
+            importer.defaultSampleSettings = defaults; importer.SaveAndReimport();
+            var input = AssetDatabase.LoadAssetAtPath<AudioClip>(inputPath);
+            var sourceBytes = File.ReadAllBytes(inputPath); var sourceMeta = File.ReadAllBytes(inputPath + ".meta");
+            string folder = Folder + "/Fixtures/AudioOut_" + Guid.NewGuid().ToString("N");
+            if (overlong) folder += "/" + new string('p', 55);
+            Directory.CreateDirectory(folder); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            var root = Root(); var marker = root.GetComponent<AvatarBuildObfuscator>(); marker.userName = new string('u', 32);
+            var source = root.AddComponent<AudioSource>(); source.clip = input;
+            Check(Path.GetFullPath(folder + "/" + new UsernameNameGenerator(marker.userName).Next() + ".wav").Length >= 260,
+                "Fixture would not reproduce the original long-path failure");
+            var processor = new GuardProcessor(root, new GuardSettings(marker), x => Track(x));
+            processor.PrepareImportedAssets(folder); var report = processor.Run(); var copy = source.clip;
+            if (overlong)
+            {
+                Check(copy == input && report.Notes.Any(x => x.Contains("输出目录过长")), "Overlong-folder fallback not reported or identity lost");
+                Check(!Directory.GetFiles(folder).Any(), "Unsafe copy was attempted");
+            }
+            else
+            {
+                Check(copy != input && UsernameNameGenerator.IsGeneratedName(copy.name) && copy.name.StartsWith(marker.userName + "_"),
+                    "Compact disk name lost the full internal username/I-l name");
+                string path = AssetDatabase.GetAssetPath(copy);
+                Check(Path.GetFullPath(path).Length <= 240 && path.EndsWith(".wav"), "Native-import path budget exceeded");
+                Check(copy.samples == input.samples && copy.frequency == input.frequency && copy.channels == input.channels, "Audio format changed");
+                var a = new float[input.samples * input.channels]; var b = new float[copy.samples * copy.channels];
+                Check(input.GetData(a, 0) && copy.GetData(b, 0) && a.SequenceEqual(b), "Audio samples changed");
+                Check(sourceBytes.SequenceEqual(File.ReadAllBytes(path)), "Copied audio bytes changed");
+            }
+            Check(sourceBytes.SequenceEqual(File.ReadAllBytes(inputPath)) && sourceMeta.SequenceEqual(File.ReadAllBytes(inputPath + ".meta")),
+                "Source audio/importer changed");
         }
 
         private static void ShaderCopy()

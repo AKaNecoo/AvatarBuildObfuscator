@@ -1,6 +1,6 @@
-# Avatar Build Obfuscator 0.3.1
+# Avatar Build Obfuscator 0.3.2
 
-0.3.1：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
+0.3.2：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
 
 ## 中文
 
@@ -49,3 +49,5 @@ Git and official Assets installations support update checks, one-click updates a
 Gitと公式Assets導入に対応し、更新確認・手動更新・任意の自動インストールを提供します。自動インストールは初期状態でオフです。一時パッケージは検証後、成功・失敗・キャンセル時に削除します。開発用ローカル版と手動固定版は保持し、設定は工程内UserSettingsに保存します。
 
 CI builds UPM TGZ, ZIP, Unity archives and checksums. Hosted package checks do not replace Unity/Avatar runtime tests. See repository README/TESTING for scope.
+
+0.3.2: 临时贴图/音频磁盘名称按完整路径限制缩短；构建对象保留完整用户名和128字符I/l名。目录过长则保留资源并报告。Temporary disk names respect native import path limits; full internal names remain. Overlong directories retain source references with a report. 一時ファイル名はパス制限に合わせて短縮し、内部名は維持します。出力先が長すぎる場合は元の参照を保持して報告します。

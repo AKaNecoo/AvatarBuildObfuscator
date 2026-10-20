@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.2 — 2026-10-20
+
+- Fix Play/SDK preprocessing failures when a long username makes copied audio paths exceed the native importer's Windows path limit.
+- Budget temporary texture/audio file paths, compact their disk names when necessary, and retain the full username plus 128 I/l characters on the built objects.
+- Preserve the source reference with an explicit report if the output directory leaves insufficient room for a safe copy; keep source files/importers unchanged.
+- Add long-path audio sample/byte integrity and overlong-directory fallback regressions.
+
 ## 0.3.1 — 2026-10-20
 
 - Refresh legacy package metadata after manual imports that do not trigger assembly reload.

@@ -8,7 +8,7 @@ The 0.3.0-rc.1 candidate passes 60 hosted-compatible assertions against the actu
 
 Package CI builds TGZ, ZIP, unitypackage and checksums reproducibly, comparing every archived byte with source. It validates stable component GUIDs and complete three-language strings. It compiles the actual update-policy source with .NET; it does not run the Unity Editor. Trusted main/beta push jobs publish release assets after checks, while PR jobs cannot publish. A version cannot silently replace different released product content.
 
-Before stable promotion, the maintainer additionally verifies the real Git/package upgrade routes, temporary-download deletion, native SDK Play transition and protected-source integrity in the connected Unity project. Candidate test results above are local checks; successful remote CI and actual upgrade observations are recorded after they run. They are not implied by this candidate declaration.
+Before stable promotion, the maintainer additionally verifies real Git/package upgrades, download deletion, SDK Play and source integrity in the connected project. The completed checks below are separate from hosted CI.
 
 ## Environment
 
@@ -114,4 +114,34 @@ The component menu is Avatar Tools/Avatar Build Obfuscator and Unity ObjectNames
 
 The first hosted candidate run succeeded in both validation/build and release publication: [Package CI 39379028930](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/runs/39379028930). The actual Unity updater read this successful push and candidate metadata from GitHub, retained beta and reported update.current. The candidate release includes all three archives and checksums, with GitHub SHA-256 digests.
 
-The RC1-to-0.3.0 manual Assets update succeeded using the published archive, preserving component fields/GUID and deleting the temporary installer. A subsequent manual metadata-only reimport exposed a stale cached version; 0.3.1 invalidates that cache on manual imports and rechecks version eligibility immediately before archive import. A targeted Legacy integration regression covers this finding. Final 0.3.1 route and Play results are recorded after they run.
+The RC1-to-0.3.0 manual Assets update succeeded using the published archive, preserving component fields/GUID and deleting the temporary installer. A subsequent manual metadata-only reimport exposed a stale cached version; 0.3.1 invalidates that cache on manual imports and rechecks version eligibility immediately before archive import. A targeted Legacy integration regression covers this finding. The completed 0.3.1 results follow below.
+
+
+## Completed 0.3.1 update and Play acceptance
+
+The 0.3.1 product commit is `9c9ad54cd649a8ba35cf5930350f7ebcd26a913a`. [Package CI 39380302132](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/runs/39380302132) successfully compiled/ran the 60 update-policy assertions, passed six packaging regressions, built all archives/checksums and published v0.3.1 candidate assets. These are 0.3.1 checkpoint results; stable promotion was subsequently paused following a new long-username Play failure.
+
+| Actual route | Starting version | Result | Source settings / script GUID | Temporary installer |
+| --- | --- | --- | --- | --- |
+| Assets, one-click update | Official 0.3.0-rc.1 | 0.3.1, passed | Preserved | Deleted |
+| Assets, automatic update | Official 0.3.0-rc.1 | 0.3.1, passed | Preserved | Deleted |
+| Git, one-click update | Managed 0.3.0-rc.1 | Exact verified 0.3.1 SHA, passed | Preserved | Not downloaded |
+| Git, automatic update | Managed 0.3.0-rc.1 | Exact verified 0.3.1 SHA, passed | Preserved | Not downloaded |
+
+Automatic routes enabled the project preference and let the production Editor update loop install; they did not invoke the manual installation action. Each started with an old-version fixture, retained beta and recorded zero native errors. Git fixture preparation restored a known CI-passed old SHA with its managed channel metadata; this does not grant update permission to arbitrary manually pinned installations. All routes restored automatic installation to its original off state.
+
+The final Git package reran 52 processing checks (zero failures), 51 Inspector input assertions and nine Git-mode updater integration assertions. Assets mode passed ten integration assertions, including manual-import metadata-cache invalidation. Cleanup checks cover successful/failed/cancelled imports. The real SDK/NDMF Play test reached all four entry/exit events, observed one obfuscated avatar, 400 generated object names, 53 Humanoid bones, zero configuration-marker remnants and zero Error/Assert/Exception messages, then returned to Edit. It neither suppressed callbacks nor saved the source scene.
+
+During repeated installation-mode test switches, an old compiled assembly remained loaded after source replacement. One clean script compilation resolved the test environment mismatch; the loaded updater was verified against its corrected method, and the Assets integration suite then passed. No compiler-cache cleanup runs as part of the shipped updater. Windows IME candidate composition and actual VRChat client/device acceptance remain outside these checks.
+
+The route observer accepts a unique scene component or an explicit component instance ID and persists its GlobalObjectId across reloads. It has no private avatar/scene-name dependency. Arm with `PackageUpdateRouteValidation.Arm(output, route, expectedSource, commit, version, optionalSourceInstanceId)`. Its JSON records original fields, the resolved channel/commit, native errors, cleanup and automatic-opt-in state; it restores opt-in after completing.
+
+At the completed 0.3.1 checkpoint, a fresh scan verified 21,635 protected source files against their pre-test SHA-256 values with zero changed/missing files, including the saved source scene, models, textures, animations and metas. SDK/AAO changes to PlayerSettings were reconciled only after the complete file hash matched the fresh baseline; no source-scene save was performed.
+
+## 0.3.2 long-path Play fix
+
+A subsequently entered long username reproduced an actual SDK/NDMF Play failure in the imported-audio copy step. The failing full path was 262 characters. Copying the same original Ogg file into controlled fixture paths succeeded at 230, 250 and 258 characters but failed to import at 262 and 275, despite CopyAsset returning true. This isolated the native audio import limit rather than a C# compilation error or the generic SDK popup itself.
+
+Temporary texture/audio filenames now fit a 240-character full-path budget with extra room reserved for unique suffixes. Internal build-object names retain the full generated username prefix and 128 I/l characters. If the output directory cannot accommodate at least one prefix character and 64 suffix bits, the original reference is kept with a report. The change does not change source files/importers or disable SDK/NDMF callbacks.
+
+The local 0.3.2 Editor run passed all 54 processing cases, including two new long-path regressions covering unchanged audio samples/file bytes/importer bytes and safe overlong-directory fallback. Hosted-equivalent checks passed 60 update-policy assertions and six archive checks; all three archives were built and byte-verified. Native SDK/NDMF Play with the actual long username reached all four entry/exit events, one obfuscated avatar, 400 generated objects, 53 Humanoid bones, zero remaining markers and zero errors. All 279 temporary audio paths were 232 characters; their in-memory names retained the full 161-character generated name. Git-distribution acceptance follows after publication. Actual VRChat client upload and device behavior are outside this result.

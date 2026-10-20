@@ -62,6 +62,8 @@ namespace AvatarTools.Obfuscation.Validation
             {
                 type.GetMethod("CleanupArchive", Static).Invoke(null, null);
                 EditorJsonUtility.FromJsonOverwrite(original, settings); persist.Invoke(settings, null);
+                type.GetField("legacyRead", Static).SetValue(null, false);
+                type.GetField("legacyManifest", Static).SetValue(null, null);
                 type.GetProperty("Status", Static).SetValue(null, originalStatus, null);
                 type.GetProperty("Error", Static).SetValue(null, originalError, null);
             }
