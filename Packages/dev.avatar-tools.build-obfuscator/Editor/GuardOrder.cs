@@ -15,10 +15,7 @@ namespace AvatarTools.Obfuscation.Editor
         {
             var order = Enumerable.Range(0, count).ToArray();
             if (count < 2) return order;
-            string sequence = names.Next(); int seed = 0;
-            for (int i = sequence.Length - 31; i < sequence.Length; i++)
-                seed = (seed << 1) | (sequence[i] == 'l' ? 1 : 0);
-            var random = new System.Random(seed);
+            var random = new System.Random(names.NextSeed());
             for (int i = count - 1; i > 0; i--)
             { int j = random.Next(i + 1); int value = order[i]; order[i] = order[j]; order[j] = value; }
             if (order.Select((value, index) => value == index).All(x => x))

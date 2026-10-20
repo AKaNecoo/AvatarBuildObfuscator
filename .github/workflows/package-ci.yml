@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Test actual update policy
+      - name: Test actual update policy and name generator
         run: dotnet run --project Tests~/UpdatePolicy/UpdatePolicy.Tests.csproj --configuration Release
       - name: Test archive validation and reproducibility
         run: python -m unittest discover -s Tests~ -p 'test_*.py' -v

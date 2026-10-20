@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 — 2026-10-20
+
+- Use the four Unicode symbols Ì/Í/Î/Ï (U+00CC–00CF) for generated suffixes: 64 symbols carry the existing 128 bits of naming information. Retain visible user prefixes and source component fields/GUIDs.
+- Derive shuffle seeds directly from the username-derived byte stream, independently of visible glyphs; update name recognition and safe temporary-path budgets for the new alphabet.
+- Default newly added components to the avatar's PipelineManager blueprint ID when available. Keep manual values editable; normal Inspector edits never refill a cleared field.
+- Update Chinese/English/Japanese text and add symbol/seed vectors, invalid-name checks, avatar-ID defaults and Unicode audio-path regressions. This remains build-copy obfuscation with no runtime decryption.
+
 ## 0.3.2 — 2026-10-20
 
 - Fix Play/SDK preprocessing failures when a long username makes copied audio paths exceed the native importer's Windows path limit.

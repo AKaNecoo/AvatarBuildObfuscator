@@ -27,15 +27,19 @@ namespace AvatarTools.Obfuscation.Validation
         {
             Directory.CreateDirectory(Folder + "/Fixtures"); AssetDatabase.Refresh();
             results = new Results();
-            Run("Same username generates the same username-prefixed Il sequence", () => {
+            Run("Same username generates the same username-prefixed four-glyph sequence", () => {
                 var a = new UsernameNameGenerator("示例用户"); var b = new UsernameNameGenerator("示例用户");
                 var names = new HashSet<string>();
                 for (int i = 0; i < 2048; i++) {
                     string value = a.Next();
                     Check(value == b.Next() && UsernameNameGenerator.IsGeneratedName(value), "Sequence not deterministic or unsafe name");
                     Check(names.Add(value) && value.StartsWith("示例用户_", StringComparison.Ordinal), "Duplicate name or missing username");
-                    Check(value.Substring(value.Length - 128).All(c => c == 'I' || c == 'l'), "Suffix is not Il obfuscation");
+                    Check(value.Length == "示例用户_".Length + 64 && value.Substring(value.Length - 64).All(c => "ÌÍÎÏ".Contains(c)),
+                        "Suffix does not use exactly 64 U+00CC/00CD/00CE/00CF symbols");
                 }
+            });
+            Run("Four-glyph naming matches an independent HMAC test vector", () => {
+                Check(new UsernameNameGenerator("VectorUser").Next() == "VectorUser_\u00cd\u00cf\u00cd\u00cf\u00ce\u00cc\u00cd\u00cd\u00cd\u00cc\u00cc\u00cf\u00cd\u00cc\u00ce\u00cf\u00cc\u00ce\u00cc\u00cf\u00cd\u00cd\u00cc\u00cf\u00cc\u00cf\u00cd\u00ce\u00cf\u00ce\u00cc\u00cc\u00cf\u00cc\u00ce\u00cf\u00cf\u00cf\u00cf\u00ce\u00cc\u00ce\u00cf\u00cc\u00ce\u00ce\u00cd\u00cd\u00cf\u00cc\u00ce\u00cd\u00cd\u00cd\u00ce\u00cf\u00ce\u00cc\u00cf\u00cd\u00ce\u00cf\u00cf\u00cf", "128-bit symbol encoding changed");
             });
             Run("Different usernames generate different sequences", () => {
                 var a = new UsernameNameGenerator("UserA"); var b = new UsernameNameGenerator("UserB");
@@ -45,14 +49,31 @@ namespace AvatarTools.Obfuscation.Validation
                 Check(new UsernameNameGenerator(" café ").Next() == new UsernameNameGenerator("cafe\u0301").Next(), "NFC/trim mismatch");
                 Check(UsernameNameGenerator.IsGeneratedName(new UsernameNameGenerator("示例/用户\\:").Next()), "Path characters entered output");
                 Check(!new UsernameNameGenerator("示例/用户\\:").Next().Any(c => "/\\:*?\"<>|".Contains(c)), "Unsafe prefix");
-                Check(new UsernameNameGenerator(new string('中', 200)).Next().Length <= 161, "Username prefix not bounded");
+                Check(new UsernameNameGenerator(new string('中', 200)).Next().Length <= 97, "Username prefix not bounded");
             });
-            Run("New components require each user's own username", () => {
+            Run("New components without an avatar ID require a username", () => {
                 var root = Track(new GameObject("NewComponent")); var marker = root.AddComponent<AvatarBuildObfuscator>();
                 Check(marker.userName == "", "Author identity was prefilled");
                 bool rejected = false; try { new GuardSettings(marker); } catch (ArgumentException) { rejected = true; }
                 Check(rejected, "Blank username accepted");
             });
+            Run("Permutation seeds stay deterministic and username-dependent after the alphabet change", () => {
+                var a = new UsernameNameGenerator("VectorUser"); var b = new UsernameNameGenerator("VectorUser");
+                Check(a.NextSeed() == 2005222219 && a.NextSeed() == 1326088035, "Independent HMAC seed vectors differ");
+                Check(b.NextSeed() == 2005222219, "Seed stream is not repeatable");
+                var c = new UsernameNameGenerator("OtherUser"); var d = new UsernameNameGenerator("VectorUser");
+                var seeds = new HashSet<int>();
+                for (int i = 0; i < 64; i++) { int seed = d.NextSeed(); Check(seed != c.NextSeed(), "Username ignored in permutation"); seeds.Add(seed); }
+                Check(seeds.Count > 60, "Permutation seed collapsed after glyph change");
+            });
+            Run("Generated-name detection rejects ASCII, malformed separators and invalid glyphs", () => {
+                Check(UsernameNameGenerator.IsGeneratedName("User_" + new string('Ì', 64)), "Valid four-glyph name rejected");
+                Check(!UsernameNameGenerator.IsGeneratedName("User_" + new string('I', 128)) &&
+                    !UsernameNameGenerator.IsGeneratedName(new string('Í', 64)) &&
+                    !UsernameNameGenerator.IsGeneratedName("User_" + new string('Î', 63)) &&
+                    !UsernameNameGenerator.IsGeneratedName("User_" + new string('Ï', 63) + "X"), "Malformed name accepted");
+            });
+            Run("New component defaults to its avatar ID without overwriting later edits", ComponentModelIdDefault);
             foreach (float weight in new[] { 0f, 35f, 100f })
             {
                 float captured = weight;
@@ -90,6 +111,7 @@ namespace AvatarTools.Obfuscation.Validation
             Run("NDMF default package output supports unreadable texture copies", () => ImportedTexture(false, true));
             Run("NDMF default package output supports Crunch texture copies", () => ImportedTexture(true, true));
             Run("Long username audio copies fit native paths and preserve samples/source bytes", () => ImportedAudioPath(false));
+            Run("Long Unicode username and four-glyph audio names preserve samples/source bytes", () => ImportedAudioPath(false, true));
             Run("An overlong output folder retains the original audio without aborting", () => ImportedAudioPath(true));
             Run("Generated-folder guard rejects package sources and traversal", GeneratedFolderGuard);
             Run("Imported assets use one batch instead of an import per file", BatchedImports);
@@ -680,7 +702,30 @@ namespace AvatarTools.Obfuscation.Validation
             Check(report.ImportedTextureCopies == 1, report.Summary);
         }
 
-        private static void ImportedAudioPath(bool overlong)
+        private static void ComponentModelIdDefault()
+        {
+            const string id = "avtr_12345678-1234-1234-1234-123456789abc";
+            var root = Track(new GameObject("AvatarIdDefault"));
+            var pipeline = root.AddComponent<VRC.Core.PipelineManager>(); pipeline.blueprintId = id;
+            var marker = root.AddComponent<AvatarBuildObfuscator>();
+            Check(marker.userName == id, "Adding component did not use PipelineManager avatar ID");
+            marker.userName = "手动用户名";
+            typeof(AvatarBuildObfuscator).GetMethod("Reset", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .Invoke(marker, null);
+            Check(marker.userName == "手动用户名", "Explicit username was overwritten");
+            using (var serialized = new SerializedObject(marker))
+            {
+                serialized.FindProperty("userName").stringValue = "";
+                serialized.FindProperty("inspectorLanguage").enumValueIndex = (int)InspectorLanguage.Japanese;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+            Check(marker.userName == "" && pipeline.blueprintId == id, "A normal edit refilled username or changed model ID");
+            var unuploaded = Track(new GameObject("NoAvatarId"));
+            var other = unuploaded.AddComponent<VRC.Core.PipelineManager>(); other.blueprintId = "wrld_invalid";
+            Check(unuploaded.AddComponent<AvatarBuildObfuscator>().userName == "", "Non-avatar ID used as default");
+        }
+
+        private static void ImportedAudioPath(bool overlong, bool unicode = false)
         {
             string inputPath = Folder + "/Fixtures/Audio_" + Guid.NewGuid().ToString("N") + ".wav";
             using (var writer = new BinaryWriter(File.Create(inputPath)))
@@ -701,9 +746,11 @@ namespace AvatarTools.Obfuscation.Validation
             var input = AssetDatabase.LoadAssetAtPath<AudioClip>(inputPath);
             var sourceBytes = File.ReadAllBytes(inputPath); var sourceMeta = File.ReadAllBytes(inputPath + ".meta");
             string folder = Folder + "/Fixtures/AudioOut_" + Guid.NewGuid().ToString("N");
-            if (overlong) folder += "/" + new string('p', 55);
+            int padding = (overlong ? 220 : 180) - Path.GetFullPath(folder).Length - 1;
+            Check(padding > 0 && padding < 100, "Unexpected test-project path length");
+            folder += "/" + new string('p', padding);
             Directory.CreateDirectory(folder); AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-            var root = Root(); var marker = root.GetComponent<AvatarBuildObfuscator>(); marker.userName = new string('u', 32);
+            var root = Root(); var marker = root.GetComponent<AvatarBuildObfuscator>(); marker.userName = new string(unicode ? '禾' : 'u', 32);
             var source = root.AddComponent<AudioSource>(); source.clip = input;
             Check(Path.GetFullPath(folder + "/" + new UsernameNameGenerator(marker.userName).Next() + ".wav").Length >= 260,
                 "Fixture would not reproduce the original long-path failure");
@@ -717,7 +764,7 @@ namespace AvatarTools.Obfuscation.Validation
             else
             {
                 Check(copy != input && UsernameNameGenerator.IsGeneratedName(copy.name) && copy.name.StartsWith(marker.userName + "_"),
-                    "Compact disk name lost the full internal username/I-l name");
+                    "Compact disk name lost the full internal username/four-glyph name");
                 string path = AssetDatabase.GetAssetPath(copy);
                 Check(Path.GetFullPath(path).Length <= 240 && path.EndsWith(".wav"), "Native-import path budget exceeded");
                 Check(copy.samples == input.samples && copy.frequency == input.frequency && copy.channels == input.channels, "Audio format changed");

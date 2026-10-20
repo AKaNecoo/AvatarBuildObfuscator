@@ -84,7 +84,7 @@ namespace AvatarTools.Obfuscation.Editor
                     throw new InvalidOperationException("复制贴图改变了导入格式：" + AssetDatabase.GetAssetPath(asset));
                 // The native audio importer still rejects Windows paths >= 260 chars.
                 // Disk names may be compact; the build object's name retains the
-                // complete username prefix and 128-bit I/l name used by other assets.
+                // complete username prefix and 128-bit homoglyph name used by other assets.
                 copy.name = item.Item3;
                 sharedAssets[asset] = copy;
                 nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(asset), copy);
@@ -99,14 +99,14 @@ namespace AvatarTools.Obfuscation.Editor
         {
             // Leave room below MAX_PATH for importer sidecars and unique-path suffixes.
             // Apply this budget on all hosts so the generated project stays portable.
-            const int maxPath = 240, uniqueReserve = 8, minSuffix = 64;
+            const int maxPath = 240, uniqueReserve = 8, minSuffix = 32; // 64 bits in the four-symbol alphabet.
             int budget = maxPath - uniqueReserve - Path.GetFullPath(folder + "/").Length - extension.Length;
             if (name.Length > budget)
             {
-                int separator = name.Length - 129;
+                int separator = name.Length - UsernameNameGenerator.SuffixLength - 1;
                 int prefixLength = Math.Min(separator, budget - minSuffix - 1);
                 if (prefixLength < 1) return null;
-                int suffixLength = Math.Min(128, budget - prefixLength - 1);
+                int suffixLength = Math.Min(UsernameNameGenerator.SuffixLength, budget - prefixLength - 1);
                 name = name.Substring(0, prefixLength) + "_" + name.Substring(separator + 1, suffixLength);
             }
             string path = AssetDatabase.GenerateUniqueAssetPath(folder + "/" + name + extension);

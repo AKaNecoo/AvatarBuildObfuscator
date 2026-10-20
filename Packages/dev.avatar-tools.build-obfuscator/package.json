@@ -1,8 +1,8 @@
 {
   "name": "dev.avatar-tools.build-obfuscator",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "displayName": "Avatar Build Obfuscator",
-  "description": "Build-only username-prefixed I/l asset, shape and optional hierarchy name obfuscation with path remapping and static shape baking. No OSC or encryption. Original project assets remain unchanged.",
+  "description": "Build-only username-prefixed Unicode homoglyph asset, shape and hierarchy name obfuscation with path remapping and static shape baking. Defaults to the avatar ID when available. No OSC or runtime decryption. Original project assets remain unchanged.",
   "unity": "2022.3",
   "author": {
     "name": "Avatar Build Obfuscator contributors"

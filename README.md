@@ -4,9 +4,9 @@
 
 [English](README.en.md) · [日本語](README.ja.md)
 
-在 VRChat Avatar 根对象添加 **Avatar Tools / Avatar Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。名称使用 **`用户名_IlIl…`**：支持中文前缀，后缀由 128 个大写 `I` / 小写 `l` 组成；用户名同时参与生成确定性名称序列。新组件的用户名默认留空。
+在 VRChat Avatar 根对象添加 **Avatar Tools / Avatar Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。名称使用 **`用户名_ÌÍÎÏ…`**：支持中文前缀，后缀由 64 个 `Ì / Í / Î / Ï`（U+00CC–00CF）组成，承载 128 位命名信息；用户名同时参与生成确定性名称序列。新添加组件时，默认读取模型已有的 `avtr_…` ID；你可以自由修改。没有模型 ID 时留空并手动填写。默认读取只在添加/重置时进行，正常编辑或清空不会自动回填。
 
-本文描述 **0.3.2**。`beta` 接收测试更新，`main` 保持稳定版本。构建产物可以直接使用，**没有 OSC、密码或 Shader 解密步骤**。名称与结构混淆不保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍在上传数据中。
+本文描述 **0.4.0**。`beta` 接收测试更新，`main` 保持稳定版本。构建产物可以直接使用，**没有 OSC、密码或 Shader 解密步骤**。名称与结构混淆不保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍在上传数据中。
 
 ## 安装与更新
 
@@ -43,7 +43,7 @@ Play 调试和 VRChat SDK 构建均支持 NDMF 默认的 `Packages/nadena.dev.nd
 3. 使用 VRChat SDK 正常构建。Console 中的 **`[Avatar Build Obfuscator]`** 列出形变、对象、资源、参数、动画内部名称、路径、Avatar 重建和顶点重排的数量与保留原因。
 4. 在构建副本或实际产物中查看效果。**源 Hierarchy、Scene 和 Project 中的名称保持原样**；这不代表构建副本没有处理。
 
-用户名不是密码。相同用户名和相同遍历顺序生成相同序列；上游优化器可能改变遍历顺序，不保证资源跨所有构建始终同名。I/l 名称仍是可被机器区分的标识符。
+用户名不是密码。相同用户名和相同遍历顺序生成相同序列；上游优化器可能改变遍历顺序，不保证资源跨所有构建始终同名。同形字名称仍是可被机器区分的标识符。
 
 ## 两种模式
 
@@ -71,7 +71,7 @@ Play 调试和 VRChat SDK 构建均支持 NDMF 默认的 `Packages/nadena.dev.nd
 
 - 资源包括 Mesh、Material、动画图、AvatarMask、Avatar、VRC 表情资源、导入贴图与音频，以及可复制的 Shader 源码对象。
 - 导入贴图（包括 Read/Write 关闭和 Crunch）、音频通过构建临时目录中的独立文件/Importer 副本改名，不更改源文件、压缩或读取设置。非主资源、内置资源和不支持的导入类型保留，日志会说明原因。
-- 临时贴图/音频文件按完整路径长度缩短磁盘名称，避免 Windows 原生音频导入器的路径限制；构建对象内部仍保留完整的“用户名＋128 个 I/l”名称。如果工程路径和输出目录过长，连安全的短名都无法容纳，则保留该资源并记录原因。建议缩短工程路径或 Avatar 根对象名。
+- 临时贴图/音频文件按完整路径长度缩短磁盘名称，避免 Windows 原生音频导入器的路径限制；构建对象内部仍保留完整的“用户名＋64 个 Ì/Í/Î/Ï”名称。如果工程路径和输出目录过长，连安全的短名都无法容纳，则保留该资源并记录原因。建议缩短工程路径或 Avatar 根对象名。
 - Humanoid 重建同时更新公开骨骼名及 Unity 的内部父名称，保留人体语义、肌肉配置和尺度。Generic/无效 Avatar、无法可靠重建的骨架、歧义路径保留相应层级。
 - 自定义参数同步包含动画参数曲线、条件、状态参数、BlendTree、菜单主/子参数、Driver 的目标/来源、PhysBone 前缀与生成后缀、Contact 参数。菜单可见文字保持可用。
 - VRChat 内置参数、已知外部面捕/OSC 输入接口、SDK 代理动画的真实资产身份，以及固定渲染属性/关键字保持契约。NadeVision 的固定 Shader 名称也保留，避免破坏其构建检查。
@@ -91,4 +91,4 @@ Play 调试和 VRChat SDK 构建均支持 NDMF 默认的 `Packages/nadena.dev.nd
 
 ## 许可证与参考
 
-[MIT](LICENSE)。依赖分别使用自己的许可证，不捆绑用户 Avatar。参考 [cocokoishi/AvatarObfuscator](https://github.com/cocokoishi/AvatarObfuscator) 的名称混淆思路；本实现使用 ASCII `I/l`，并独立维护复制、引用重映射和兼容规则。
+[MIT](LICENSE)。依赖分别使用自己的许可证，不捆绑用户 Avatar。参考 [cocokoishi/AvatarObfuscator](https://github.com/cocokoishi/AvatarObfuscator) 的名称混淆思路；本实现使用 `Ì/Í/Î/Ï` 字符集，并独立维护复制、引用重映射和兼容规则。

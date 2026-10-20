@@ -17,7 +17,7 @@ namespace AvatarTools.Obfuscation
         public InspectorLanguage inspectorLanguage = InspectorLanguage.SimplifiedChinese;
         public ProtectionMode mode = ProtectionMode.Conservative;
         [FormerlySerializedAs("namePrefix")]
-        [Tooltip("填写你自己的用户名，支持中文。处理后的名称为 用户名_IlIl…；用户名也用于派生混淆种子。")]
+        [Tooltip("新添加时默认使用模型的 avtr_… ID，可自行修改。处理后的名称为 用户名_ÌÍÎÏ…；用户名也用于派生混淆种子。")]
         public string userName = "";
         public bool renameAssets = true;
         public bool freezeUnusedBlendShapes = true;
@@ -41,5 +41,25 @@ namespace AvatarTools.Obfuscation
         public string[] preserveBlendShapes = new string[0];
         [Tooltip("这些 Renderer 的形变完全跳过；资源名称仍可混淆。")]
         public SkinnedMeshRenderer[] excludedRenderers = new SkinnedMeshRenderer[0];
+
+#if UNITY_EDITOR
+        private void Reset()
+        {
+            if (!string.IsNullOrWhiteSpace(userName)) return;
+            // PipelineManager lives in VRCCore-Editor. Read its serialized ID without
+            // introducing an editor-only SDK DLL dependency into this runtime assembly.
+            foreach (var component in GetComponents<Component>())
+            {
+                if (component == null || component.GetType().FullName != "VRC.Core.PipelineManager") continue;
+                using (var serialized = new UnityEditor.SerializedObject(component))
+                {
+                    var id = serialized.FindProperty("blueprintId");
+                    if (id != null && id.propertyType == UnityEditor.SerializedPropertyType.String &&
+                        id.stringValue.StartsWith("avtr_", System.StringComparison.Ordinal)) userName = id.stringValue;
+                }
+                break;
+            }
+        }
+#endif
     }
 }

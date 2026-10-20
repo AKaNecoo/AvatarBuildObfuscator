@@ -36,9 +36,7 @@ namespace AvatarTools.Obfuscation.Editor
         private void ReorderMesh(Mesh mesh)
         {
             int count = mesh.vertexCount;
-            var sequence = names.Next(); int seed = 0;
-            for (int i = sequence.Length - 31; i < sequence.Length; i++) seed = (seed << 1) | (sequence[i] == 'l' ? 1 : 0);
-            var random = new System.Random(seed);
+            var random = new System.Random(names.NextSeed());
             var order = Enumerable.Range(0, count).ToArray();
             for (int i = count - 1; i > 0; i--)
             { int j = random.Next(i + 1); int old = order[i]; order[i] = order[j]; order[j] = old; }

@@ -4,7 +4,7 @@ The username keeps its label-left/input-right row and uses a native bound text f
 
 [中文](README.md) · [日本語](README.ja.md)
 
-Add **Avatar Tools / Avatar Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.2** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
+Add **Avatar Tools / Avatar Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.4.0** uses **`username_ÌÍÎÏ…`** names: a visible Unicode prefix and 64 `Ì/Í/Î/Ï` symbols (U+00CC–00CF), carrying 128 bits of naming information. The complete normalized username also seeds the deterministic sequence. New components default to the existing avatar `avtr_…` ID when available. You can edit it freely; an avatar without an ID needs manual input. Defaults run only on addition/reset, never on normal edits or clearing the field.
 
 There is **no OSC, password or runtime shader decryption**. Uploaded textures, final geometry and required dynamic blendshapes remain extractable. Obfuscation does not provide confidentiality.
 
@@ -71,6 +71,6 @@ Source scenes, assets, importers and original `.meta` GUIDs are never overwritte
 
 See [TESTING.md](TESTING.md), [ARCHITECTURE.md](ARCHITECTURE.md), [CHANGELOG.md](CHANGELOG.md) and [MIT License](LICENSE). Opt-in `Tests~` fixtures and private avatar evidence are excluded from the installed package. Editor results do not replace client/device acceptance.
 
-Existing component GUIDs and migration metadata are retained. Version 0.3 beta restores visible username prefixes by request and enables new switches by default; review settings before building. Naming ideas were informed by [AvatarObfuscator](https://github.com/cocokoishi/AvatarObfuscator); this implementation uses ASCII `I/l` and independently maintains its asset isolation and reference mapping.
+Existing component GUIDs and migration metadata are retained. Version 0.3 beta restores visible username prefixes by request and enables new switches by default; review settings before building. Naming ideas were informed by [AvatarObfuscator](https://github.com/cocokoishi/AvatarObfuscator); this implementation uses `Ì/Í/Î/Ï` and independently maintains its asset isolation and reference mapping.
 
-Temporary texture/audio disk names are shortened to fit the full native-import path budget. Built object names retain the full username plus 128 I/l characters. If the project/output directory leaves insufficient room even for a compact copy, the resource keeps its original reference with a report; shorten the project path or avatar root name to enable copying. Source files and importers stay unchanged.
+Temporary texture/audio disk names are shortened to fit the full native-import path budget. Built object names retain the full username plus 64 Ì/Í/Î/Ï symbols. If the project/output directory leaves insufficient room even for a compact copy, the resource keeps its original reference with a report; shorten the project path or avatar root name to enable copying. Source files and importers stay unchanged.

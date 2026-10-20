@@ -149,3 +149,25 @@ The local 0.3.2 Editor run passed all 54 processing cases, including two new lon
 Both the local and published Git distributions passed native SDK/NDMF Play with the actual long username: all four entry/exit events, one obfuscated avatar, 400 generated objects, 53 Humanoid bones, zero remaining markers and zero errors. Both observers were finished and the Editor returned to Edit. The local run also checked all 279 temporary audio paths at 232 characters; their in-memory names retained the full 161-character generated name. The actual username/mode/language were retained and no source-scene save was performed. Actual VRChat client upload and device behavior are outside this result. Main promotion remains on hold at the user's request.
 
 After the Git Play run, the fresh protected-source scan was repeated: all 21,635 files matched the same pre-test SHA-256 baseline, with zero changed/missing files. The SDK/AAO PlayerSettings side effect was reconciled using native APIs and exact whole-file baseline matching. The Editor was left in Edit mode with Git beta 0.3.2, automatic installation off, no duplicate Assets installation and no temporary downloaded installer.
+
+## 0.4.0 four-glyph names and avatar-ID defaults
+
+Generated suffixes now use exactly U+00CC/U+00CD/U+00CE/U+00CF: 64 symbols encode 128 bits of naming information. Names retain a sanitized visible prefix of at most 32 characters. Shuffle seeds come directly from the byte stream rather than testing visible letters. This changes generated output names; it does not change the component GUID or stored user settings, encrypt texture/mesh data, or require runtime decryption.
+
+Newly added components read an existing avatar blueprint ID as the initial username. No ID means an empty field requiring manual entry. Ordinary edits, clearing, language changes and Inspector recreation do not refill the field or overwrite entered text. The editor-only Reset implementation reads PipelineManager serialization without adding an editor-only SDK DLL dependency to the runtime assembly.
+
+Local checks passed 59 processing cases, 51 Inspector input assertions, 60 update-policy assertions, 15 hosted checks against the actual name generator and six archive regressions. New checks include independent HMAC name/seed vectors, exact code points/lengths, invalid-name rejection, username-dependent shuffle seeds, native component-add defaults, retained manual edits and Unicode long-path audio sample/file/importer integrity. A test-only SendMessage Reset invocation initially caused an Editor native assertion; the fixture now invokes that callback directly, while component addition still checks the real Unity Reset path. Final results use the refreshed compiled fixture.
+
+A newly added third-party atlas configuration produced missing shader-property errors in the no-obfuscator baseline and native Play. The operator removed that component; no atlas configuration, third-party code or material files were changed by this implementation. The subsequent baseline completed with zero native errors. The following final model results use that operator-adjusted scene.
+
+| Full model check | Baseline | Conservative | Aggressive |
+| --- | --- | --- | --- |
+| Objects | 414 | 414 | 414 |
+| Generated object names | 0 | 365 | 368 |
+| Retained shapes | 290 | 286 | 249 |
+| Missing animation paths / shape bindings / mask paths / parameters | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 |
+| Native errors | 0 | 0 | 0 |
+
+The generated comparison scene was saved, unloaded and reloaded before functional sampling. Thirteen clip groups, 39 sampled poses, 18 material pairs and 102 texture pairs passed. Pixel differences were zero; maximum position/normal/bone differences were about 4.0e-7 / 2.3e-7 / 8.9e-8. Only test copies were sampled. Comparison and sampling scenes were closed afterward; the source scene was not saved.
+
+Native SDK/NDMF Play with the local 0.4.0 package passed all four entry/exit events: one obfuscated avatar, 400 generated object names, 53 Humanoid bones, zero residual markers and zero Error/Assert/Exception messages. The observer was finished and the Editor returned to Edit. A live Animator probe distinguished all four chosen code points and found no parameter-hash collisions across the eight inspected controllers. These are Editor checks, not an actual VRChat upload/client/device or extraction-resistance acceptance test. Main remains on hold.

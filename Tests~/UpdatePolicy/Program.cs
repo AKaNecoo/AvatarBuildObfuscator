@@ -48,5 +48,8 @@ internal static class Program
         Check(!UpdatePolicy.ValidArchive(new byte[0], digest), "Reject corrupt download");
         Check(!UpdatePolicy.ValidArchive(bytes, ""), "Reject absent digest");
         Console.WriteLine("Update policy: " + passed + " PASS");
+        int beforeNames = passed;
+        NamingChecks.Run(Check);
+        Console.WriteLine("Naming: " + (passed - beforeNames) + " PASS");
     }
 }

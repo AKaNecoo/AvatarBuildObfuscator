@@ -1,12 +1,12 @@
-# Avatar Build Obfuscator 0.3.2
+# Avatar Build Obfuscator 0.4.0
 
-0.3.2：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
+0.4.0：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
 
 ## 中文
 
 顶部 **语言 / Language / 言語** 支持简体中文、English、日本語，选择保存在组件中，只影响界面显示。0.3.0-beta.2 修复了默认 NDMF 临时目录被误拒绝、导致 Play 预处理失败的问题。
 
-在 Avatar 根对象添加 **Avatar Tools / Avatar Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。支持中文，名称显示为 `用户名_IlIl…`，后缀由 128 个 ASCII I/l 组成。新组件用户名留空。
+在 Avatar 根对象添加 **Avatar Tools / Avatar Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。支持中文，名称显示为 `用户名_ÌÍÎÏ…`，后缀由 64 个 Ì/Í/Î/Ï（U+00CC–00CF）组成，承载128位命名信息。新添加组件默认使用模型 avtr_… ID，可自行修改；无ID则手动填写，正常编辑不会自动回填。
 
 两档均处理支持的资源、层级/动画/Mask 路径、Humanoid 骨骼、自定义参数及动画内部名称。保守保护未知依赖；激进允许未知风险。可独立打乱 BlendShape 索引、GameObject 同级顺序和网格顶点顺序，无需解密。权重、眼皮索引、动画与骨骼映射同步，UI/重复同名等明确顺序依赖保留。
 
@@ -26,7 +26,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 Use **语言 / Language / 言語** for Simplified Chinese, English or Japanese Inspector text. The per-component choice affects display only. Beta.2 fixes Play preprocessing by accepting NDMF's actual default generated-output tree.
 
-Add the component to the avatar root and enter your own Unicode username. NDMF processes its build copy using visible username + 128 ASCII I/l names. Supported hierarchy, Humanoid, parameter and animation references are remapped. Independent switches shuffle morph indices, sibling order and mesh vertices. Conservative protects uncertain dependencies; Aggressive accepts unknown compatibility risks. Required shapes remain usable; no runtime decryption is needed.
+Add the component to the avatar root. New components default to its avtr_… ID when available; edit it freely or fill it manually if no ID exists. Normal edits never refill a cleared field. NDMF processes its build copy using visible username + 64 Ì/Í/Î/Ï symbols (128 bits). Supported hierarchy, Humanoid, parameter and animation references are remapped. Independent switches shuffle morph indices, sibling order and mesh vertices. Conservative protects uncertain dependencies; Aggressive accepts unknown compatibility risks. Required shapes remain usable; no runtime decryption is needed.
 
 Texture/audio copies use a single import batch without editing source assets/importers. Requires Unity2022.3, Avatar SDK3.7.0+, NDMF1.14.8+. Install the beta Git URL above once, then use Package Manager Update. Original assets remain unchanged; uploaded textures and necessary morphs remain extractable.
 
@@ -34,7 +34,7 @@ Texture/audio copies use a single import batch without editing source assets/imp
 
 上部の **语言 / Language / 言語** で簡体字中国語・English・日本語を切り替えます。コンポーネントごとの表示設定で、処理結果は変わりません。beta.2 では NDMF 既定一時フォルダーを許可し、Play 前処理の失敗を修正しました。
 
-ルートにコンポーネントを追加し、自分のユーザー名を入力します。NDMF のビルドコピーを `ユーザー名_IlIl…` で難読化し、階層・Humanoid・パラメーター・アニメーションの参照を更新します。形状インデックス、兄弟順、頂点順は独立したスイッチです。保守モードは不明な依存を保持し、激進モードは未知の互換性リスクを許容します。
+ルートに追加するとモデルの avtr_… ID を既定値にします。自由に編集でき、IDがない場合は手動入力します。通常の編集では自動入力しません。NDMF のビルドコピーを `ユーザー名_ÌÍÎÏ…` で難読化し、階層・Humanoid・パラメーター・アニメーションの参照を更新します。形状インデックス、兄弟順、頂点順は独立したスイッチです。保守モードは不明な依存を保持し、激進モードは未知の互換性リスクを許容します。
 
 テクスチャ・音声のコピーを一括インポートし、元アセット・Importer は変更しません。Unity2022.3、Avatar SDK3.7.0+、NDMF1.14.8+ が必要です。上記 Git URL を一度追加し、以後 Package Manager の Update を使います。暗号化や OSC は不要で、必要な形状とテクスチャの抽出を防ぐ保証はありません。
 
@@ -50,4 +50,4 @@ Gitと公式Assets導入に対応し、更新確認・手動更新・任意の�
 
 CI builds UPM TGZ, ZIP, Unity archives and checksums. Hosted package checks do not replace Unity/Avatar runtime tests. See repository README/TESTING for scope.
 
-0.3.2: 临时贴图/音频磁盘名称按完整路径限制缩短；构建对象保留完整用户名和128字符I/l名。目录过长则保留资源并报告。Temporary disk names respect native import path limits; full internal names remain. Overlong directories retain source references with a report. 一時ファイル名はパス制限に合わせて短縮し、内部名は維持します。出力先が長すぎる場合は元の参照を保持して報告します。
+0.4.0: 临时贴图/音频磁盘名称按完整路径限制缩短；构建对象保留完整用户名和64字符Ì/Í/Î/Ï名。目录过长则保留资源并报告。Temporary disk names respect native import path limits; full internal names remain. Overlong directories retain source references with a report. 一時ファイル名はパス制限に合わせて短縮し、内部名は維持します。出力先が長すぎる場合は元の参照を保持して報告します。
