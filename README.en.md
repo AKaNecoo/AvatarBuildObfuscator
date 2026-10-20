@@ -4,7 +4,7 @@ The username keeps its label-left/input-right row and uses a native bound text f
 
 [中文](README.md) · [日本語](README.ja.md)
 
-Add **Avatar Tools / Avatar Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-rc.1** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
+Add **Avatar Tools / Avatar Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
 
 There is **no OSC, password or runtime shader decryption**. Uploaded textures, final geometry and required dynamic blendshapes remain extractable. Obfuscation does not provide confidentiality.
 

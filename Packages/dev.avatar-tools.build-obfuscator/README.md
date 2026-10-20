@@ -1,6 +1,6 @@
-# Avatar Build Obfuscator 0.3.0-rc.1
+# Avatar Build Obfuscator 0.3.0
 
-0.3.0-rc.1：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
+0.3.0：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
 
 ## 中文
 

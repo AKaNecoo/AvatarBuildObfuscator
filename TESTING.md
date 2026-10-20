@@ -1,10 +1,10 @@
-# Validation — 0.3.0-rc.1
+# Validation — 0.3.0
 
 Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
 
 ## Update and CI candidate checks
 
-The 0.3.0 candidate passes 60 hosted-compatible assertions against the actual Unity-independent UpdatePolicy source, six Python archive/validation regressions, 52 Unity processing regressions and 51 actual Editor input checks. Nine opt-in Unity integration checks exercise JSON event parsing, build suspension and temporary archive cleanup on completion/failure/cancellation. No archived report or private avatar is needed by hosted CI.
+The 0.3.0-rc.1 candidate passes 60 hosted-compatible assertions against the actual Unity-independent UpdatePolicy source, six Python archive/validation regressions, 52 Unity processing regressions and 51 actual Editor input checks. Nine opt-in Unity integration checks exercise JSON event parsing, build suspension and temporary archive cleanup on completion/failure/cancellation. No archived report or private avatar is needed by hosted CI.
 
 Package CI builds TGZ, ZIP, unitypackage and checksums reproducibly, comparing every archived byte with source. It validates stable component GUIDs and complete three-language strings. It compiles the actual update-policy source with .NET; it does not run the Unity Editor. Trusted main/beta push jobs publish release assets after checks, while PR jobs cannot publish. A version cannot silently replace different released product content.
 
@@ -111,3 +111,5 @@ The fixture is opt-in: call InspectorInputValidation.Start(outputJsonPath). It o
 The new standard Inspector keeps the label-left/input-right username row and other existing controls. A native bound TextField isolates text editing from the IMGUI layout loop. Localized caption changes are silent: a normal child Label text change was observed bubbling into Unity's string binding and restoring a stale username during a combined external value/language update. The regression above catches that behavior. The original intermittent beta.2 no-caret trigger has not been conclusively identified; passing this fixture is not a claim that every Editor/input-method condition has been reproduced.
 
 The component menu is Avatar Tools/Avatar Build Obfuscator and Unity ObjectNames.GetInspectorTitle returns Avatar Build Obfuscator. Runtime type, assembly, serialized fields and script GUID are retained. No build processor changes are part of beta.3. The beta.1 full-model tables, beta.2 native SDK Play transition and beta.2 source-integrity checkpoint remain historical results, not fresh beta.3 full-avatar/client runs.
+
+The first hosted candidate run succeeded in both validation/build and release publication: [Package CI 39379028930](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/runs/39379028930). The actual Unity updater read this successful push and candidate metadata from GitHub, retained beta and reported update.current. The candidate release includes all three archives and checksums, with GitHub SHA-256 digests.

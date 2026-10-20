@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 — 2026-10-20
+
+- Stable release of the verified Git/asset-package updater and reproducible CI distribution.
+- Keep automatic installation opt-in, preserve existing component GUIDs/settings and remove temporary installer downloads.
+
+
 ## 0.3.0-rc.1 — 2026-10-20
 
 - Add Chinese/English/Japanese update controls with project-local preferences; default automatic checks on, automatic installation off. Respect original main/beta channels and manual pins.
