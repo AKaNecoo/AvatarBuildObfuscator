@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0-rc.1 — 2026-10-20
+
+- Add Chinese/English/Japanese update controls with project-local preferences; default automatic checks on, automatic installation off. Respect original main/beta channels and manual pins.
+- Select exact commits from successful push CI, compare SemVer correctly, avoid busy Editor/build states and repeated failed automatic attempts.
+- Support Git and official Assets .unitypackage installations. Verify release archive SHA-256 and delete temporary downloads on completion, failure or cancellation, with reload cleanup.
+- Add hosted C# update-policy checks and package validation/reproducible archives. Publish immutable-version release assets only after successful trusted pushes.
+- Keep Unity/NDMF/Play/input acceptance distinct from hosted package CI.
+
 ## 0.3.0-beta.3 — 2026-10-20
 
 - Replace the standard Inspector username input with a native UI Toolkit TextField bound to the existing serialized property, keeping the label-left/input-right layout. Other options and the legacy OnInspectorGUI path retain their existing interface. Size labels against actual Inspector geometry and reserve input width in narrow views.

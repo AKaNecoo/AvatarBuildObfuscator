@@ -4,31 +4,33 @@
 
 [中文](README.md) · [English](README.en.md)
 
-`VRCAvatarDescriptor` のあるルートに **Avatar Tools / Avatar Build Obfuscator** を追加し、自分のユーザー名を入力すると、NDMF のビルド用コピーを処理します。**0.3.0-beta.3** の名前は **`ユーザー名_IlIl…`**。Unicode の表示プレフィックスと、ASCII の大文字 `I` / 小文字 `l` 128 文字で構成します。正規化したユーザー名全体を生成シードにも使います。新規コンポーネントは空欄です。
+`VRCAvatarDescriptor` のあるルートに **Avatar Tools / Avatar Build Obfuscator** を追加し、自分のユーザー名を入力すると、NDMF のビルド用コピーを処理します。**0.3.0-rc.1** の名前は **`ユーザー名_IlIl…`**。Unicode の表示プレフィックスと、ASCII の大文字 `I` / 小文字 `l` 128 文字で構成します。正規化したユーザー名全体を生成シードにも使います。新規コンポーネントは空欄です。
 
 **OSC・パスワード・実行時 Shader 復号は不要**です。暗号化ではなく、テクスチャ、最終形状、必要な動的 BlendShape はアップロードデータに残ります。
 
-## 導入と更新
+## インストールと更新
 
-Unity **2022.3**、Git、VCC で導入済みの Avatar SDK 3.7.0 以降と [NDMF](https://github.com/bdunderscore/ndmf) 1.14.8 以降 が必要です。Git 導入だけでは VPM 依存パッケージを自動導入しません。AAO・MA・VRCFury・TTT は任意で、設定は変更しません。
+Unity **2022.3**、VCCで導入した Avatar SDK **3.7.0+** と [NDMF](https://github.com/bdunderscore/ndmf) **1.14.8+** が必要です。Git導入はVPM依存を自動解決しません。AAO・MA・VRCFury・TTTは任意です。
 
-**Window → Package Manager → ＋ → Add package from git URL…** でベータ版の URL を入力します。
-
-```text
-https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
-```
-
-以後は **Avatar Build Obfuscator → Update** で更新します。導入済みコミットは手動更新まで固定されます。Windows では Git が `PATH` から見つかる必要があります。[Unity の Git パッケージ手順](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)を参照してください。
-
-安定版は次の URL です。
+**Window → Package Manager → ＋ → Add package from git URL…** に安定版URLを一度入力します。
 
 ```text
 https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
 ```
 
-ブランチを切り替える場合は目的の URL を一度追加し直します。その後の **Update** は選択したブランチを追跡します。`main` はベータ更新ごとには進めません。`#v0.2.0` 等の公開タグは旧版への固定です。`?path=…` は省略しないでください。
+テスト版は末尾を `#beta` にします。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` をインポートする方法も利用できます。二重導入せず、方式を変更する前に他方のプラグインだけを削除し、Avatarは残してください。スクリプトGUIDは維持します。移行後に参照を確認してください。
 
-同じツールを二重導入しないでください。`.unitypackage` から切り替える前に `Assets/AvatarBuildObfuscator` のプラグインファイルを削除し、アバターや他のアセットは残します。導入後にコンポーネント参照と設定を確認してください。[Release 添付ファイル](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases)は最新ベータより古い場合があります。
+コンポーネントの **バージョンと更新** に、バージョン・チャンネル・状態と **更新を確認 / 今すぐ更新 / 変更履歴** を表示します。自動確認は初期状態でオン、キャッシュは6時間です。自動インストールはプロジェクト単位で任意に有効化できます。起動60秒後以降、Unityがバックグラウンドで待機中かつSDKパネルが閉じているときに実行し、Play・ビルド・コンパイル・インポート中は待機します。同じコミットでの失敗は自動再試行しません。オフラインでもプラグインは使用できます。
+
+Git導入はPackage Managerから、そのチャンネルでPackage CIに成功した正確なコミットを導入し、以後もチャンネルを維持します。インストールパッケージ方式はCI公開の `.unitypackage` を取得し、GitHubのSHA-256を確認してインポートします。一時ファイル `Library/AvatarBuildObfuscatorUpdates/pending.unitypackage` は成功・失敗・キャンセル後に削除し、リロード後も清掃を再開します。更新はプラグインのコードを置換し再コンパイルします。モデル処理やモデル素材の変更は行いません。
+
+設定はこのプロジェクトの `UserSettings/AvatarBuildObfuscatorUpdates.asset` のみに保存し、Avatarには保存しません。ユーザー名やモデルは送信しません。手動でタグ・コミットを固定した導入、他リポジトリ、移動したAssetsコピー、ローカル `file:` 開発版は上書きしません。パッケージ方式の初期チャンネルは安定版main・プレリリースbetaで、以後も維持します。元のGit URLの再追加やPackage Managerによる手動更新も可能です。GitとAssetsコピーを同時に導入しないでください。
+
+## CI と配布
+
+[Package CI](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/workflows/package-ci.yml) はmain/betaへのpushとPRで構成・GUID・更新ポリシーを検証します。再現可能なUPM `.tgz`・ZIP・`.unitypackage`・チェックサムを生成し、全アーカイブを元ファイルと照合します。Release公開は本リポジトリのmain/betaへのpushのみです。PRでは公開しません。mainは安定版、betaはプレリリースです。公開済み版の製品内容を差し替えず、変更時はバージョンを更新します。
+
+クラウドCIは独立した更新ポリシーのコンパイル・テストと配布パッケージを検証します。**Unity Editorや実Avatarの検証の代替ではありません**。mainに反映する前に認可されたテストプロジェクトでUnityコンパイル・NDMF・入力・Playを検証します。[TESTING.md](TESTING.md) を参照してください。モデル・私有ログ・工程はアップロードしません。
 
 ## 使い方とモード
 

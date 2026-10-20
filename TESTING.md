@@ -1,6 +1,14 @@
-# Validation — 0.3.0-beta.3
+# Validation — 0.3.0-rc.1
 
 Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
+
+## Update and CI candidate checks
+
+The 0.3.0 candidate passes 60 hosted-compatible assertions against the actual Unity-independent UpdatePolicy source, six Python archive/validation regressions, 52 Unity processing regressions and 51 actual Editor input checks. Nine opt-in Unity integration checks exercise JSON event parsing, build suspension and temporary archive cleanup on completion/failure/cancellation. No archived report or private avatar is needed by hosted CI.
+
+Package CI builds TGZ, ZIP, unitypackage and checksums reproducibly, comparing every archived byte with source. It validates stable component GUIDs and complete three-language strings. It compiles the actual update-policy source with .NET; it does not run the Unity Editor. Trusted main/beta push jobs publish release assets after checks, while PR jobs cannot publish. A version cannot silently replace different released product content.
+
+Before stable promotion, the maintainer additionally verifies the real Git/package upgrade routes, temporary-download deletion, native SDK Play transition and protected-source integrity in the connected Unity project. Candidate test results above are local checks; successful remote CI and actual upgrade observations are recorded after they run. They are not implied by this candidate declaration.
 
 ## Environment
 

@@ -4,31 +4,33 @@ The username keeps its label-left/input-right row and uses a native bound text f
 
 [中文](README.md) · [日本語](README.ja.md)
 
-Add **Avatar Tools / Avatar Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-beta.3** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
+Add **Avatar Tools / Avatar Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-rc.1** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
 
 There is **no OSC, password or runtime shader decryption**. Uploaded textures, final geometry and required dynamic blendshapes remain extractable. Obfuscation does not provide confidentiality.
 
 ## Install and update
 
-Requires Unity **2022.3**, Git, and Avatar SDK 3.7.0+ plus [NDMF](https://github.com/bdunderscore/ndmf) 1.14.8+ installed through VCC. Git does not install VPM dependencies automatically. AAO, MA, VRCFury and TTT are optional; their settings are not changed.
+Requires Unity **2022.3**, Avatar SDK **3.7.0+** and [NDMF](https://github.com/bdunderscore/ndmf) **1.14.8+**, installed through VCC. Git installation does not resolve VPM dependencies. AAO, MA, VRCFury and TTT are optional.
 
-In **Window → Package Manager → ＋ → Add package from git URL…**, enter the beta URL:
-
-```text
-https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
-```
-
-Enter it once. Later select **Avatar Build Obfuscator → Update**. Unity locks the installed commit until you update manually. On Windows, Git must be available through `PATH`. See [Unity's Git package guide](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html).
-
-For stable versions, use:
+In **Window → Package Manager → ＋ → Add package from git URL…**, enter the stable URL once:
 
 ```text
 https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
 ```
 
-To switch branches, add the desired URL once; subsequent **Update** actions follow that branch. `main` does not advance with each beta. Published tags such as `#v0.2.0` pin an older release. Keep `?path=…`.
+Use `#beta` for previews. Alternatively import the `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases). Keep only one installation; remove only the other plugin installation before switching, retaining avatars. Script GUIDs remain stable; check component references after migration.
 
-Install only one copy. Before switching from `.unitypackage`, remove plugin files under `Assets/AvatarBuildObfuscator`, preserving avatars and other assets. Check component references and settings after migration. [Release attachments](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) may predate the latest beta.
+The component's **Version and updates** section shows version/channel/status and **Check now / Update now / Changelog**. Automatic checks default on with a six-hour cache. Automatic installation is opt-in per project. It runs after 60 seconds with Unity idle in the background and the SDK control panel closed, outside Play/build/compilation/import. A failed commit is not retried automatically. Offline checks do not block the plugin.
+
+Git updates install the channel's exact successful Package CI commit through Package Manager and retain the channel for future updates. Asset-package installations download the CI-published `.unitypackage`, verify GitHub's SHA-256 digest, and import it. The temporary `Library/AvatarBuildObfuscatorUpdates/pending.unitypackage` is deleted after success, failure or cancellation; cleanup resumes after reload. Updates replace plugin code and recompile/reload; they do not run avatar processing or modify model assets.
+
+Preferences live only in this project's `UserSettings/AvatarBuildObfuscatorUpdates.asset`, outside avatar data. No username/model is sent. Manual tag/commit pins, other repositories, relocated Assets copies and local `file:` development packages are not overwritten. Asset packages initially follow main for stable versions or beta for prereleases, then retain the channel. Re-adding the original `#main`/`#beta` Git URL or using Package Manager remains available. Never keep Git and Assets copies together.
+
+## CI and releases
+
+[Package CI](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/workflows/package-ci.yml) validates package layout, GUIDs and update policy on main/beta pushes and PRs. It builds reproducible UPM `.tgz`, ZIP, `.unitypackage` and checksums and reads every archive back against source. Only this repository's main/beta pushes publish releases; PRs cannot publish. Main is stable, beta is prerelease. Released product content is immutable for each version; bump the version for product changes.
+
+Hosted CI compiles/tests the independent update-policy code and verifies packaging. It does **not** substitute for Unity Editor or actual-avatar acceptance. Maintainers run Unity compilation, NDMF, input and Play checks in an authorized project before promoting main; see [TESTING.md](TESTING.md). CI does not upload avatars, private logs or projects.
 
 ## Use
 

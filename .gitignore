@@ -2,5 +2,9 @@
 /Evidence~/
 *.user
 *.csproj
+!Tests~/UpdatePolicy/*.csproj
+**/bin/
+**/obj/
+**/__pycache__/
 *.sln
 .DS_Store

@@ -9,6 +9,22 @@ namespace AvatarTools.Obfuscation.Editor
         internal static readonly string[] LanguageNames = { "简体中文", "English", "日本語" };
         private static readonly Dictionary<string, string[]> Copy = new Dictionary<string, string[]>
         {
+            { "update.title", new[] { "版本与更新", "Version and updates", "バージョンと更新" } },
+            { "update.ready", new[] { "可检查当前渠道的已验证更新。", "Check this channel for verified updates.", "現在のチャンネルの検証済み更新を確認できます。" } },
+            { "update.checking", new[] { "正在后台检查更新…", "Checking in the background…", "バックグラウンドで確認中…" } },
+            { "update.available", new[] { "有已通过 CI 的新版本可安装。", "A newer CI-verified version is available.", "CI を通過した新バージョンがあります。" } },
+            { "update.current", new[] { "当前已是此渠道的最新可用版本。", "No newer installable version on this channel.", "このチャンネルに適用可能な新バージョンはありません。" } },
+            { "update.failed", new[] { "更新检查或安装失败。保留当前版本，可稍后手动重试。", "Update check or installation failed. The current version is retained; retry manually later.", "確認またはインストールに失敗しました。現在のバージョンを保持します。後で手動で再試行できます。" } },
+            { "update.unverified", new[] { "此渠道暂无通过 CI 的更新记录。", "No successful CI update is published on this channel yet.", "このチャンネルには CI を通過した更新記録がありません。" } },
+            { "update.unmanaged", new[] { "本地包、其他仓库或手动固定版本不自动更新。请通过官方 Git main/beta 安装。", "Local packages, other repositories and manually pinned versions are not updated. Install the official Git main/beta channel.", "ローカル・別リポジトリ・手動固定版は更新しません。公式 Git main/beta チャンネルを使用してください。" } },
+            { "update.busy", new[] { "编辑器繁忙；退出 Play/构建并关闭 VRChat SDK 控制面板后可更新。", "Editor busy. Leave Play/build and close the VRChat SDK control panel to update.", "エディターが使用中です。Play・ビルドを終了し、VRChat SDK パネルを閉じて更新してください。" } },
+            { "update.installing", new[] { "正在安装，完成后 Unity 将重新编译。", "Installing; Unity will recompile after completion.", "インストール中です。完了後 Unity が再コンパイルします。" } },
+            { "update.check", new[] { "检查更新", "Check now", "更新を確認" } },
+            { "update.install", new[] { "立即更新", "Update now", "今すぐ更新" } },
+            { "update.notes", new[] { "更新说明", "Changelog", "変更履歴" } },
+            { "update.autoCheck", new[] { "自动检查更新（每 6 小时）", "Automatic checks (every 6 hours)", "自動確認（6時間ごと）" } },
+            { "update.autoInstall", new[] { "打开工程后自动安装更新", "Install updates after opening the project", "プロジェクト起動後に自動インストール" } },
+            { "update.autoInstall.tip", new[] { "默认关闭。开启自动检查后生效；启动至少60秒且Unity在后台空闲时执行，避开Play/构建/编译/导入及SDK面板。同一提交失败后不自动重试。设置仅保存在此工程UserSettings中。", "Off by default. Requires automatic checks; runs after 60 seconds with Unity idle in the background, outside Play/build/compile/import and with the SDK panel closed. A failed commit is not retried automatically. Stored in this project's UserSettings only.", "初期状態はオフです。自動確認が必要で、起動60秒後以降、Unity がバックグラウンドで待機中に実行します。Play・ビルド・コンパイル・インポート・SDK パネル表示中は待機します。同じコミットへの失敗は自動再試行しません。設定はこのプロジェクトの UserSettings に保存します。" } },
             { "language.tip", new[] { "仅切换本组件界面语言；不改变用户名、模式或混淆结果。", "Changes this component's Inspector language only; username, mode and build output are unaffected.", "このコンポーネントの表示言語のみ変更します。ユーザー名・モード・ビルド結果には影響しません。" } },
             { "intro", new[] { "在 Avatar 根对象添加一次即可。两种模式都只处理 NDMF 构建副本；源 Hierarchy / Scene / Project 中的对象和资源保持原名。", "Add once to the avatar root. Both modes process the NDMF build copy; source objects and assets in Hierarchy / Scene / Project keep their names.", "Avatar のルートに1つ追加します。両モードとも NDMF のビルドコピーを処理し、元の Hierarchy / Scene / Project の名前は保持します。" } },
             { "mode", new[] { "处理模式", "Mode", "処理モード" } },

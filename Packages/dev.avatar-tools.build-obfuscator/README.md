@@ -1,6 +1,6 @@
-# Avatar Build Obfuscator 0.3.0-beta.3
+# Avatar Build Obfuscator 0.3.0-rc.1
 
-0.3.0-beta.3：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
+0.3.0-rc.1：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
 
 ## 中文
 
@@ -39,3 +39,13 @@ Texture/audio copies use a single import batch without editing source assets/imp
 テクスチャ・音声のコピーを一括インポートし、元アセット・Importer は変更しません。Unity2022.3、Avatar SDK3.7.0+、NDMF1.14.8+ が必要です。上記 Git URL を一度追加し、以後 Package Manager の Update を使います。暗号化や OSC は不要で、必要な形状とテクスチャの抽出を防ぐ保証はありません。
 
 [Full documentation / 完整说明](https://github.com/AKaNecoo/AvatarBuildObfuscator)
+
+## 更新 / Updates / 更新
+
+组件内提供三语版本提示、检查与一键更新。自动检查开启，自动安装默认关闭。Git和官方Assets安装包均支持；本地file开发包和手动固定版本不覆盖。安装包校验SHA-256后导入，完成/失败/取消后删除临时下载。设置仅保存在工程UserSettings。
+
+Git and official Assets installations support update checks, one-click updates and opt-in automatic installs. Checks default on, installs off. Temporary downloads are verified and deleted after import/failure/cancellation. Local development installs and manual pins are respected. Preferences are project-local.
+
+Gitと公式Assets導入に対応し、更新確認・手動更新・任意の自動インストールを提供します。自動インストールは初期状態でオフです。一時パッケージは検証後、成功・失敗・キャンセル時に削除します。開発用ローカル版と手動固定版は保持し、設定は工程内UserSettingsに保存します。
+
+CI builds UPM TGZ, ZIP, Unity archives and checksums. Hosted package checks do not replace Unity/Avatar runtime tests. See repository README/TESTING for scope.

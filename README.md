@@ -6,29 +6,31 @@
 
 在 VRChat Avatar 根对象添加 **Avatar Tools / Avatar Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。名称使用 **`用户名_IlIl…`**：支持中文前缀，后缀由 128 个大写 `I` / 小写 `l` 组成；用户名同时参与生成确定性名称序列。新组件的用户名默认留空。
 
-本文描述 **0.3.0-beta.3**。`beta` 接收测试更新，`main` 保持稳定版本。构建产物可以直接使用，**没有 OSC、密码或 Shader 解密步骤**。名称与结构混淆不保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍在上传数据中。
+本文描述 **0.3.0-rc.1**。`beta` 接收测试更新，`main` 保持稳定版本。构建产物可以直接使用，**没有 OSC、密码或 Shader 解密步骤**。名称与结构混淆不保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍在上传数据中。
 
 ## 安装与更新
 
-需要 Unity **2022.3**、Git，以及通过 VCC 安装的 Avatar SDK（3.7.0 或更新）和 [NDMF](https://github.com/bdunderscore/ndmf)（1.14.8 或更新）。Git 安装本工具不会自动安装 VPM 依赖。AAO、MA、VRCFury、TTT 为可选工具；本插件不修改它们的配置。
+需要 Unity **2022.3**，并通过 VCC 安装 Avatar SDK **3.7.0+** 和 [NDMF](https://github.com/bdunderscore/ndmf) **1.14.8+**。Git 安装不会自动补齐 VPM 依赖。AAO、MA、VRCFury、TTT 可选。
 
-打开 **Window → Package Manager → ＋ → Add package from git URL…**，使用以下完整地址跟进当前测试版：
-
-```text
-https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
-```
-
-以后选中 **Avatar Build Obfuscator**，点击 **Update**。Unity 锁定已安装提交，不会每次打开工程都自动更新。Windows 上 Unity 需要能通过 `PATH` 找到 Git。见 [Unity Git 包说明](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)。
-
-稳定版地址使用 `#main`：
+在 **Window → Package Manager → ＋ → Add package from git URL…** 输入一次稳定版地址：
 
 ```text
 https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
 ```
 
-从一个 Git 分支切换到另一个分支时，在 **Add package from git URL…** 中重新添加目标地址一次；之后的 **Update** 跟随所选分支。固定版本可用公开标签，例如 `#v0.2.0`。`?path=…` 指定子目录，不能省略。
+测试版把末尾 `#main` 改为 `#beta`。也可以从 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) 下载 `.unitypackage` 导入；只安装一份插件，切换方式前仅移除另一种方式的插件文件，不删除 Avatar。脚本 GUID 保持一致，迁移后核对组件引用。
 
-同一工程只安装一份。若原来导入过 `.unitypackage`，切换到 Git 前移除 `Assets/AvatarBuildObfuscator` 中的插件文件，保留 Avatar、场景及其他资产。升级后检查组件引用和用户名。正式 Unity 包另见 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases)；旧发布附件不等于最新 beta。
+组件中的 **版本与更新** 显示版本、渠道、更新状态，提供 **检查更新 / 立即更新 / 更新说明**。自动检查默认开启，结果缓存6小时；自动安装默认关闭，可按工程开启。自动安装在启动至少60秒后、Unity在后台空闲且SDK控制面板关闭时执行，避开Play、构建、编译和导入。同一提交失败后不会自动重试，断网不会阻止使用插件。
+
+Git 安装通过 Package Manager 更新到当前渠道**通过 Package CI 的具体提交**，保留渠道记录以便继续更新；`.unitypackage` 安装下载 CI 发布的安装包并验证 GitHub 提供的 SHA-256 后导入。下载文件位于工程 `Library/AvatarBuildObfuscatorUpdates/pending.unitypackage`，成功、失败或取消后删除；重载后会恢复清理。更新仅替换插件代码，不运行模型混淆，也不修改模型资源。更新过程会编译和重载。
+
+设置仅保存在本工程 `UserSettings/AvatarBuildObfuscatorUpdates.asset`，不保存在Avatar上，也不发送用户名/模型。手动固定标签/提交、其他仓库、改位置的Assets安装和本地 `file:` 开发包不会自动覆盖。安装包的初始渠道由是否为预发布版本决定（稳定版main、预发布beta），后续保持渠道。Git仍可通过重新添加原 `#main`/`#beta` URL或Package Manager手动更新；不要同时安装Git包和Assets副本。
+
+## CI 与发行
+
+[Package CI](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/workflows/package-ci.yml) 在 main/beta 推送和 PR 时检查包结构、GUID、更新策略，构建并回读校验可复现的 UPM `.tgz`、ZIP、`.unitypackage` 和 SHA256SUMS。仅本仓库 main/beta 推送可发布 Release；PR不能发布。main为稳定版，beta为预发布。同一版本不允许换产品内容覆盖已发布包，产品改动需要加版本号。
+
+云端CI编译并测试独立的更新策略代码、验证打包；它**不等于 Unity 编辑器或真实 Avatar 的自动验收**。Unity编译、NDMF回归、输入与Play测试见 [TESTING.md](TESTING.md)，由维护者在授权测试工程验证后再推进main。CI不上传模型、私有日志或工程。
 
 ## 使用
 

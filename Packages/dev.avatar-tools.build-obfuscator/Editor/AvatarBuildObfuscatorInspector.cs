@@ -35,7 +35,9 @@ namespace AvatarTools.Obfuscation.Editor
             };
             var header = new IMGUIContainer(() => DrawGUI(DrawHeader));
             var options = new IMGUIContainer(() => DrawGUI(DrawOptions));
+            var updates = new PackageUpdatePanel((InspectorLanguage)Property("inspectorLanguage").enumValueIndex);
             root.Add(header);
+            root.Add(updates);
             root.Add(username);
             root.Add(options);
             root.RegisterCallback<GeometryChangedEvent>(evt =>
@@ -51,6 +53,7 @@ namespace AvatarTools.Obfuscation.Editor
                 var selected = (InspectorLanguage)property.enumValueIndex;
                 ((INotifyValueChanged<string>)username.labelElement).SetValueWithoutNotify(InspectorLocalization.Text("userName", selected));
                 username.tooltip = InspectorLocalization.Text("userName.tip", selected);
+                updates.SetLanguage(selected);
                 header.MarkDirtyRepaint();
                 options.MarkDirtyRepaint();
             });

@@ -39,20 +39,23 @@ namespace AvatarTools.Obfuscation.Editor
                 .AfterPlugin("dev.cocokoishi.avatar-obfuscator")
                 .Run("Bake static shapes and obfuscate copied assets", context =>
                 {
-                    var state = context.GetState<GuardBuildState>();
-                    if (state.Settings == null) return;
-                    var processor = new GuardProcessor(context.AvatarRootObject, state.Settings,
-                        asset => context.AssetSaver.SaveAsset(asset));
-                    var containerPath = UnityEditor.AssetDatabase.GetAssetPath(context.AssetSaver.CurrentContainer);
-                    if (!string.IsNullOrEmpty(containerPath))
-                        processor.PrepareImportedAssets(System.IO.Path.GetDirectoryName(containerPath)?.Replace('\\', '/'));
-                    using (context.OpenSerializationScope())
+                    using (PackageUpdates.DuringBuild())
                     {
-                        state.Report = processor.Run();
+                        var state = context.GetState<GuardBuildState>();
+                        if (state.Settings == null) return;
+                        var processor = new GuardProcessor(context.AvatarRootObject, state.Settings,
+                            asset => context.AssetSaver.SaveAsset(asset));
+                        var containerPath = UnityEditor.AssetDatabase.GetAssetPath(context.AssetSaver.CurrentContainer);
+                        if (!string.IsNullOrEmpty(containerPath))
+                            processor.PrepareImportedAssets(System.IO.Path.GetDirectoryName(containerPath)?.Replace('\\', '/'));
+                        using (context.OpenSerializationScope())
+                        {
+                            state.Report = processor.Run();
+                        }
+                        Debug.Log("[Avatar Build Obfuscator] " + state.Report.Summary, context.AvatarRootObject);
+                        foreach (var note in state.Report.Notes)
+                            Debug.Log("[Avatar Build Obfuscator] 跳过/保留：" + note, context.AvatarRootObject);
                     }
-                    Debug.Log("[Avatar Build Obfuscator] " + state.Report.Summary, context.AvatarRootObject);
-                    foreach (var note in state.Report.Notes)
-                        Debug.Log("[Avatar Build Obfuscator] 跳过/保留：" + note, context.AvatarRootObject);
                 });
         }
     }
