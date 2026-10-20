@@ -1,4 +1,4 @@
-# Validation — 0.3.1
+# Validation — 0.4.0
 
 Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
 
@@ -8,7 +8,7 @@ The 0.3.0-rc.1 candidate passes 60 hosted-compatible assertions against the actu
 
 Package CI builds TGZ, ZIP, unitypackage and checksums reproducibly, comparing every archived byte with source. It validates stable component GUIDs and complete three-language strings. It compiles the actual update-policy source with .NET; it does not run the Unity Editor. Trusted main/beta push jobs publish release assets after checks, while PR jobs cannot publish. A version cannot silently replace different released product content.
 
-Before stable promotion, the maintainer additionally verifies real Git/package upgrades, download deletion, SDK Play and source integrity in the connected project. The completed checks below are separate from hosted CI.
+Routine feature updates use the Git installation for final connected-Editor acceptance, including the relevant processing, input, SDK Play and source-integrity checks. The unitypackage distribution does not need a duplicate full-model or input run for the same product code. CI still checks all archive formats and their bytes. Changes to import/update behavior, installation layout or GUID compatibility additionally require focused tests of the affected installation route, including temporary-download cleanup where applicable. The completed checks below are separate from hosted CI; older multi-route results remain historical evidence.
 
 ## Environment
 
@@ -171,3 +171,7 @@ A newly added third-party atlas configuration produced missing shader-property e
 The generated comparison scene was saved, unloaded and reloaded before functional sampling. Thirteen clip groups, 39 sampled poses, 18 material pairs and 102 texture pairs passed. Pixel differences were zero; maximum position/normal/bone differences were about 4.0e-7 / 2.3e-7 / 8.9e-8. Only test copies were sampled. Comparison and sampling scenes were closed afterward; the source scene was not saved.
 
 Native SDK/NDMF Play with the local 0.4.0 package passed all four entry/exit events: one obfuscated avatar, 400 generated object names, 53 Humanoid bones, zero residual markers and zero Error/Assert/Exception messages. The observer was finished and the Editor returned to Edit. A live Animator probe distinguished all four chosen code points and found no parameter-hash collisions across the eight inspected controllers. These are Editor checks, not an actual VRChat upload/client/device or extraction-resistance acceptance test. Main remains on hold.
+
+[Package CI 39391572616](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/runs/39391572616) passed and published the [0.4.0 prerelease](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases/tag/v0.4.0). The connected Editor was switched to Git beta and verified as version 0.4.0, exact product commit `dec5d7ed70a06dd4fc9d33998558ff548c1a1bc2`. Final Git SDK/NDMF Play passed with the same four events, one avatar, 400 generated names, 53 Humanoid bones, zero markers and zero errors; the observer was finished. No unitypackage was imported for this feature-only update, and full input/model tests were not duplicated by installation format.
+
+The final scan compared all 21,635 protected files with SHA-256 values freshly read before this iteration. Exactly 21,630 matched and none were missing. The other five were the VPM manifest and four lilToon files (package metadata, two changelogs and openlit_core.hlsl), changed by an operator-confirmed lilToon 2.4.0-to-2.4.1 update during testing. Those changes were preserved. The saved source scene, model/texture/material/animation files, metas and complete ProjectSettings file matched the fresh baseline. SDK/AAO native settings were reconciled to that verified baseline, the actual component fields were retained, and the source scene was not saved. The Editor was left in Edit mode with one Git installation, automatic installation off and no pending installer.
