@@ -22,6 +22,16 @@ namespace AvatarTools.Obfuscation
         [FormerlySerializedAs("namePrefix")]
         [Tooltip("新添加时默认使用模型的 avtr_… ID，可自行修改。处理后的名称为 用户名_ÌÍÎÏ…；用户名也用于派生混淆种子。")]
         public string userName = "";
+        public bool randomizeEachBuild = true;
+        public bool auditBuild = true;
+        public bool pruneEmptyBlendShapes = true;
+        public bool embedOwnershipNotice = true;
+        public string rightsHolder = "";
+        public string rightsContact = "";
+        [TextArea(2, 5)] public string usageRestrictions = "";
+        public bool embedBuildFingerprint = true;
+        public bool experimentalUvTransform;
+        public bool mergeSynchronizedBlendShapes;
         public bool renameAssets = true;
         public bool freezeUnusedBlendShapes = true;
         public bool renameDynamicBlendShapes = true;

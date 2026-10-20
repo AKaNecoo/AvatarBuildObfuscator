@@ -9,6 +9,8 @@ Build-time obfuscation for VRChat avatars. Add the component and NDMF processes 
 - Rename resources, objects, bones, parameters, Animator internals and dynamic BlendShapes using your username plus `Ì/Í/Î/Ï` symbols.
 - Bake and remove supported fixed/unused BlendShapes while retaining required dynamic shapes.
 - Independently shuffle BlendShape, sibling GameObject and mesh vertex order, updating related references.
+- Randomize each build, prune zero-delta shapes and write a local residual-data audit.
+- Embed multilingual authorization notices and build fingerprints. Experimental UV/texture rotation and synchronized-shape merging default off.
 
 ## Install
 
@@ -28,7 +30,7 @@ Use `#beta` for test releases. Alternatively, import a `.unitypackage` from [Rel
 2. Enter your username and choose a mode. New components default to an existing avatar ID; edit it freely, or enter a username if no ID exists.
 3. Build normally with the VRChat SDK. Inspect the build copy; original Hierarchy and Project names stay unchanged.
 
-The component supports Simplified Chinese, English and Japanese. Processing options can be switched independently, with preservation settings for exceptions.
+The component supports Simplified Chinese, English and Japanese. Options can be switched independently. Declared rights holders and contacts are published with the notice; it does not authenticate ownership or guarantee AI refusal.
 
 | Mode | Behavior |
 | --- | --- |

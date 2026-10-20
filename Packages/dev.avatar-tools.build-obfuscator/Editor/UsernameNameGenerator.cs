@@ -19,7 +19,9 @@ namespace AvatarTools.Obfuscation.Editor
         private readonly string prefix;
         private ulong counter;
 
-        public UsernameNameGenerator(string userName)
+        public UsernameNameGenerator(string userName) : this(userName, null) { }
+
+        public UsernameNameGenerator(string userName, byte[] buildSalt)
         {
             var normalized = NormalizeUserName(userName);
             var safe = new StringBuilder();
@@ -32,7 +34,34 @@ namespace AvatarTools.Obfuscation.Editor
             if (prefix.Length == 0) prefix = "User";
             prefix += "_";
             using (var sha = SHA256.Create())
-                key = sha.ComputeHash(Encoding.UTF8.GetBytes("AvatarBuildObfuscator/names/v2\0" + normalized));
+            {
+                if (buildSalt == null) key = sha.ComputeHash(Encoding.UTF8.GetBytes("AvatarBuildObfuscator/names/v2\0" + normalized));
+                else
+                {
+                    if (buildSalt.Length < 16) throw new ArgumentException("Build salts require at least 128 bits", nameof(buildSalt));
+                    var label = Encoding.UTF8.GetBytes("AvatarBuildObfuscator/names/v3\0" + normalized + "\0");
+                    var input = new byte[label.Length + buildSalt.Length];
+                    Buffer.BlockCopy(label, 0, input, 0, label.Length);
+                    Buffer.BlockCopy(buildSalt, 0, input, label.Length, buildSalt.Length);
+                    key = sha.ComputeHash(input);
+                }
+            }
+        }
+
+        public static byte[] NewBuildSalt()
+        {
+            var value = new byte[32];
+            using (var random = RandomNumberGenerator.Create()) random.GetBytes(value);
+            return value;
+        }
+
+        public string BuildFingerprint()
+        {
+            using (var hmac = new HMACSHA256(key))
+            {
+                var value = hmac.ComputeHash(Encoding.UTF8.GetBytes("AvatarBuildObfuscator/build-fingerprint/v1"));
+                return BitConverter.ToString(value, 0, 16).Replace("-", "").ToLowerInvariant();
+            }
         }
 
         public static string NormalizeUserName(string value)

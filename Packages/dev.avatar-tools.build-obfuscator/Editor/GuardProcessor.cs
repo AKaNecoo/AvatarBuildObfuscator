@@ -19,6 +19,8 @@ namespace AvatarTools.Obfuscation.Editor
         public string UserName;
         public bool RenameAssets, FreezeShapes, RenameShapes, RenameHierarchy, RenameParameters, RenameAnimatorInternals, RenameBones, ReorderVertices;
         public bool ShuffleShapes, ShuffleHierarchy;
+        public bool RandomizeEachBuild, AuditBuild, PruneEmptyShapes, EmbedNotice, EmbedFingerprint, TransformUv, MergeShapes;
+        public string RightsHolder, RightsContact, UsageRestrictions;
         public string[] PreserveParameters;
         public HashSet<Transform> PreserveObjects;
         public HashSet<string> PreserveShapes;
@@ -33,6 +35,16 @@ namespace AvatarTools.Obfuscation.Editor
             RenameShapes = component.renameDynamicBlendShapes;
             ShuffleShapes = component.shuffleBlendShapeOrder;
             ShuffleHierarchy = component.shuffleGameObjectOrder;
+            RandomizeEachBuild = component.randomizeEachBuild;
+            AuditBuild = component.auditBuild;
+            PruneEmptyShapes = component.pruneEmptyBlendShapes;
+            EmbedNotice = component.embedOwnershipNotice;
+            EmbedFingerprint = component.embedBuildFingerprint;
+            TransformUv = component.experimentalUvTransform;
+            MergeShapes = component.mergeSynchronizedBlendShapes;
+            RightsHolder = component.rightsHolder;
+            RightsContact = component.rightsContact;
+            UsageRestrictions = component.usageRestrictions;
             RenameHierarchy = component.renameGameObjects;
             RenameParameters = component.renameParameters;
             RenameAnimatorInternals = component.renameAnimatorInternals;
@@ -53,6 +65,10 @@ namespace AvatarTools.Obfuscation.Editor
         public int RenamedGameObjects, PreservedGameObjects, RewrittenPaths;
         public int RenamedParameters, RenamedAnimatorNames, RebuiltAvatars, ReorderedMeshes, ImportedTextureCopies;
         public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
+        public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
+        public string BuildFingerprint, AuditStage, PackageVersion, Mode;
+        public bool Randomized;
+        public List<AuditEntry> AuditEntries = new List<AuditEntry>();
         public List<string> Notes = new List<string>();
         public string Summary => "形变 " + ShapesBefore + " → " + ShapesAfter +
             "，烘焙/移除 " + FrozenShapes + "，形变改名 " + RenamedShapes +
@@ -61,7 +77,8 @@ namespace AvatarTools.Obfuscation.Editor
             "，参数改名 " + RenamedParameters + "，动画内部改名 " + RenamedAnimatorNames +
             "，Avatar 重建 " + RebuiltAvatars + "，顶点重排 " + ReorderedMeshes +
             "，形变重排网格 " + ShuffledShapeMeshes + "，同级重排组 " + ShuffledSiblingGroups +
-            "，顺序变化对象 " + ReorderedGameObjects + "，复制对象 " + CopiedObjects;
+            "，顺序变化对象 " + ReorderedGameObjects + "，复制对象 " + CopiedObjects +
+            "，空形变移除 " + PrunedEmptyShapes + "，同步形变合并 " + MergedShapePairs + "，UV 变换网格 " + TransformedUvMeshes;
         public void Note(string text) { if (!Notes.Contains(text)) Notes.Add(text); }
     }
 
@@ -107,9 +124,14 @@ namespace AvatarTools.Obfuscation.Editor
         {
             root = buildCopy != null ? buildCopy : throw new ArgumentNullException(nameof(buildCopy));
             settings = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            names = new UsernameNameGenerator(settings.UserName);
+            names = new UsernameNameGenerator(settings.UserName, settings.RandomizeEachBuild ? UsernameNameGenerator.NewBuildSalt() : null);
+            report.BuildFingerprint = names.BuildFingerprint();
+            report.Randomized = settings.RandomizeEachBuild;
+            report.Mode = settings.Mode.ToString();
+            report.PackageVersion = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(AvatarBuildObfuscator).Assembly)?.version ?? "unmanaged";
             foreach (var t in root.GetComponentsInChildren<Transform>(true)) usedNames.Add(t.name);
             saveAsset = saver;
+            if (settings.AuditBuild) CaptureAuditSources();
         }
 
         public GuardReport Run()
@@ -117,12 +139,13 @@ namespace AvatarTools.Obfuscation.Editor
             if (PrefabUtility.IsPartOfPrefabAsset(root))
                 throw new InvalidOperationException("Avatar Guard accepts a build copy, not a prefab asset.");
             CollectUsage();
+            CollectFixedShapeNames();
             PlanParameterNames();
             if (settings.ShuffleHierarchy) PlanSiblingOrder();
-            if (settings.FreezeShapes || settings.RenameShapes || settings.ShuffleShapes) ProcessShapes();
+            if (settings.FreezeShapes || settings.RenameShapes || settings.ShuffleShapes || settings.PruneEmptyShapes || settings.MergeShapes) ProcessShapes();
             else foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 if (r.sharedMesh != null) report.ShapesBefore += r.sharedMesh.blendShapeCount;
-            if (!settings.FreezeShapes && !settings.RenameShapes && !settings.ShuffleShapes) report.ShapesAfter = report.ShapesBefore;
+            if (!settings.FreezeShapes && !settings.RenameShapes && !settings.ShuffleShapes && !settings.PruneEmptyShapes && !settings.MergeShapes) report.ShapesAfter = report.ShapesBefore;
             if (settings.RenameHierarchy) PlanHierarchy();
             else report.PreservedGameObjects = root.GetComponentsInChildren<Transform>(true).Length;
             RewriteComponentAssets();
@@ -132,6 +155,9 @@ namespace AvatarTools.Obfuscation.Editor
             ApplyRebuiltAvatars();
             if (settings.ShuffleHierarchy) ApplySiblingOrder();
             if (settings.ReorderVertices) ReorderMeshes();
+            if (settings.TransformUv) TransformUvTextures();
+            EmbedBuildMetadata();
+            if (settings.AuditBuild) { AuditOutput("ndmf-pass"); BuildAuditCompletion.Register(root, this); }
             return report;
         }
 
@@ -416,6 +442,8 @@ namespace AvatarTools.Obfuscation.Editor
                 if (names.Distinct(StringComparer.Ordinal).Count() != names.Length)
                     throw new InvalidOperationException("重复形变名称");
                 var weights = Enumerable.Range(0, count).Select(renderer.GetBlendShapeWeight).ToArray();
+                PlanShapeReductions(renderer, source, names, weights, out var empty, out var merges);
+                var mergedAway = new HashSet<int>(merges.Values);
                 var freeze = new bool[count];
                 var outputNames = (string[])names.Clone();
                 var renameMap = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -423,6 +451,7 @@ namespace AvatarTools.Obfuscation.Editor
                 {
                     var name = names[i];
                     bool preserve = settings.PreserveShapes.Contains(name) ||
+                        fixedShapeNames.TryGetValue(renderer, out var fixedNames) && fixedNames.Contains(name) ||
                         settings.Mode == ProtectionMode.Conservative && CompatibilityShape(name);
                     bool driven = animated.TryGetValue(renderer, out var used) && used.Contains(name) ||
                         nativeShapes.TryGetValue(renderer, out var native) && native.Contains(name);
@@ -430,20 +459,20 @@ namespace AvatarTools.Obfuscation.Editor
                     bool ordinary = source.GetBlendShapeFrameCount(i) == 1 &&
                         Mathf.Approximately(source.GetBlendShapeFrameWeight(i, 0), 100f) &&
                         weights[i] >= 0f && weights[i] <= 100f && !float.IsNaN(weights[i]);
-                    freeze[i] = settings.FreezeShapes && !preserve && !driven && ordinary;
+                    freeze[i] = settings.FreezeShapes && !preserve && !driven && ordinary && !empty[i] && !mergedAway.Contains(i);
                     if (!driven && !preserve && !ordinary)
                         report.Note(renderer.name + "/" + name + "：特殊帧或权重，形变数据保留");
-                    if (!freeze[i] && !preserve && settings.RenameShapes)
+                    if (!freeze[i] && !empty[i] && !mergedAway.Contains(i) && !preserve && settings.RenameShapes)
                     {
                         outputNames[i] = NewName();
                         renameMap.Add(name, outputNames[i]);
                     }
                 }
-                var retained = Enumerable.Range(0, count).Where(i => !freeze[i]).ToArray();
+                var retained = Enumerable.Range(0, count).Where(i => !freeze[i] && !empty[i] && !mergedAway.Contains(i)).ToArray();
                 if (settings.ShuffleShapes && retained.Length > 1)
                     retained = ShuffledIndices(retained.Length).Select(i => retained[i]).ToArray();
-                bool shuffled = !retained.SequenceEqual(Enumerable.Range(0, count).Where(i => !freeze[i]));
-                if (!freeze.Any(x => x) && renameMap.Count == 0 && !shuffled)
+                bool shuffled = !retained.SequenceEqual(Enumerable.Range(0, count).Where(i => !freeze[i] && !empty[i] && !mergedAway.Contains(i)));
+                if (!freeze.Any(x => x) && !empty.Any(x => x) && merges.Count == 0 && renameMap.Count == 0 && !shuffled)
                 { report.ShapesAfter += count; return; }
                 copy = Object.Instantiate(source);
                 copy.name = settings.RenameAssets ? NewName() : source.name;
@@ -481,6 +510,14 @@ namespace AvatarTools.Obfuscation.Editor
                     for (int frame = 0; frame < source.GetBlendShapeFrameCount(i); frame++)
                     {
                         source.GetBlendShapeFrameVertices(i, frame, dv, dn, dt);
+                        if (merges.TryGetValue(i, out var other))
+                        {
+                            var ov = new Vector3[source.vertexCount]; var on = new Vector3[source.vertexCount]; var ot = new Vector3[source.vertexCount];
+                            source.GetBlendShapeFrameVertices(other, 0, ov, on, ot);
+                            for (int v = 0; v < dv.Length; v++) { dv[v] += ov[v]; dn[v] += on[v]; dt[v] += ot[v]; }
+                            if (dv.Any(v => !Finite(v)) || dn.Any(v => !Finite(v)) || dt.Any(v => !Finite(v)))
+                                throw new InvalidOperationException("Non-finite synchronized shape sum");
+                        }
                         copy.AddBlendShapeFrame(outputNames[i], source.GetBlendShapeFrameWeight(i, frame), dv, dn, dt);
                     }
                 if (vertices.Any(v => !Finite(v))) throw new InvalidOperationException("非有限顶点数据");
@@ -499,8 +536,12 @@ namespace AvatarTools.Obfuscation.Editor
                     renderer.SetBlendShapeWeight(i, weights[retained[i]]);
                 }
                 shapeRenames[renderer] = renameMap;
+                removedShapeCurves[renderer] = new HashSet<string>(Enumerable.Range(0, count)
+                    .Where(i => empty[i] || mergedAway.Contains(i)).Select(i => names[i]), StringComparer.Ordinal);
                 UpdateDescriptor(renderer, renameMap, newIndices);
                 report.FrozenShapes += freeze.Count(x => x);
+                report.PrunedEmptyShapes += empty.Count(x => x);
+                report.MergedShapePairs += merges.Count;
                 report.RenamedShapes += renameMap.Count;
                 report.ShapesAfter += retained.Length;
                 if (shuffled) report.ShuffledShapeMeshes++;
@@ -593,7 +634,10 @@ namespace AvatarTools.Obfuscation.Editor
             if (sharedAssets.TryGetValue(original, out var imported)) return imported;
             if (!animationObject && !namedAsset) return original;
             // With resource renaming disabled, copy only graphs which may contain renamed shape curves.
-            if (!settings.RenameAssets && !animationObject && !(settings.ReorderVertices && original is Mesh)) return original;
+            if (!settings.RenameAssets && !animationObject &&
+                !((settings.ReorderVertices || settings.TransformUv) && original is Mesh) &&
+                !((settings.EmbedNotice || settings.EmbedFingerprint || settings.TransformUv) && original is Material) &&
+                !(settings.TransformUv && original is Texture2D)) return original;
             if (original is Texture2D texture && (!texture.isReadable ||
                 texture.format == TextureFormat.DXT1Crunched || texture.format == TextureFormat.DXT5Crunched))
             { report.Note("不可读或 Crunch 纹理保留原资源和名称，避免复制错误或改变导入设置"); return original; }
@@ -684,6 +728,8 @@ namespace AvatarTools.Obfuscation.Editor
             var curves = new List<AnimationCurve>();
             foreach (var binding in AnimationUtility.GetCurveBindings(source))
             {
+                if (RemoveShapeBinding(binding, relativeRoot))
+                { oldBindings.Add(binding); report.RemovedEmptyShapeCurves++; continue; }
                 var mapped = MapBinding(binding, relativeRoot);
                 if (mapped.propertyName == binding.propertyName && mapped.path == binding.path) continue;
                 oldBindings.Add(binding); newBindings.Add(mapped);

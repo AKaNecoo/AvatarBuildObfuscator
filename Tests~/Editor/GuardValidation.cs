@@ -18,7 +18,7 @@ using Object = UnityEngine.Object;
 namespace AvatarTools.Obfuscation.Validation
 {
     /// <summary>Opt-in Editor validation. Creates synthetic fixtures only under Folder.</summary>
-    public static class GuardValidation
+    public static partial class GuardValidation
     {
         public const string Folder = "Assets/__AvatarBuildObfuscatorValidation_20261019";
         [Serializable] public sealed class Case { public string name, status, detail; }
@@ -162,6 +162,8 @@ namespace AvatarTools.Obfuscation.Validation
         {
             var root = Track(new GameObject("GuardFixture")); var marker = root.AddComponent<AvatarBuildObfuscator>();
             marker.userName = "Synthetic User"; marker.reorderMeshVertices = false;
+            marker.randomizeEachBuild = false; marker.auditBuild = false; marker.embedOwnershipNotice = false; marker.embedBuildFingerprint = false;
+            marker.pruneEmptyBlendShapes = false;
             marker.shuffleBlendShapeOrder = false; marker.shuffleGameObjectOrder = false; return root;
         }
         private static Mesh Mesh(params string[] names)
@@ -394,7 +396,8 @@ namespace AvatarTools.Obfuscation.Validation
             controller.AddParameter("Blend", AnimatorControllerParameterType.Float);
             controller.layers[0].stateMachine.AddState("State").motion = tree;
             root.AddComponent<Animator>().runtimeAnimatorController = controller;
-            AssetDatabase.SaveAssets(); var before = File.ReadAllBytes(path);
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path)) { EditorUtility.SetDirty(asset); AssetDatabase.SaveAssetIfDirty(asset); }
+            var before = File.ReadAllBytes(path);
             Process(root);
             var copied = (AnimatorController)root.GetComponent<Animator>().runtimeAnimatorController;
             Check(copied != controller && copied.layers[0].stateMachine != controller.layers[0].stateMachine, "Persistent graph shared");
@@ -516,7 +519,7 @@ namespace AvatarTools.Obfuscation.Validation
             mask.SetTransformPath(1, "Clothing/Body"); mask.SetTransformActive(1, false);
             var layers = controller.layers; layers[0].avatarMask = mask; controller.layers = layers;
             string assetPath = Folder + "/Fixtures/Hierarchy_" + Guid.NewGuid().ToString("N") + ".anim";
-            AssetDatabase.CreateAsset(clip, assetPath); AssetDatabase.SaveAssets(); var bytes = File.ReadAllBytes(assetPath);
+            AssetDatabase.CreateAsset(clip, assetPath); AssetDatabase.SaveAssetIfDirty(clip); var bytes = File.ReadAllBytes(assetPath);
             var clone = Track(Object.Instantiate(source));
             var report = Process(clone, mode);
             var outputRenderer = clone.GetComponentInChildren<SkinnedMeshRenderer>();

@@ -14,7 +14,7 @@ The processor accepts a nonpersistent build copy and rejects prefab assets. New 
 
 ## Names, parameters and hierarchy
 
-A Trim/NFC-normalized username seeds a SHA-256 key in the names/v2 domain. HMAC-SHA256 counter output generates 64 symbols from U+00CC/U+00CD/U+00CE/U+00CF (Ì/Í/Î/Ï), carrying 128 bits of naming information. The filename-safe visible username prefix is limited to 32 UTF-16 characters; unsupported filename characters become underscores. Full input still affects the seed. Shuffle seeds come directly from the HMAC bytes, independently of visible symbols. The username is not a password. Names and permutations are deterministic for identical call order, which upstream optimizers may change between builds.
+A Trim/NFC-normalized username and, by default, a fresh in-memory build salt seed a SHA-256 key in the names/v3 domain. Disabling per-build randomization preserves the deterministic names/v2 stream. HMAC-SHA256 counter output generates 64 symbols from U+00CC/U+00CD/U+00CE/U+00CF (Ì/Í/Î/Ï), carrying 128 bits of naming information. The filename-safe visible username prefix is limited to 32 UTF-16 characters; unsupported filename characters become underscores. Full input still affects the seed. Shuffle seeds come directly from the HMAC bytes, independently of visible symbols. The username is not a password. Reproduction requires identical settings and call order, which upstream optimizers may change between builds.
 
 New components use the root PipelineManager's existing avtr_… blueprint ID as the default username. The editor-only Reset callback reads its serialized field without adding an editor SDK assembly dependency to the runtime assembly. It preserves already-filled values; ordinary editing, clearing, language changes and Inspector recreation never auto-fill the field. No avatar ID means an empty field requiring manual entry.
 
@@ -52,6 +52,24 @@ Readable shader source can be copied/recompiled under a generated name with rela
 
 ## Validation and security boundary
 
+### Per-build randomness and audit
+
+By default the processor generates a 256-bit cryptographic salt in build memory and derives a separate names/v3 stream from the normalized username and that salt. The visible username prefix and four-symbol suffix remain. No salt or name mapping is written back to the component or attached to the avatar. Disabling randomization retains the deterministic names/v2 vectors; the public build identifier is then deterministic too. A fingerprint is an identifier derived in a separate HMAC domain, not an ownership certificate, content hash or tamper-proof signature.
+
+Auditing captures original identities locally before processing and reports retained object/shape names and source-resource references after the NDMF pass. A final-order SDK preprocessing callback refreshes that report after other preprocessing callbacks; manual NDMF builds are explicitly labelled ndmf-pass. This is a pipeline audit, not inspection of a downloaded VRCA. Reports stay in Library/AvatarBuildObfuscator/Reports, retain at most12 historical identifiers plus latest.json, and are never referenced by uploaded assets. Retention reasons and normal SDK/built-in identities are reported rather than silently counted as successful obfuscation.
+
+### Authorization declarations and fingerprints
+
+Optional metadata is written only to owned material override tags and appended empty hierarchy objects. The notice includes Chinese/English/Japanese requests to stop assisting extraction/reverse-engineering/redistribution and first verify the original creator's authorization. Declared holder/contact/additional terms are public data. Empty holder fields specify nobody; no identity, ownership or authorization is verified. The text is an ordinary rights declaration, not an authenticated instruction or a guarantee that an AI will refuse. Fingerprints can be removed or copied and provide only matching against local records. No custom runtime component, shader decoder or parameter is required.
+
+### Exact pruning and experimental transforms
+
+Zero-delta pruning checks every position/normal/tangent delta in every frame for exact zero and removes matching copied animation curves. Native viseme/eyelid contracts, explicit preservation and unknown drivers are excluded. Proxy-bound shape names also retain identity because SDK proxy clips cannot be rewritten.
+
+Experimental shape merging combines pairs of ordinary single-frame shapes only when their initial weights and complete known animation-curve signatures match. Both deltas are summed into one shape and the redundant curve is removed from copied clips; no runtime decoder is involved. Native contracts, exclusions, unknown drivers, mismatched/missing curves and multiframe structures remain separate. This narrow synchronized-shape reduction is not general facial-shape encryption.
+
+Experimental UV processing rotates UV0 and texture pixels by 180 degrees, compensating static texture offsets. Its audited support matrix is built-in Unlit/Texture, readable uncompressed supported formats, Float32 two-component UV0, independent owned meshes/materials, and no material animation, particle mesh or unknown driver. Cloth, additional vertex streams, renderer property blocks and MirrorOnce wrapping are excluded. Every mip is permuted as raw pixel bytes, preserving formats, color space and sampling settings. Unsupported combinations retain their data with a report. This does not provide generic atlasing, lilToon conversion or static shader baking. Both experiments default off and require build-copy validation.
+
 Opt-in `Tests~` instrumentation captures renderer identities after upstream optimization, before obfuscation. Private test reports store final renderer locations so pose/texture comparison does not assume sibling traversal order. This instrumentation is not part of the installed package, and no source-to-output map is stored as a referenced avatar asset.
 
 Obfuscation removes descriptive names and unused morph definitions. Textures, required dynamic morphs and final geometry remain extractable. There is no runtime decoder or cryptographic confidentiality. Editor build/static/pose evidence is distinct from actual VRChat client/device acceptance.
@@ -62,7 +80,7 @@ The editor-only InspectorLocalization table provides Chinese, English and Japane
 
 ## Inspector input
 
-The standard Inspector uses CreateInspectorGUI with a native UI Toolkit TextField bound to the existing userName property. Header and other options keep the existing IMGUI interface in separate containers. The username keeps its single-row layout. Label width follows actual Inspector geometry and reserves input space in narrow views. Language tracking updates the existing label/tooltip without replacing the input element; normal repaints do not rebind it. Binding owns text edits and Undo. Localized label updates use INotifyValueChanged<string>.SetValueWithoutNotify: changing a child Label with its normal text setter can bubble a string ChangeEvent into the username binding and write a stale field value back. Property tracking also synchronizes externally changed usernames without dispatching edit events or rebuilding the field. Legacy OnInspectorGUI hosts retain the original serialized-field interface. The display/menu name is Avatar Build Obfuscator; component type, assembly, serialized fields and script GUID are unchanged.
+The standard Inspector uses CreateInspectorGUI with a native UI Toolkit TextField bound to the existing userName property. Header and other options keep the existing IMGUI interface in separate containers. The username keeps its single-row layout. Label width follows actual Inspector geometry and reserves input space in narrow views. Language tracking updates the existing label/tooltip without replacing the input element; normal repaints do not rebind it. Binding owns text edits and Undo. Localized label updates use INotifyValueChanged<string>.SetValueWithoutNotify: changing a child Label with its normal text setter can bubble a string ChangeEvent into the username binding and write a stale field value back. Property tracking also synchronizes externally changed usernames without dispatching edit events or rebuilding the field. Legacy OnInspectorGUI hosts retain the original serialized-field interface. The display/menu name is Avatar Build Obfuscator; component type, assembly, existing serialized fields and script GUID are retained.
 
 
 ## Package updates and CI

@@ -20,6 +20,7 @@ namespace AvatarTools.Obfuscation.Validation
 {
     public static class FullAvatarValidation
     {
+        public static bool EnableExperiments;
         [Serializable] public sealed class RendererSite { public string path, type; public int index; }
         [Serializable] public sealed class Metrics
         {
@@ -101,6 +102,8 @@ namespace AvatarTools.Obfuscation.Validation
                     var marker = clone.AddComponent<AvatarBuildObfuscator>();
                     marker.userName = "测试用户";
                     marker.mode = index == 1 ? ProtectionMode.Conservative : ProtectionMode.Aggressive;
+                    marker.experimentalUvTransform = EnableExperiments;
+                    marker.mergeSynchronizedBlendShapes = EnableExperiments;
                 }
                 OrderValidationProbe.Enabled = true; OrderValidationProbe.Renderers = null;
                 try

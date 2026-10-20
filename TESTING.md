@@ -1,6 +1,18 @@
 # Validation
 
-Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
+Latest checks: 2026-10-21 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+
+## 0.6.0-beta.1 processing and metadata
+
+The local development package passes **59 existing processing checks, 28 enhancement checks and 51 Inspector input checks**. Enhancements cover randomized and reproducible builds; exact-zero pruning and copied-curve removal; native/manual/proxy preservation; synchronized-shape geometry and rejection cases; independent material metadata; metadata opt-outs; SDK-stage audit refresh; and UV raw-mip/GPU sampling with Repeat/Clamp/Mirror wrapping. Unsupported shaders, unreadable textures, material animation/sharing, MirrorOnce and renderer property blocks are exercised as preservation cases. The Unity-independent checks pass **60 update-policy and 28 naming/notice assertions**; eight Python archive regressions and all three archive formats pass exact-source readback for 48 package files.
+
+Two fresh baseline/Conservative/Aggressive build sets pass, with the experimental switches off and then on. Each set retains 53 Human bones and has zero missing animation/shape/mask/parameter targets and zero native errors. Current avatar counts are 405/409/409 objects, 0/356/359 renamed objects and 288/284/247 retained shapes. Four appended empty metadata objects explain the object-count increase. After saving only new comparison scenes and reopening them, each set passes **13 paired clips, 39 poses, 18 material groups and 102 sampled texture pairs**: zero differing sampled pixels, maximum position/normal/bone differences of 3.9991e-7/2.2302e-7/8.9407e-8. The two experimental transformations have **zero eligible targets on this avatar**; controlled fixtures exercise actual transformations. No lilToon UV conversion, generic atlas or general facial-shape encryption is claimed.
+
+Real SDK Play with the local package enters and returns to Edit with zero observed errors, 391 generated object names, 53 Human bones and zero remaining markers. The output contains all three hierarchy notices; 20 materials carry the notice and the same build identifier as the hierarchy and the final `sdk-preprocess` report. This verifies metadata persistence through SDK preprocessing, not through a downloaded/uploaded VRCA. A declaration is neither authenticated ownership nor a guarantee of AI refusal.
+
+A freshly enumerated 36,543-file baseline covers Assets, Packages and ProjectSettings. Excluding the explicitly owned validation directory, NDMF/VRCFury generated caches and the intentional manifest/lock installation changes leaves **23,013 protected files, including 12,154 metas**. After the local builds/Play, no protected avatar/source asset changed or disappeared. SDK testing changed one iOS graphics-setting byte; a guarded restoration reproduced the complete original ProjectSettings SHA-256 and retained the initial native settings. The original scene was not saved. In-memory checks retain all existing source-component fields; ten new settings account for its schema difference. Clip cache/serialization differences are recorded separately from unchanged disk files and do not establish that every source object's memory bytes are identical.
+
+The final delivery check uses the actual Git beta revision after publication; local file-package results above are development evidence. Both experiments default off, and this larger feature update stays on beta while main retains the stable release.
 
 ## 0.5.1 documentation follow-up
 

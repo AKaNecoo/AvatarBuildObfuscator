@@ -15,6 +15,7 @@ namespace AvatarTools.Obfuscation.Editor
         private readonly Dictionary<string, SerializedProperty> properties = new Dictionary<string, SerializedProperty>();
         private InspectorLanguage language;
         private float inspectorWidth;
+        private bool showExperiments;
 
         private void OnEnable() { properties.Clear(); }
         private SerializedProperty Property(string name)
@@ -115,8 +116,17 @@ namespace AvatarTools.Obfuscation.Editor
             var mode = Property("mode");
             Help("naming");
             if (string.IsNullOrWhiteSpace(Property("userName").stringValue)) Help("usernameRequired", MessageType.Warning);
+            Field("randomizeEachBuild");
+            Field("auditBuild");
+            if (GUILayout.Button(InspectorLocalization.Text("viewAudit", language)))
+            {
+                var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.dataPath), "Library/AvatarBuildObfuscator/Reports/latest.json");
+                if (System.IO.File.Exists(path)) EditorUtility.RevealInFinder(path);
+                else Debug.Log(InspectorLocalization.Text("noAudit", language));
+            }
             Field("renameAssets");
             Field("freezeUnusedBlendShapes");
+            Field("pruneEmptyBlendShapes");
             Field("renameDynamicBlendShapes");
             Field("shuffleBlendShapeOrder");
             Field("renameGameObjects");
@@ -125,6 +135,22 @@ namespace AvatarTools.Obfuscation.Editor
             Field("renameParameters");
             Field("renameAnimatorInternals");
             Field("reorderMeshVertices");
+            Field("embedBuildFingerprint");
+            Field("embedOwnershipNotice");
+            if (Property("embedOwnershipNotice").boolValue)
+            {
+                Field("rightsHolder");
+                Field("rightsContact");
+                Field("usageRestrictions");
+                Help("ownershipHelp");
+            }
+            showExperiments = EditorGUILayout.Foldout(showExperiments, InspectorLocalization.Text("experiments", language), true);
+            if (showExperiments)
+            {
+                Field("experimentalUvTransform");
+                Field("mergeSynchronizedBlendShapes");
+                Help("experimentsHelp", MessageType.Warning);
+            }
             Field("preserveGameObjects", true);
             Field("preserveParameters", true);
             Field("preserveBlendShapes", true);

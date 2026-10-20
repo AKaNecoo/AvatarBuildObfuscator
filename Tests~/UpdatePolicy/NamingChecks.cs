@@ -28,5 +28,25 @@ internal static class NamingChecks
         bool rejected = false;
         try { new UsernameNameGenerator(" "); } catch (ArgumentException) { rejected = true; }
         check(rejected, "Reject missing username");
+        var salt = Enumerable.Range(0, 32).Select(i => (byte)i).ToArray();
+        var s1 = new UsernameNameGenerator("VectorUser", salt); var s2 = new UsernameNameGenerator("VectorUser", salt);
+        check(s1.Next() == s2.Next() && s1.NextSeed() == s2.NextSeed(), "Explicit build salt is reproducible");
+        check(s1.BuildFingerprint() == s2.BuildFingerprint(), "Fingerprint does not consume name stream");
+        check(s1.BuildFingerprint().Length == 32, "128-bit fingerprint identifier");
+        check(s1.BuildFingerprint() != new UsernameNameGenerator("VectorUser").BuildFingerprint(), "Salt uses a separate generation domain");
+        salt[0] = 200;
+        check(s1.BuildFingerprint() != new UsernameNameGenerator("VectorUser", salt).BuildFingerprint(), "Salt input cannot mutate an existing generator");
+        var randomA = new UsernameNameGenerator("VectorUser", UsernameNameGenerator.NewBuildSalt());
+        var randomB = new UsernameNameGenerator("VectorUser", UsernameNameGenerator.NewBuildSalt());
+        check(randomA.Next() != randomB.Next() && randomA.BuildFingerprint() != randomB.BuildFingerprint(), "Independent builds differ");
+        rejected = false; try { new UsernameNameGenerator("VectorUser", new byte[1]); } catch (ArgumentException) { rejected = true; }
+        check(rejected, "Weak build salts rejected");
+        string notice = OwnershipNotice.Create("Example holder", "https://example.org/contact", "Avatar label", "No redistribution", "abcd");
+        check(notice.Contains(OwnershipNotice.Chinese) && notice.Contains(OwnershipNotice.English) && notice.Contains(OwnershipNotice.Japanese), "Three-language authorization text");
+        check(notice.Contains("has not verified") && notice.Contains("Declared rights holder: Example holder"), "Declaration does not impersonate verified ownership");
+        check(OwnershipNotice.Create("", "", "Label", "", "").Contains("Not specified"), "Empty holder does not invent an author");
+        check(OwnershipNotice.Clean("x\0\r\ny", 40) == "x  y", "Native metadata strips control characters");
+        check(OwnershipNotice.Clean("x" + char.ConvertFromUtf32(0x1f600), 2) == "x", "Metadata truncation preserves surrogate boundaries");
+        check(OwnershipNotice.Clean("\ud800x\udc00", 16) == "x", "Malformed metadata cannot abort the build");
     }
 }

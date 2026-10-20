@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0-beta.1 — 2026-10-21
+
+- Add per-build randomization, local residual audits with a late SDK check, and exact zero-delta shape/curve pruning.
+- Embed optional Chinese/English/Japanese authorization declarations and removable build fingerprints without claiming identity verification or guaranteed AI refusal.
+- Add opt-in lossless UV/texture rotation and synchronized dynamic-shape merging within a restricted compatibility matrix; both default off.
+
 ## 0.5.1 — 2026-10-20
 
 - Clarify the Hierarchy → Inspector → Add Component entry point in all README languages and the bundled guide.
