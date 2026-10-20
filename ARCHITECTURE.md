@@ -4,7 +4,7 @@
 
 The root component implements `IEditorOnly`. The NDMF Resolving pass captures settings and removes markers from the build clone. Optimizing runs after the configured avatar construction/optimization plugins. Adding a component never starts an import, changes source assets, or uploads an avatar. AAO is optional and is never reconfigured by this package.
 
-The processor accepts a nonpersistent build copy and rejects prefab assets. New resources go to the NDMF asset saver. Imported textures/audio are independently copied into its generated folder before opening the serialization scope; `StartAssetEditing`/`StopAssetEditing` group copies, followed by one synchronous refresh. Loads occur after that batch completes. Import suspension and progress UI are released in `finally`, including cancellation. Source importers, compression and Read/Write settings are not changed. Unsupported embedded/built-in assets retain their source identity.
+The processor accepts a nonpersistent build copy and rejects prefab assets. New resources go to the NDMF asset saver. Imported textures/audio are independently copied into its generated folder before opening the serialization scope; `StartAssetEditing`/`StopAssetEditing` group copies, followed by one synchronous refresh. Loads occur after that batch completes. Import suspension and progress UI are released in `finally`, including cancellation. The path guard accepts Assets descendants and the exact `Packages/nadena.dev.ndmf/__Generated` tree used by normal Play/SDK callbacks. It rejects other package source folders and dot-segment traversal. The earlier Assets-only gate passed manual tests but broke real SDK preprocessing; regression coverage now includes both roots. Source importers, compression and Read/Write settings are not changed. Unsupported embedded/built-in assets retain their source identity.
 
 ## Names, parameters and hierarchy
 
@@ -43,3 +43,7 @@ Readable shader source can be copied/recompiled under a generated name with rela
 Opt-in `Tests~` instrumentation captures renderer identities after upstream optimization, before obfuscation. Private test reports store final renderer locations so pose/texture comparison does not assume sibling traversal order. This instrumentation is not part of the installed package, and no source-to-output map is stored as a referenced avatar asset.
 
 Obfuscation removes descriptive names and unused morph definitions. Textures, required dynamic morphs and final geometry remain extractable. There is no runtime decoder or cryptographic confidentiality. Editor build/static/pose evidence is distinct from actual VRChat client/device acceptance.
+
+## Inspector language
+
+The editor-only InspectorLocalization table provides Chinese, English and Japanese labels/help/tooltips. `inspectorLanguage` is serialized per root component and defaults to Simplified Chinese; GuardSettings does not read it. The marker is removed from build output, so neither locale state nor translation data is uploaded. This editor UI does not require Localization/Addressables dependencies. SerializedProperty handles edits; label width is restored after drawing.

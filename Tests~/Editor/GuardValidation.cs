@@ -87,6 +87,9 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Vertex permutation preserves topology, channels, skinning and dynamic shapes", MeshPermutation);
             Run("Imported unreadable texture clones retain pixels and importer bytes", () => ImportedTexture(false));
             Run("Imported Crunch texture clones retain pixels and importer bytes", () => ImportedTexture(true));
+            Run("NDMF default package output supports unreadable texture copies", () => ImportedTexture(false, true));
+            Run("NDMF default package output supports Crunch texture copies", () => ImportedTexture(true, true));
+            Run("Generated-folder guard rejects package sources and traversal", GeneratedFolderGuard);
             Run("Imported assets use one batch instead of an import per file", BatchedImports);
             Run("Custom Shader copies preserve properties and source files", ShaderCopy);
             Run("Serialized reference walk retains generated resource names", AssetNamesSurviveTraversal);
@@ -642,7 +645,19 @@ namespace AvatarTools.Obfuscation.Validation
             Check(mesh.vertices.SequenceEqual(originalVertices) && mesh.triangles.SequenceEqual(originalTriangles), "Source mesh changed");
         }
 
-        private static void ImportedTexture(bool crunch)
+        private static void GeneratedFolderGuard()
+        {
+            var root = Root();
+            foreach (string path in new[] { "Packages/nadena.dev.ndmf/Editor", "Packages/nadena.dev.ndmf/__GeneratedOther",
+                "Assets/../Packages/nadena.dev.ndmf/Editor", "Packages/nadena.dev.ndmf/__Generated/../Editor" })
+            {
+                bool rejected = false;
+                try { new GuardProcessor(root, new GuardSettings(root.GetComponent<AvatarBuildObfuscator>())).PrepareImportedAssets(path); }
+                catch (ArgumentException) { rejected = true; }
+                Check(rejected, "Unsafe generated folder accepted: " + path);
+            }
+        }
+        private static void ImportedTexture(bool crunch, bool ndmfTemporary = false)
         {
             string path = Folder + "/Fixtures/InputTexture_" + Guid.NewGuid().ToString("N") + ".png";
             var temporary = Track(new Texture2D(32, 32, TextureFormat.RGBA32, true));
@@ -653,7 +668,8 @@ namespace AvatarTools.Obfuscation.Validation
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path); var before = Pixels(texture);
             var sourceBytes = File.ReadAllBytes(path); var sourceMeta = File.ReadAllBytes(path + ".meta");
             var root = Root(); var r = Renderer(root, "Body", Mesh()); var mat = Track(new Material(Shader.Find("Unlit/Texture"))); mat.mainTexture = texture; r.sharedMaterial = mat;
-            string folder = Folder + "/Fixtures/CopiedTextures_" + Guid.NewGuid().ToString("N"); Directory.CreateDirectory(folder); AssetDatabase.Refresh();
+            string folder = (ndmfTemporary ? "Packages/nadena.dev.ndmf/__Generated/ABO_Validation_" : Folder + "/Fixtures/CopiedTextures_") + Guid.NewGuid().ToString("N");
+            Directory.CreateDirectory(folder); AssetDatabase.Refresh();
             var processor = new GuardProcessor(root, new GuardSettings(root.GetComponent<AvatarBuildObfuscator>()), x => Track(x));
             processor.PrepareImportedAssets(folder); var report = processor.Run(); var output = (Texture2D)r.sharedMaterial.mainTexture;
             Check(output != texture && UsernameNameGenerator.IsGeneratedName(output.name) && !output.isReadable, "Imported texture not independently renamed");

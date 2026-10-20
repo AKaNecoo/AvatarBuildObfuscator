@@ -19,9 +19,17 @@ namespace AvatarTools.Obfuscation.Editor
         /// </summary>
         public void PrepareImportedAssets(string generatedFolder)
         {
-            if (!settings.RenameAssets || !AssetDatabase.IsValidFolder(generatedFolder)) return;
-            if (!generatedFolder.StartsWith("Assets/", StringComparison.Ordinal))
-                throw new ArgumentException("Generated assets must be inside this project's Assets");
+            if (!settings.RenameAssets || string.IsNullOrEmpty(generatedFolder)) return;
+            generatedFolder = generatedFolder.Replace('\\', '/').TrimEnd('/');
+            // NDMF's normal SDK/Play pipeline saves under its package's __Generated
+            // tree. Manual/test builds can instead choose an Assets folder. Accept
+            // both, without permitting arbitrary package sources or traversal.
+            const string ndmfGenerated = "Packages/nadena.dev.ndmf/__Generated";
+            bool allowed = generatedFolder.StartsWith("Assets/", StringComparison.Ordinal) ||
+                generatedFolder == ndmfGenerated || generatedFolder.StartsWith(ndmfGenerated + "/", StringComparison.Ordinal);
+            if (!allowed || generatedFolder.Split('/').Any(segment => segment == "." || segment == ".."))
+                throw new ArgumentException("Generated assets must be inside Assets or NDMF's __Generated tree");
+            if (!AssetDatabase.IsValidFolder(generatedFolder)) return;
             var sources = WalkReferencedAssets().Where(x => x is Texture || x is AudioClip).ToArray();
             var pending = new List<Tuple<Object, string>>();
             var watch = System.Diagnostics.Stopwatch.StartNew();

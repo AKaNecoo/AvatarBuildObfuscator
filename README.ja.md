@@ -2,7 +2,7 @@
 
 [中文](README.md) · [English](README.en.md)
 
-`VRCAvatarDescriptor` のあるルートに **Avatar Tools / Build Obfuscator** を追加し、自分のユーザー名を入力すると、NDMF のビルド用コピーを処理します。**0.3.0-beta.1** の名前は **`ユーザー名_IlIl…`**。Unicode の表示プレフィックスと、ASCII の大文字 `I` / 小文字 `l` 128 文字で構成します。正規化したユーザー名全体を生成シードにも使います。新規コンポーネントは空欄です。
+`VRCAvatarDescriptor` のあるルートに **Avatar Tools / Build Obfuscator** を追加し、自分のユーザー名を入力すると、NDMF のビルド用コピーを処理します。**0.3.0-beta.2** の名前は **`ユーザー名_IlIl…`**。Unicode の表示プレフィックスと、ASCII の大文字 `I` / 小文字 `l` 128 文字で構成します。正規化したユーザー名全体を生成シードにも使います。新規コンポーネントは空欄です。
 
 **OSC・パスワード・実行時 Shader 復号は不要**です。暗号化ではなく、テクスチャ、最終形状、必要な動的 BlendShape はアップロードデータに残ります。
 
@@ -29,6 +29,10 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 同じツールを二重導入しないでください。`.unitypackage` から切り替える前に `Assets/AvatarBuildObfuscator` のプラグインファイルを削除し、アバターや他のアセットは残します。導入後にコンポーネント参照と設定を確認してください。[Release 添付ファイル](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases)は最新ベータより古い場合があります。
 
 ## 使い方とモード
+
+上部の **语言 / Language / 言語** で簡体字中国語（既定）・English・日本語を選択できます。選択はコンポーネントごとに保存され、ラベル・説明・ツールチップのみ変更します。ユーザー名・モード・ビルド結果には影響しません。
+
+Play・SDK ビルドでは NDMF 既定の `Packages/nadena.dev.ndmf/__Generated`、手動生成では Assets 配下を使用できます。
 
 ユーザー名、モード、処理項目を設定して通常通りビルドします。表示プレフィックスは安全な最大 32 文字にし、危険なファイル名文字は `_` に置換します。シードは Trim/NFC 正規化した入力全体です。同じ入力と呼び出し順序で同じ系列になりますが、最適化ツールの走査順序が変わるとリソースごとの名前も変わり得ます。
 

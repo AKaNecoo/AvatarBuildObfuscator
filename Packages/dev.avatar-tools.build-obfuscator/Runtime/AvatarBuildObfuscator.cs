@@ -5,6 +5,7 @@ using UnityEngine.Scripting.APIUpdating;
 namespace AvatarTools.Obfuscation
 {
     public enum ProtectionMode { Conservative, Aggressive }
+    public enum InspectorLanguage { SimplifiedChinese, English, Japanese }
 
     /// <summary>Editor-only build instructions. NDMF runs them on its build copy.</summary>
     [AddComponentMenu("Avatar Tools/Build Obfuscator")]
@@ -13,6 +14,7 @@ namespace AvatarTools.Obfuscation
     [MovedFrom(true, "Kiine.AvatarGuard", "dev.kiine.avatar-guard.runtime", "AvatarGuard")]
     public sealed class AvatarBuildObfuscator : MonoBehaviour, VRC.SDKBase.IEditorOnly
     {
+        public InspectorLanguage inspectorLanguage = InspectorLanguage.SimplifiedChinese;
         public ProtectionMode mode = ProtectionMode.Conservative;
         [FormerlySerializedAs("namePrefix")]
         [Tooltip("填写你自己的用户名，支持中文。处理后的名称为 用户名_IlIl…；用户名也用于派生混淆种子。")]

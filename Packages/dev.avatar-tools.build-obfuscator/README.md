@@ -1,6 +1,8 @@
-# Avatar Build Obfuscator 0.3.0-beta.1
+# Avatar Build Obfuscator 0.3.0-beta.2
 
 ## 中文
+
+顶部 **语言 / Language / 言語** 支持简体中文、English、日本語，选择保存在组件中，只影响界面显示。0.3.0-beta.2 修复了默认 NDMF 临时目录被误拒绝、导致 Play 预处理失败的问题。
 
 在 Avatar 根对象添加 **Avatar Tools / Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。支持中文，名称显示为 `用户名_IlIl…`，后缀由 128 个 ASCII I/l 组成。新组件用户名留空。
 
@@ -20,11 +22,15 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 ## English
 
+Use **语言 / Language / 言語** for Simplified Chinese, English or Japanese Inspector text. The per-component choice affects display only. Beta.2 fixes Play preprocessing by accepting NDMF's actual default generated-output tree.
+
 Add the component to the avatar root and enter your own Unicode username. NDMF processes its build copy using visible username + 128 ASCII I/l names. Supported hierarchy, Humanoid, parameter and animation references are remapped. Independent switches shuffle morph indices, sibling order and mesh vertices. Conservative protects uncertain dependencies; Aggressive accepts unknown compatibility risks. Required shapes remain usable; no runtime decryption is needed.
 
 Texture/audio copies use a single import batch without editing source assets/importers. Requires Unity2022.3, Avatar SDK3.7.0+, NDMF1.14.8+. Install the beta Git URL above once, then use Package Manager Update. Original assets remain unchanged; uploaded textures and necessary morphs remain extractable.
 
 ## 日本語
+
+上部の **语言 / Language / 言語** で簡体字中国語・English・日本語を切り替えます。コンポーネントごとの表示設定で、処理結果は変わりません。beta.2 では NDMF 既定一時フォルダーを許可し、Play 前処理の失敗を修正しました。
 
 ルートにコンポーネントを追加し、自分のユーザー名を入力します。NDMF のビルドコピーを `ユーザー名_IlIl…` で難読化し、階層・Humanoid・パラメーター・アニメーションの参照を更新します。形状インデックス、兄弟順、頂点順は独立したスイッチです。保守モードは不明な依存を保持し、激進モードは未知の互換性リスクを許容します。
 

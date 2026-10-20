@@ -1,5 +1,7 @@
 ## 中文
 
+**0.3.0-beta.2** 修复进入 Play 时 `BuildFrameworkOptimizeHook` 失败：允许 NDMF 自己的默认生成目录，同时保留对其他包源码与路径穿越的拒绝。新增组件顶部简体中文／English／日本語切换，完整覆盖标签、说明与提示，只改变界面。52 项合成回归通过，并验证真实 SDK 回调下进入及退出 Play。
+
 0.3.0-beta.1 将名称改为每位用户自己的“用户名 + 128 个 ASCII I/l”，支持中文。两档均扩展到层级、支持的 Humanoid 骨骼、自定义参数和 Animator 内部名称；激进接受未知依赖风险。新增独立的 BlendShape 索引、GameObject 同级顺序和顶点顺序混淆，无需运行时解密。
 
 动画、Mask、菜单、Driver、PhysBone、Contact、口型与眼皮引用同步更新；SDK proxy 保持真实身份，NadeVision 等明确固定接口保留。贴图（含不可读/Crunch）和音频使用独立 Importer 副本，并统一批量导入，避免逐份复制反复触发导入。源场景、原资产和 .meta 不覆盖。
@@ -8,6 +10,8 @@
 
 ## English
 
+**0.3.0-beta.2** fixes Play preprocessing by accepting NDMF's default generated tree while retaining vendor-source/traversal rejection. A per-component Chinese/English/Japanese selector localizes labels, help and tooltips without changing build settings. All 52 synthetic checks pass, with actual SDK-driven Play entry/exit verified.
+
 0.3.0-beta.1 uses each user's visible Unicode username plus 128 ASCII I/l characters. Both modes expand to hierarchy, supported Humanoid bones, custom parameters and Animator internal names; Aggressive accepts unknown dependency risks. Independent switches permute morph indices, sibling order and vertex order without runtime decryption.
 
 Animation/mask, menu/driver, PhysBone/Contact and native lip/eyelid references are remapped. SDK proxies retain canonical identity; recognized fixed contracts such as NadeVision remain intact. Imported texture/audio copies use a single batch, including unreadable/Crunch textures, without editing original assets/importers/GUIDs.
@@ -15,6 +19,8 @@ Animation/mask, menu/driver, PhysBone/Contact and native lip/eyelid references a
 Requires Unity2022.3, AvatarSDK3.7.0+, NDMF1.14.8+. Install the README beta Git URL once and later click Package Manager Update. Main remains stable; older release attachments may lag beta. No OSC, password, runtime decoder or automatic upload. Textures, final geometry and required morphs remain extractable. See TESTING.md for evidence; actual VRChat client/device acceptance is pending.
 
 ## 日本語
+
+**0.3.0-beta.2** では NDMF 既定生成先を許可し、Play 前処理の失敗を修正しました。他パッケージのソースとパストラバーサルは引き続き拒否します。コンポーネントに簡体字中国語・English・日本語の表示切り替えを追加し、ラベル・説明・ツールチップを翻訳しました。52 テストと実際の SDK 経由の Play 開始・終了を確認しています。
 
 0.3.0-beta.1 は各ユーザーの Unicode ユーザー名に 128 個の ASCII I/l を付けます。両モードとも階層、対応 Humanoid 骨、カスタムパラメーター、Animator 内部名を難読化します。激進モードは未知の依存リスクを許容します。形状インデックス・兄弟順・頂点順は独立したスイッチで、実行時復号は不要です。
 

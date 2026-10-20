@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0-beta.2 — 2026-10-20
+
+- Fix Play/SDK preprocessing: permit NDMF's actual default __Generated tree in addition to Assets output, keeping vendor-package and traversal rejection.
+- Add a per-component Simplified Chinese / English / Japanese Inspector selector, including option labels, help and tooltips. Display language does not change build configuration.
+- Expand to 52 synthetic checks; cover unreadable/Crunch copies in NDMF's default package path and unsafe-output rejection.
+- Add opt-in Play-mode observation across domain reload, checking actual SDK callbacks, obfuscated output and return to Edit Mode.
+
 ## 0.3.0-beta.1 — 2026-10-20
 
 - Restore visible per-user Unicode prefixes and 128-character ASCII I/l suffixes.

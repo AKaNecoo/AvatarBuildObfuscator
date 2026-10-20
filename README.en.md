@@ -2,7 +2,7 @@
 
 [中文](README.md) · [日本語](README.ja.md)
 
-Add **Avatar Tools / Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-beta.1** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
+Add **Avatar Tools / Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-beta.2** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
 
 There is **no OSC, password or runtime shader decryption**. Uploaded textures, final geometry and required dynamic blendshapes remain extractable. Obfuscation does not provide confidentiality.
 
@@ -29,6 +29,10 @@ To switch branches, add the desired URL once; subsequent **Update** actions foll
 Install only one copy. Before switching from `.unitypackage`, remove plugin files under `Assets/AvatarBuildObfuscator`, preserving avatars and other assets. Check component references and settings after migration. [Release attachments](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) may predate the latest beta.
 
 ## Use
+
+The **语言 / Language / 言語** selector supports Simplified Chinese (default), English and Japanese. The choice is stored per component and changes Inspector labels, help and tooltips only. It does not alter usernames, modes or build output.
+
+Play/SDK builds support NDMF's default `Packages/nadena.dev.ndmf/__Generated` output tree as well as manual output under Assets.
 
 Enter a username, select a mode and build normally. A maximum 32-character filename-safe prefix is displayed; unsafe characters become underscores. The full Trim/NFC-normalized input still seeds HMAC. Identical input and call order produce identical names; optimizer traversal can change between builds.
 

@@ -4,7 +4,7 @@
 
 在 VRChat Avatar 根对象添加 **Avatar Tools / Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。名称使用 **`用户名_IlIl…`**：支持中文前缀，后缀由 128 个大写 `I` / 小写 `l` 组成；用户名同时参与生成确定性名称序列。新组件的用户名默认留空。
 
-本文描述 **0.3.0-beta.1**。`beta` 接收测试更新，`main` 保持稳定版本。构建产物可以直接使用，**没有 OSC、密码或 Shader 解密步骤**。名称与结构混淆不保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍在上传数据中。
+本文描述 **0.3.0-beta.2**。`beta` 接收测试更新，`main` 保持稳定版本。构建产物可以直接使用，**没有 OSC、密码或 Shader 解密步骤**。名称与结构混淆不保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍在上传数据中。
 
 ## 安装与更新
 
@@ -29,6 +29,10 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 同一工程只安装一份。若原来导入过 `.unitypackage`，切换到 Git 前移除 `Assets/AvatarBuildObfuscator` 中的插件文件，保留 Avatar、场景及其他资产。升级后检查组件引用和用户名。正式 Unity 包另见 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases)；旧发布附件不等于最新 beta。
 
 ## 使用
+
+组件顶部的 **语言 / Language / 言語** 可选择 **简体中文、English、日本語**。默认简体中文，语言保存在各组件自身，只改变 Inspector 的标签、说明和提示，不改变用户名、模式或构建结果。
+
+Play 调试和 VRChat SDK 构建均支持 NDMF 默认的 `Packages/nadena.dev.ndmf/__Generated` 临时目录；手动生成到 Assets 的流程同样支持。
 
 1. 选择包含 `VRCAvatarDescriptor` 的 Avatar 根对象，添加 **Avatar Tools → Build Obfuscator**。
 2. 填写自己的用户名，选择模式和处理选项。前缀最多保留 32 字符，不安全的路径/文件名字符替换为下划线；完整规范化用户名仍参与种子计算。
