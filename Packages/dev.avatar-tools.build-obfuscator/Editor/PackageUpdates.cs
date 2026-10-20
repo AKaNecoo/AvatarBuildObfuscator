@@ -140,7 +140,7 @@ namespace AvatarTools.Obfuscation.Editor
                 if (Channel != requestChannel) { Fail("update.failed", "Installation channel changed"); return; }
                 if (stage == RequestStage.Archive)
                 {
-                    if (!Legacy || !UpdatePolicy.ValidArchive(bytes, archiveDigest)) throw new InvalidOperationException("Package checksum or installation type mismatch");
+                    if (!Legacy || !Available || !UpdatePolicy.ValidArchive(bytes, archiveDigest)) throw new InvalidOperationException("Package checksum, version or installation type mismatch");
                     Directory.CreateDirectory(Path.GetDirectoryName(ArchivePath));
                     Settings.importingArchive = true; Settings.Persist();
                     File.WriteAllBytes(ArchivePath, bytes);
@@ -220,8 +220,14 @@ namespace AvatarTools.Obfuscation.Editor
 
         private static void OnImported(string name)
         {
-            if (!Settings.importingArchive || name != "pending") return;
             legacyRead = false; legacyManifest = null;
+            if (!Settings.importingArchive)
+            {
+                // Manual imports can change only package.json and never reload the assembly.
+                if (Installed == null && !Working) Status = Available ? "update.available" : "update.current";
+                Notify(); return;
+            }
+            if (name != "pending") return;
             if (CleanupArchive()) { Status = "update.current"; Notify(); }
         }
 

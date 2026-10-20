@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 — 2026-10-20
+
+- Refresh legacy package metadata after manual imports that do not trigger assembly reload.
+- Recheck the current version before importing a downloaded archive, preventing a stale pending download from downgrading a newer manual installation.
+- Add a real-Editor cache-invalidation regression and reload-safe opt-in update-route observer.
+
+
 ## 0.3.0 — 2026-10-20
 
 - Stable release of the verified Git/asset-package updater and reproducible CI distribution.

@@ -1,4 +1,4 @@
-# Validation — 0.3.0
+# Validation — 0.3.1
 
 Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
 
@@ -113,3 +113,5 @@ The new standard Inspector keeps the label-left/input-right username row and oth
 The component menu is Avatar Tools/Avatar Build Obfuscator and Unity ObjectNames.GetInspectorTitle returns Avatar Build Obfuscator. Runtime type, assembly, serialized fields and script GUID are retained. No build processor changes are part of beta.3. The beta.1 full-model tables, beta.2 native SDK Play transition and beta.2 source-integrity checkpoint remain historical results, not fresh beta.3 full-avatar/client runs.
 
 The first hosted candidate run succeeded in both validation/build and release publication: [Package CI 39379028930](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/runs/39379028930). The actual Unity updater read this successful push and candidate metadata from GitHub, retained beta and reported update.current. The candidate release includes all three archives and checksums, with GitHub SHA-256 digests.
+
+The RC1-to-0.3.0 manual Assets update succeeded using the published archive, preserving component fields/GUID and deleting the temporary installer. A subsequent manual metadata-only reimport exposed a stale cached version; 0.3.1 invalidates that cache on manual imports and rechecks version eligibility immediately before archive import. A targeted Legacy integration regression covers this finding. Final 0.3.1 route and Play results are recorded after they run.

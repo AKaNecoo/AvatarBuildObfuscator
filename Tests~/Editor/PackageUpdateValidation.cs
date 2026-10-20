@@ -22,6 +22,7 @@ namespace AvatarTools.Obfuscation.Validation
                 throw new InvalidOperationException("Do not interrupt an active real update");
             var original = EditorJsonUtility.ToJson(settings);
             var originalStatus = type.GetProperty("Status", Static).GetValue(null, null);
+            var originalError = type.GetProperty("Error", Static).GetValue(null, null);
             var result = new Result { version = (string)type.GetProperty("CurrentVersion", Static).GetValue(null, null) };
             Action<bool> check = valid => { if (!valid) throw new Exception("Update integration assertion " + result.passed); result.passed++; };
             try
@@ -33,6 +34,16 @@ namespace AvatarTools.Obfuscation.Validation
                 check((string)values.GetValue(0).GetType().GetField("event").GetValue(values.GetValue(0)) == "push");
                 using ((IDisposable)type.GetMethod("DuringBuild", Static).Invoke(null, null))
                     check((bool)type.GetProperty("EditorBusy", Static).GetValue(null, null));
+                if ((bool)type.GetProperty("Legacy", Static).GetValue(null, null))
+                {
+                    var manifestType = type.GetNestedType("Manifest", BindingFlags.NonPublic);
+                    var stale = Activator.CreateInstance(manifestType);
+                    manifestType.GetField("version").SetValue(stale, "0.0.0");
+                    type.GetField("legacyManifest", Static).SetValue(null, stale);
+                    type.GetField("legacyRead", Static).SetValue(null, true);
+                    type.GetMethod("OnImported", Static).Invoke(null, new object[] { "manual-version-only-update" });
+                    check((string)type.GetProperty("CurrentVersion", Static).GetValue(null, null) != "0.0.0");
+                }
                 foreach (var outcome in new[] { "completed", "failed", "cancelled" })
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -52,6 +63,7 @@ namespace AvatarTools.Obfuscation.Validation
                 type.GetMethod("CleanupArchive", Static).Invoke(null, null);
                 EditorJsonUtility.FromJsonOverwrite(original, settings); persist.Invoke(settings, null);
                 type.GetProperty("Status", Static).SetValue(null, originalStatus, null);
+                type.GetProperty("Error", Static).SetValue(null, originalError, null);
             }
         }
     }

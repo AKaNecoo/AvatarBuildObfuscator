@@ -1,6 +1,6 @@
 ## 中文
 
-**0.3.0** 新增三语更新区、按工程的自动检查与可选自动安装。Git安装跟随通过CI的具体提交；安装包方式校验已发布包的SHA-256后导入，完成/失败/取消后删除下载文件。默认自动安装关闭。新增Package CI自动校验、可复现打包与Release发布；云端包检查和实际Unity验证分别记录。
+**0.3.1** 新增三语更新区、按工程的自动检查与可选自动安装。Git安装跟随通过CI的具体提交；安装包方式校验已发布包的SHA-256后导入，完成/失败/取消后删除下载文件。默认自动安装关闭。新增Package CI自动校验、可复现打包与Release发布；云端包检查和实际Unity验证分别记录。
 
 **0.3.0-beta.3** 将组件搜索名与界面标题改为 **Avatar Build Obfuscator**，保留原脚本 GUID 和现有组件设置。用户名使用原生绑定文本输入框，仍为左标签、右输入框的单行布局；其余选项和构建处理不变。
 
@@ -14,7 +14,7 @@
 
 ## English
 
-**0.3.0** adds a localized update panel, project-local automatic checks and opt-in automatic installs. Git follows exact CI-passed commits; asset-package installs verify the published SHA-256 and remove downloads after import/failure/cancellation. Automatic installation defaults off. Package CI validates and reproducibly builds release assets; hosted package checks and actual Unity acceptance are recorded separately.
+**0.3.1** adds a localized update panel, project-local automatic checks and opt-in automatic installs. Git follows exact CI-passed commits; asset-package installs verify the published SHA-256 and remove downloads after import/failure/cancellation. Automatic installation defaults off. Package CI validates and reproducibly builds release assets; hosted package checks and actual Unity acceptance are recorded separately.
 
 **0.3.0-beta.3** renames the component menu and heading to **Avatar Build Obfuscator**, preserving script GUID and existing settings. The username uses a native bound text field with the same label-left/input-right layout; other options and build processing remain unchanged.
 
@@ -28,7 +28,7 @@ Requires Unity2022.3, AvatarSDK3.7.0+, NDMF1.14.8+. Install the README beta Git 
 
 ## 日本語
 
-**0.3.0** は三言語の更新パネル、工程単位の自動確認と任意の自動インストールを追加します。GitはCI通過コミットを導入し、パッケージ方式は公開SHA-256を確認してインポート後・失敗・キャンセル時に一時ファイルを削除します。自動インストールは初期状態でオフです。Package CIで検証・再現可能な配布生成を行い、実Unity検証とは区別します。
+**0.3.1** は三言語の更新パネル、工程単位の自動確認と任意の自動インストールを追加します。GitはCI通過コミットを導入し、パッケージ方式は公開SHA-256を確認してインポート後・失敗・キャンセル時に一時ファイルを削除します。自動インストールは初期状態でオフです。Package CIで検証・再現可能な配布生成を行い、実Unity検証とは区別します。
 
 **0.3.0-beta.3** ではコンポーネントの検索名と見出しを **Avatar Build Obfuscator** に変更しました。既存のスクリプト GUID と設定は保持します。ユーザー名は左ラベル・右入力欄の1行配置で、ネイティブのバインド済みテキスト欄を使います。他の設定とビルド処理は変更しません。
 
