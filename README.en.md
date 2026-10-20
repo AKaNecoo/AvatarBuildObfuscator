@@ -24,7 +24,7 @@ Use `#beta` for test releases. Alternatively, import a `.unitypackage` from [Rel
 
 ## Use
 
-1. Select the avatar root and add **Avatar Tools → Avatar Build Obfuscator**.
+1. Select the avatar root in **Hierarchy**. At the bottom of **Inspector**, click **Add Component**, search for **Avatar Build Obfuscator** and choose **Avatar Tools → Avatar Build Obfuscator**.
 2. Enter your username and choose a mode. New components default to an existing avatar ID; edit it freely, or enter a username if no ID exists.
 3. Build normally with the VRChat SDK. Inspect the build copy; original Hierarchy and Project names stay unchanged.
 

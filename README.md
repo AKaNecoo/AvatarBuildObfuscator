@@ -24,7 +24,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 ## 使用
 
-1. 选择 Avatar 根对象，添加 **Avatar Tools → Avatar Build Obfuscator**。
+1. 在 **Hierarchy** 选中 Avatar 根对象，到右侧 **Inspector** 底部点击 **Add Component（添加组件）**，搜索 **Avatar Build Obfuscator**，选择 **Avatar Tools → Avatar Build Obfuscator**。
 2. 填写用户名并选择模式。新组件默认读取已有 Avatar ID，可自行修改；没有 ID 时手动填写。
 3. 使用 VRChat SDK 正常构建。效果在构建副本中查看，源 Hierarchy 和 Project 名称保持原样。
 

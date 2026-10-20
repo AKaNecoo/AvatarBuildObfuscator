@@ -2,6 +2,10 @@
 
 Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
 
+## 0.5.1 documentation follow-up
+
+All six component-add instructions (three standalone guides and three bundled languages) explicitly include Hierarchy, Inspector and Add Component. Nineteen relative links pass, release notes contain three short bullets per language, and all three archives pass validation and source readback. C# sources, assembly definitions and metas are unchanged from 0.5.0; no extra Unity/runtime run is claimed.
+
 ## 0.5.0 license and documentation checks
 
 The 0.5.0 release changes licensing, documentation and distribution validation. All 26 C# files differ from 0.4.0 only by SPDX/copyright comments; all assembly definitions and metas are unchanged. The root/package GPLv3 text and GPL-3.0-only metadata match. Earlier MIT releases retain their original terms.

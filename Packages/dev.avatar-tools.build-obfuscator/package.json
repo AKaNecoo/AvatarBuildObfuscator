@@ -1,6 +1,6 @@
 {
   "name": "dev.avatar-tools.build-obfuscator",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "displayName": "Avatar Build Obfuscator",
   "description": "Build-only username-prefixed Unicode homoglyph asset, shape and hierarchy name obfuscation with path remapping and static shape baking. Defaults to the avatar ID when available. No OSC or runtime decryption. Original project assets remain unchanged.",
   "unity": "2022.3",

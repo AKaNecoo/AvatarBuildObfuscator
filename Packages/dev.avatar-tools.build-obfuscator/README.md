@@ -6,7 +6,7 @@
 
 VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖源资产，无需运行时解密。
 
-1. 在 Avatar 根对象添加 **Avatar Tools → Avatar Build Obfuscator**。
+1. 在 **Hierarchy** 选中 Avatar 根对象，在右侧 **Inspector** 底部点击 **Add Component（添加组件）**，搜索并选择 **Avatar Build Obfuscator**。
 2. 填写用户名并选择保守或激进模式。新组件默认读取已有 Avatar ID，可自行修改。
 3. 使用 VRChat SDK 正常构建；源工程名称保持原样。
 
@@ -18,7 +18,7 @@ VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖
 
 Build-time obfuscation for VRChat avatars. NDMF processes a build copy without overwriting source assets; no runtime decoder is required.
 
-1. Add **Avatar Tools → Avatar Build Obfuscator** to the avatar root.
+1. Select the avatar root in **Hierarchy**. Click **Add Component** at the bottom of **Inspector**, then search for and select **Avatar Build Obfuscator**.
 2. Enter your username and choose Conservative or Aggressive. New components default to an existing avatar ID and remain editable.
 3. Build normally with the VRChat SDK; original project names stay unchanged.
 
@@ -30,7 +30,7 @@ Choose the display language and check/install updates in the component. Automati
 
 VRChat アバターのビルド時難読化ツールです。NDMF がコピーを処理し、元アセットは上書きしません。実行時復号は不要です。
 
-1. ルートに **Avatar Tools → Avatar Build Obfuscator** を追加します。
+1. **Hierarchy** でルートを選択し、右側の **Inspector** 下部で **Add Component（コンポーネントを追加）** をクリックします。**Avatar Build Obfuscator** を検索して選びます。
 2. ユーザー名と保守／激進モードを設定します。新規追加時は既存の Avatar ID が初期値になり、自由に変更できます。
 3. VRChat SDK で通常どおりビルドします。元の名前は変わりません。
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 — 2026-10-20
+
+- Clarify the Hierarchy → Inspector → Add Component entry point in all README languages and the bundled guide.
+- Keep release notes as short changelog entries. No obfuscation behavior changes.
+
 ## 0.5.0 — 2026-10-20
 
 - License this release under GPL-3.0-only, with matching root/package license text, package metadata and source identifiers. Earlier MIT-licensed releases keep their original terms.

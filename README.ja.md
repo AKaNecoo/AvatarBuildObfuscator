@@ -24,7 +24,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 ## 使い方
 
-1. アバターのルートを選び、**Avatar Tools → Avatar Build Obfuscator** を追加します。
+1. **Hierarchy** でアバターのルートを選択します。右側の **Inspector** 下部で **Add Component（コンポーネントを追加）** をクリックし、**Avatar Build Obfuscator** を検索して **Avatar Tools → Avatar Build Obfuscator** を選びます。
 2. ユーザー名とモードを設定します。新規追加時は既存の Avatar ID が初期値になります。自由に変更でき、ID がない場合は手動入力します。
 3. VRChat SDK で通常どおりビルドします。結果はビルド用コピーで確認します。元の Hierarchy と Project の名前は変わりません。
 
