@@ -1,25 +1,45 @@
-# Architecture
+# Architecture — 0.3 beta
 
-## Build lifecycle
+## Build lifecycle and ownership
 
-`AvatarBuildObfuscator` implements the SDK's `IEditorOnly` marker. The Resolving pass copies its settings into NDMF build state and removes the marker from the build copy. Optimizing runs after known avatar construction/optimization plugins. No source-scene callbacks, import hooks or automatic asset migration run when a component is merely added.
+The root component implements `IEditorOnly`. The NDMF Resolving pass captures settings and removes markers from the build clone. Optimizing runs after the configured avatar construction/optimization plugins. Adding a component never starts an import, changes source assets, or uploads an avatar. AAO is optional and is never reconfigured by this package.
 
-AAO is optional. Its public component documentation does not support configuration from scripts, so Avatar Guard does not inject or reconfigure AAO components. Instead it independently analyzes the final avatar and conservatively handles supported static shapes. An existing AAO configuration may already have removed shapes before this pass.
+The processor accepts a nonpersistent build copy and rejects prefab assets. New resources go to the NDMF asset saver. Imported textures/audio are independently copied into its generated folder before opening the serialization scope; `StartAssetEditing`/`StopAssetEditing` group copies, followed by one synchronous refresh. Loads occur after that batch completes. Import suspension and progress UI are released in `finally`, including cancellation. Source importers, compression and Read/Write settings are not changed. Unsupported embedded/built-in assets retain their source identity.
 
-## Shape usage
+## Names, parameters and hierarchy
 
-All root descriptor layers and all nested Animators contribute clips with their respective relative roots. Direct clip/controller references on components and additive-reference clips are included. Any blendshape animation curve, including a constant curve, protects that shape's data. SDK viseme names, jaw shape and eyelid indices also protect data. Unknown runtime components/behaviours disable shape editing. Mesh-swap curves, duplicate paths and explicit exclusions protect the affected renderer.
+A Trim/NFC-normalized username seeds a SHA-256 key. HMAC-SHA256 counter output generates 128 ASCII I/l characters; the filename-safe visible username prefix is limited to 32 UTF-16 characters. Full input still affects the seed. The username is not a password. Names and permutations are deterministic for identical call order, which upstream optimizers may change between builds.
 
-Normal static shapes are baked into copied base positions, normals and tangents. Retained shape frames are rebuilt without altering their deltas. Current retained weights and SDK eyelid indices are remapped. Bounds, skin weights, topology and other mesh data are preserved through `Object.Instantiate`. Nonstandard frame layouts are not baked. Conservative mode additionally protects a broad set of world-driven compatibility names.
+Float and object animation bindings and AvatarMask paths are rewritten relative to each Animator root before names are applied. Shared graphs are cached per relative root. Ambiguous paths, explicit preservation, Generic/invalid avatars and recognized fixed contracts protect affected hierarchy. Conservative also protects unknown drivers and external path strings; Aggressive permits unknown dependencies.
 
-## Isolation and names
+Humanoid rebuilding uses a separate hierarchy probe. Public skeleton names and Unity's private `SkeletonBone.parentName` are remapped; native AvatarBuilder output must preserve bone Transform identities and scale. Failed probes protect the affected hierarchy before any path rewrite. Rebuilt avatars are new assets.
 
-Every modified resource is a new object. Animation and ScriptableObject copies are created with a fresh object plus `EditorUtility.CopySerialized`. Instantiating an entire temporary NDMF animation graph can trigger Unity native strong-pointer assertions, so it is not used for those objects. Serialized-reference traversal then deep-copies controller states, transitions, nested trees, behaviours and synced-layer overrides, preserving fields not represented by hand-written controller reconstruction. Cycles are handled by registering the copy before traversing references. Override controllers use `GetOverrides` / `ApplyOverrides` after the copied base is assigned, because assigning a new base can rebuild Unity's native override-key table.
+Custom parameter mappings are shared across Animator definitions/curves, state fields, transition conditions, BlendTrees, expression menus/parameters, parameter-driver sources/targets, PhysBone prefixes/generated suffixes, and Contacts. VRChat built-ins and recognized external face-tracking inputs keep protocol names. Animator layer/state/machine/transition names can change; execution order, layer indices and transition priority remain intact. Menu labels remain user-facing text.
 
-Animation graphs are cached per Animator relative root. A clip used by two nested Animators can require two distinct shape-binding rewrites. Shared non-animation assets use a global cache. Meshes, textures and Avatar objects do not recursively traverse their large numeric buffers. A normalized, manually entered username derives a SHA-256 key; HMAC-SHA256 of a big-endian counter produces each `o_` plus 32-hex-digit name. No literal username is appended. Identical usernames and call order produce identical sequences; upstream optimizer traversal can change between builds, so per-resource names are not promised to stay fixed. Usernames are not passwords or encryption keys. No source-to-output mapping is stored as a referenced uploaded asset.
+## Animation graph isolation and proxy identity
 
-SDK proxies, shader names, bone names, hierarchy paths, state names and runtime parameter strings retain identity. Texture copies never call `Apply`, GPU readback or importer reconfiguration. Unreadable textures and Crunch textures retain their original resource and name: Unity can log native errors when imported unreadable textures are instantiated, even when synthetic in-memory fixtures appeared to copy successfully. No source asset is saved or marked dirty by the processor. Only NDMF's generated asset saver receives new objects.
+Animation and ScriptableObject copies are created as fresh objects plus `CopySerialized`; a reference walk then copies states, trees, behaviours, synced overrides and cycles. The copy is registered before descending. AnimatorOverrideController overrides use GetOverrides/ApplyOverrides after assigning the copied base to preserve Unity's native override-key table. Large numeric resource buffers are not traversed as generic graphs.
 
-## Security boundary
+SDK proxy motions must retain their canonical identity, not a temporary upstream clone. NDMF ObjectRegistry resolves that original and records replacement ownership for new graph resources. A temporary proxy that upstream processing later destroys would otherwise become a null state motion. The package requires NDMF 1.14.8+ for the APIs used here.
 
-Obfuscation removes descriptive names and unused morph definitions. It provides no cryptographic confidentiality. Retained dynamic shapes and texture pixels are still part of the uploaded asset graph. The final baked face/body geometry is also present. This package makes no anti-extraction guarantee.
+## BlendShape data and order
+
+Usage includes descriptor layers, nested Animators, direct references, constant curves, SDK visemes/jaw and eyelid indices. Mesh swaps, explicit renderer exclusions and ambiguous renderer paths preserve shape structures. Conservative unknown drivers skip shape editing. Conservative also preserves world-driven compatibility names.
+
+Only ordinary unreferenced single-frame shapes with frame weight 100 and current weight 0–100 are baked into copied positions, normals and tangents. Special frames and extrapolation are retained. Retained shapes may be permuted independently of renaming; their internal frame order/deltas stay intact. Current weights and native eyelid indices use an old-to-new index mapping; animation/viseme names use the name mapping. No mapping is attached to the upload.
+
+## Sibling order
+
+A username-derived Fisher–Yates permutation changes sibling indices, not parenting or local transforms. Duplicate-name groups, UI/Canvas/RectTransform ordering, Generic skeletons and manual subtree/ancestor exclusions retain order. Conservative skips this operation for unknown drivers; Aggressive permits that uncertainty. After applying order, Human Avatars are rebound and bone Transform identities checked. A mismatch restores all sibling orders and reports the fallback.
+
+## Vertex streams, textures and shaders
+
+Vertex permutation moves every raw vertex stream and its exact format, remaps submesh indices and variable-length bone weights, and permutes all retained morph frames consistently. It does not change triangle order, material slots, bounds, or intended geometry. Cloth, extra vertex streams and unreadable meshes retain order. Conservative limits permutation to audited built-in shaders; Aggressive permits custom shaders that may use vertex IDs.
+
+Readable shader source can be copied/recompiled under a generated name with relative includes resolved. Property, keyword and pass contracts remain. Built-in/mobile-whitelisted/container shaders and NadeVision's fixed shader identity are preserved. NadeVision actually searches by shader name; bypassing its validation would conceal a functional break. Shader compilation can take time; creation has progress and timing diagnostics. Native compilation is not guaranteed to respond to cancellation immediately.
+
+## Validation and security boundary
+
+Opt-in `Tests~` instrumentation captures renderer identities after upstream optimization, before obfuscation. Private test reports store final renderer locations so pose/texture comparison does not assume sibling traversal order. This instrumentation is not part of the installed package, and no source-to-output map is stored as a referenced avatar asset.
+
+Obfuscation removes descriptive names and unused morph definitions. Textures, required dynamic morphs and final geometry remain extractable. There is no runtime decoder or cryptographic confidentiality. Editor build/static/pose evidence is distinct from actual VRChat client/device acceptance.

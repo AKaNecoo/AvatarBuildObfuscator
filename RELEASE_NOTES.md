@@ -1,17 +1,23 @@
 ## 中文
 
-产品及仓库统一更名为 **Avatar Build Obfuscator**。每个人在组件里填写自己的用户名（支持中文），由用户名派生乱码资源名；资源名不附加用户名，也不统一显示作者姓名。新组件的用户名默认留空。0.1.0 的已填设置和组件引用有迁移支持。
+0.3.0-beta.1 将名称改为每位用户自己的“用户名 + 128 个 ASCII I/l”，支持中文。两档均扩展到层级、支持的 Humanoid 骨骼、自定义参数和 Animator 内部名称；激进接受未知依赖风险。新增独立的 BlendShape 索引、GameObject 同级顺序和顶点顺序混淆，无需运行时解密。
 
-安装：导入 Unity 包，在 Avatar 根对象添加 **Avatar Tools / Build Obfuscator**，填写用户名并正常构建。保守/激进模式、源文件保护及形变处理范围保持原有设计。不可读/Crunch 贴图及不确定的驱动仍跳过。需要 Unity 2022.3、Avatar SDK、NDMF；AAO 可选。无 OSC，无贴图/网格加密。真实客户端和设备验收未完成，属于预览版。
+动画、Mask、菜单、Driver、PhysBone、Contact、口型与眼皮引用同步更新；SDK proxy 保持真实身份，NadeVision 等明确固定接口保留。贴图（含不可读/Crunch）和音频使用独立 Importer 副本，并统一批量导入，避免逐份复制反复触发导入。源场景、原资产和 .meta 不覆盖。
+
+需要 Unity2022.3、AvatarSDK3.7.0+、NDMF1.14.8+。从 README 的 beta Git 地址安装一次，以后 Package Manager 点击 Update。main 保持稳定，旧 Releases 附件不等同最新 beta。没有 OSC、密码、运行时解密或自动上传；贴图、最终几何和必要形变仍可提取。验证范围见 TESTING.md，实际 VRChat 客户端/设备验收尚未完成。
 
 ## English
 
-Renamed the product and repository to **Avatar Build Obfuscator**. Each user enters their own Unicode username; it derives opaque resource names without appending the literal username. New components leave the username empty. Existing 0.1.0 component references and entered values have migration support.
+0.3.0-beta.1 uses each user's visible Unicode username plus 128 ASCII I/l characters. Both modes expand to hierarchy, supported Humanoid bones, custom parameters and Animator internal names; Aggressive accepts unknown dependency risks. Independent switches permute morph indices, sibling order and vertex order without runtime decryption.
 
-Import the package, add **Avatar Tools / Build Obfuscator** to the avatar root, enter a username and build with NDMF. Conservative/Aggressive shape processing and source-asset isolation remain in place. Unreadable/Crunch textures and uncertain drivers are skipped. Requires Unity 2022.3, Avatar SDK and NDMF; AAO is optional. No OSC or texture/mesh encryption. Preview release; actual client/device acceptance is pending.
+Animation/mask, menu/driver, PhysBone/Contact and native lip/eyelid references are remapped. SDK proxies retain canonical identity; recognized fixed contracts such as NadeVision remain intact. Imported texture/audio copies use a single batch, including unreadable/Crunch textures, without editing original assets/importers/GUIDs.
+
+Requires Unity2022.3, AvatarSDK3.7.0+, NDMF1.14.8+. Install the README beta Git URL once and later click Package Manager Update. Main remains stable; older release attachments may lag beta. No OSC, password, runtime decoder or automatic upload. Textures, final geometry and required morphs remain extractable. See TESTING.md for evidence; actual VRChat client/device acceptance is pending.
 
 ## 日本語
 
-製品とリポジトリを **Avatar Build Obfuscator** に改名しました。各ユーザーが自分の Unicode ユーザー名を入力し、不透明なリソース名を生成します。ユーザー名そのものは名前に付けません。新規コンポーネントのユーザー名は空欄です。0.1.0 のコンポーネント参照と入力値の移行に対応します。
+0.3.0-beta.1 は各ユーザーの Unicode ユーザー名に 128 個の ASCII I/l を付けます。両モードとも階層、対応 Humanoid 骨、カスタムパラメーター、Animator 内部名を難読化します。激進モードは未知の依存リスクを許容します。形状インデックス・兄弟順・頂点順は独立したスイッチで、実行時復号は不要です。
 
-パッケージを導入し、ルートに **Avatar Tools / Build Obfuscator** を追加してユーザー名を入力し、NDMF でビルドしてください。保守・激進モードと元アセットの保護を維持します。読み取り不可・Crunch テクスチャと不明な依存はスキップします。Unity 2022.3、Avatar SDK、NDMF が必要で、AAO は任意です。OSC と暗号化はありません。実クライアント・実機の受け入れ確認前のプレビュー版です。
+アニメーション・Mask、メニュー・Driver、PhysBone・Contact、口形・まぶた参照を更新します。SDK proxy の本来の識別と NadeVision などの固定契約を保持します。読み取り不可・Crunch を含むテクスチャと音声は独立コピーを一括インポートし、元アセット・Importer・GUID は変更しません。
+
+Unity2022.3、AvatarSDK3.7.0+、NDMF1.14.8+ が必要です。README の beta Git URL を一度追加し、以後 Package Manager の Update を使います。main は安定版です。OSC、パスワード、実行時復号、自動アップロードはありません。テクスチャ・最終形状・必要な形状データは抽出可能です。検証範囲は TESTING.md を参照してください。実クライアント・実機の確認は未完了です。

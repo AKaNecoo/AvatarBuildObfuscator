@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0-beta.1 — 2026-10-20
+
+- Restore visible per-user Unicode prefixes and 128-character ASCII I/l suffixes.
+- Expand both modes to hierarchy/path, supported Humanoid, custom parameter and Animator internal-name remapping.
+- Add independent BlendShape index and GameObject sibling permutations, plus coherent vertex-stream permutation without runtime decryption.
+- Copy imported textures/audio in one batch, including unreadable/Crunch textures, without changing original importers.
+- Support readable shader-source copies while preserving recognized fixed contracts such as NadeVision.
+- Preserve canonical SDK proxy identities and synced/override graph references.
+- Add cancellation boundaries, phase timing, order-independent build/pose validation and batch-import regression coverage.
+- Require NDMF1.14.8+ for the APIs used by this version; retain existing component GUID/type/field migration.
+- Keep main stable; beta uses the same Git install URL and Package Manager Update.
+
 ## 0.2.0 — 2026-10-19
 
 - Rename the repository, component menu, package ID, assemblies and install folder to neutral product names.

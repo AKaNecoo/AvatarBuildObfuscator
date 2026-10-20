@@ -17,17 +17,20 @@ namespace AvatarTools.Obfuscation.Validation
 {
     public static class FullAvatarValidation
     {
+        [Serializable] public sealed class RendererSite { public string path, type; public int index; }
         [Serializable] public sealed class Metrics
         {
-            public string mode, image;
+            public string mode, image, guardSummary, rootName;
             public double seconds, meanPixelDifference;
             public int objects, renderers, shapes, materials, textures, controllers, clips,
                 obfuscatedMeshes, obfuscatedShapes, obfuscatedMaterials, obfuscatedTextures, obfuscatedClips,
-                missingPaths, missingShapes, proxyBindings, markerComponents, humanoidBones, differentPixels;
+                missingPaths, missingShapes, proxyBindings, markerComponents, humanoidBones, differentPixels,
+                obfuscatedObjects, missingMaskPaths, proxyClips, states, emptyMotions, missingParameters;
             public bool humanoid;
             public int unityErrors;
             public List<string> bindingProblems = new List<string>();
             public List<string> parameterNames = new List<string>();
+            public List<RendererSite> rendererSites = new List<RendererSite>();
         }
         [Serializable] public sealed class Job
         {
@@ -41,6 +44,7 @@ namespace AvatarTools.Obfuscation.Validation
         private static Camera camera;
         private static Color32[] baselinePixels;
         private static readonly List<GameObject> outputs = new List<GameObject>();
+        private static string runKey;
 
         public static string Start(int sourceId, string outputDirectory)
         {
@@ -48,6 +52,7 @@ namespace AvatarTools.Obfuscation.Validation
             if (source == null || source.GetComponent<VRCAvatarDescriptor>() == null)
                 throw new InvalidOperationException("Select an avatar root before starting validation");
             output = outputDirectory; Directory.CreateDirectory(output);
+            runKey = Guid.NewGuid().ToString("N").Substring(0, 8);
             outputs.Clear(); baselinePixels = null;
             scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             var cameraObject = new GameObject("Validation Camera"); SceneManager.MoveGameObjectToScene(cameraObject, scene);
@@ -69,15 +74,17 @@ namespace AvatarTools.Obfuscation.Validation
             string mode = index == 0 ? "baseline" : index == 1 ? "conservative" : "aggressive";
             var watch = System.Diagnostics.Stopwatch.StartNew();
             var nativeErrors = new List<string>();
+            string guardSummary = null;
             Application.LogCallback listener = (message, stack, type) => {
                 if (type == LogType.Error || type == LogType.Assert || type == LogType.Exception) nativeErrors.Add(message);
+                if (message.StartsWith("[Avatar Build Obfuscator] 形变", StringComparison.Ordinal)) guardSummary = message;
             };
             Application.logMessageReceived += listener;
             try
             {
                 job.stage = "building-" + mode; Write();
                 var clone = Object.Instantiate(source); SceneManager.MoveGameObjectToScene(clone, scene);
-                clone.name = "Guard_" + mode; clone.SetActive(true);
+                clone.name = "ABO_" + mode.Substring(0, 1) + "_" + runKey; clone.SetActive(true);
                 foreach (var transform in clone.GetComponentsInChildren<Transform>(true))
                     if (PrefabUtility.IsAnyPrefabInstanceRoot(transform.gameObject))
                         PrefabUtility.UnpackPrefabInstance(transform.gameObject, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
@@ -89,12 +96,25 @@ namespace AvatarTools.Obfuscation.Validation
                 if (index > 0)
                 {
                     var marker = clone.AddComponent<AvatarBuildObfuscator>();
-                    marker.userName = "Validation User";
+                    marker.userName = "测试用户";
                     marker.mode = index == 1 ? ProtectionMode.Conservative : ProtectionMode.Aggressive;
                 }
-                using (new OverrideTemporaryDirectoryScope(GuardValidation.Folder + "/BuildGenerated"))
-                    AvatarProcessor.ProcessAvatar(clone);
-                var metrics = Inspect(clone); metrics.mode = mode;
+                OrderValidationProbe.Enabled = true; OrderValidationProbe.Renderers = null;
+                try
+                {
+                    using (new OverrideTemporaryDirectoryScope(GuardValidation.Folder + "/BuildGenerated"))
+                        AvatarProcessor.ProcessAvatar(clone);
+                }
+                finally { OrderValidationProbe.Enabled = false; }
+                var metrics = Inspect(clone); metrics.mode = mode; metrics.guardSummary = guardSummary;
+                var rendererOrder = OrderValidationProbe.Renderers;
+                if (rendererOrder == null || rendererOrder.Any(r => r == null) ||
+                    !new HashSet<Renderer>(rendererOrder).SetEquals(clone.GetComponentsInChildren<Renderer>(true)))
+                    throw new InvalidOperationException("Renderer identity instrumentation incomplete");
+                metrics.rendererSites = rendererOrder.Select(r => new RendererSite {
+                    path = AnimationUtility.CalculateTransformPath(r.transform, clone.transform),
+                    type = r.GetType().FullName, index = Array.IndexOf(r.GetComponents<Renderer>(),r)
+                }).ToList();
                 metrics.image = Path.Combine(output, mode + ".png");
                 var pixels = Render(clone, metrics.image);
                 if (baselinePixels == null) baselinePixels = pixels;
@@ -112,6 +132,13 @@ namespace AvatarTools.Obfuscation.Validation
                 }
                 metrics.unityErrors = nativeErrors.Count;
                 if (nativeErrors.Count != 0) throw new InvalidOperationException("Unity logged errors/assertions: " + string.Join("; ", nativeErrors.Take(3)));
+                if (metrics.missingPaths != 0 || metrics.missingShapes != 0 || metrics.missingMaskPaths != 0 || metrics.missingParameters != 0)
+                    throw new InvalidOperationException("Output contains stale animation/mask/parameter references");
+                if (index > 0 && metrics.obfuscatedMaterials != metrics.materials)
+                    throw new InvalidOperationException("Generated material names were lost before build completion");
+                if (index > 0 && (metrics.proxyClips != job.builds[0].proxyClips || metrics.states != job.builds[0].states ||
+                    metrics.emptyMotions != job.builds[0].emptyMotions || metrics.humanoidBones != job.builds[0].humanoidBones))
+                    throw new InvalidOperationException("Proxy clips, state motions or humanoid bones changed");
                 watch.Stop(); metrics.seconds = watch.Elapsed.TotalSeconds;
                 clone.SetActive(false); outputs.Add(clone); job.builds.Add(metrics); job.stage = mode + "-complete";
                 Write(); return JsonUtility.ToJson(metrics);
@@ -142,7 +169,9 @@ namespace AvatarTools.Obfuscation.Validation
         public static Metrics Inspect(GameObject avatar)
         {
             var m = new Metrics();
+            m.rootName = avatar.name;
             m.objects = avatar.GetComponentsInChildren<Transform>(true).Length;
+            m.obfuscatedObjects = avatar.GetComponentsInChildren<Transform>(true).Count(t => UsernameNameGenerator.IsGeneratedName(t.name));
             var renderers = avatar.GetComponentsInChildren<Renderer>(true); m.renderers = renderers.Length;
             foreach (var r in avatar.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
@@ -165,9 +194,39 @@ namespace AvatarTools.Obfuscation.Validation
             var controllers = sites.Select(x => x.Item1).Distinct().ToArray(); m.controllers = controllers.Length;
             var clips = controllers.SelectMany(c => c.animationClips).Distinct().ToArray(); m.clips = clips.Length;
             m.obfuscatedClips = clips.Count(c => UsernameNameGenerator.IsGeneratedName(c.name));
+            m.proxyClips = clips.Count(c => c.name.StartsWith("proxy_", StringComparison.OrdinalIgnoreCase));
+            foreach (var controller in controllers.OfType<AnimatorController>())
+            {
+                var defined = new HashSet<string>(controller.parameters.Select(p => p.name), StringComparer.Ordinal);
+                var seen = new HashSet<AnimatorStateMachine>();
+                var pending = new Stack<AnimatorStateMachine>(controller.layers.Select(l => l.stateMachine));
+                while (pending.Count > 0)
+                {
+                    var machine = pending.Pop(); if (machine == null || !seen.Add(machine)) continue;
+                    foreach (var child in machine.stateMachines) pending.Push(child.stateMachine);
+                    foreach (var node in machine.states)
+                    {
+                        var state = node.state; m.states++; if (state.motion == null) m.emptyMotions++;
+                        if (state.speedParameterActive && !defined.Contains(state.speedParameter)) m.missingParameters++;
+                        if (state.timeParameterActive && !defined.Contains(state.timeParameter)) m.missingParameters++;
+                        if (state.mirrorParameterActive && !defined.Contains(state.mirrorParameter)) m.missingParameters++;
+                        if (state.cycleOffsetParameterActive && !defined.Contains(state.cycleOffsetParameter)) m.missingParameters++;
+                        foreach (var transition in state.transitions)
+                            foreach (var condition in transition.conditions) if (!defined.Contains(condition.parameter)) m.missingParameters++;
+                    }
+                    foreach (var transition in machine.anyStateTransitions)
+                        foreach (var condition in transition.conditions) if (!defined.Contains(condition.parameter)) m.missingParameters++;
+                }
+            }
             foreach (var controller in controllers.OfType<AnimatorController>())
                 m.parameterNames.AddRange(controller.parameters.Select(p => p.name));
             m.parameterNames = m.parameterNames.Distinct().OrderBy(x => x, StringComparer.Ordinal).ToList();
+            foreach (var site in sites)
+                if (site.Item1 is AnimatorController ac)
+                    foreach (var mask in ac.layers.Select(x => x.avatarMask).Where(x => x != null).Distinct())
+                        for (int i = 0; i < mask.transformCount; i++)
+                            if (!string.IsNullOrEmpty(mask.GetTransformPath(i)) && site.Item2.Find(mask.GetTransformPath(i)) == null)
+                                m.missingMaskPaths++;
             foreach (var site in sites)
             foreach (var clip in site.Item1.animationClips.Distinct())
             foreach (var b in AnimationUtility.GetCurveBindings(clip).Concat(AnimationUtility.GetObjectReferenceCurveBindings(clip)))

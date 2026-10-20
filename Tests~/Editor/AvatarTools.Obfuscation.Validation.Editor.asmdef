@@ -3,6 +3,6 @@
   "references": ["dev.avatar-tools.build-obfuscator.runtime", "dev.avatar-tools.build-obfuscator.editor", "nadena.dev.ndmf", "nadena.dev.ndmf.runtime", "AvatarTools.Obfuscation.Validation.Runtime"],
   "includePlatforms": ["Editor"],
   "overrideReferences": true,
-  "precompiledReferences": ["VRCSDK3A.dll", "VRCSDKBase.dll", "VRCCore-Editor.dll"],
+  "precompiledReferences": ["VRCSDK3A.dll", "VRCSDKBase.dll", "VRCCore-Editor.dll", "VRC.SDK3.Dynamics.PhysBone.dll", "VRC.SDK3.Dynamics.Contact.dll", "VRC.Dynamics.dll"],
   "autoReferenced": true
 }

@@ -14,7 +14,10 @@ namespace AvatarTools.Obfuscation.Editor
     {
         public ProtectionMode Mode;
         public string UserName;
-        public bool RenameAssets, FreezeShapes, RenameShapes;
+        public bool RenameAssets, FreezeShapes, RenameShapes, RenameHierarchy, RenameParameters, RenameAnimatorInternals, RenameBones, ReorderVertices;
+        public bool ShuffleShapes, ShuffleHierarchy;
+        public string[] PreserveParameters;
+        public HashSet<Transform> PreserveObjects;
         public HashSet<string> PreserveShapes;
         public HashSet<SkinnedMeshRenderer> Exclusions;
 
@@ -25,6 +28,15 @@ namespace AvatarTools.Obfuscation.Editor
             RenameAssets = component.renameAssets;
             FreezeShapes = component.freezeUnusedBlendShapes;
             RenameShapes = component.renameDynamicBlendShapes;
+            ShuffleShapes = component.shuffleBlendShapeOrder;
+            ShuffleHierarchy = component.shuffleGameObjectOrder;
+            RenameHierarchy = component.renameGameObjects;
+            RenameParameters = component.renameParameters;
+            RenameAnimatorInternals = component.renameAnimatorInternals;
+            RenameBones = component.renameBones;
+            ReorderVertices = component.reorderMeshVertices;
+            PreserveParameters = component.preserveParameters ?? new string[0];
+            PreserveObjects = new HashSet<Transform>(component.preserveGameObjects ?? new Transform[0]);
             PreserveShapes = new HashSet<string>(component.preserveBlendShapes ?? new string[0], StringComparer.Ordinal);
             Exclusions = new HashSet<SkinnedMeshRenderer>(component.excludedRenderers ?? new SkinnedMeshRenderer[0]);
         }
@@ -35,10 +47,18 @@ namespace AvatarTools.Obfuscation.Editor
     public sealed class GuardReport
     {
         public int ShapesBefore, ShapesAfter, FrozenShapes, RenamedShapes, RenamedAssets, CopiedObjects;
+        public int RenamedGameObjects, PreservedGameObjects, RewrittenPaths;
+        public int RenamedParameters, RenamedAnimatorNames, RebuiltAvatars, ReorderedMeshes, ImportedTextureCopies;
+        public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
         public List<string> Notes = new List<string>();
         public string Summary => "形变 " + ShapesBefore + " → " + ShapesAfter +
             "，烘焙/移除 " + FrozenShapes + "，形变改名 " + RenamedShapes +
-            "，资源改名 " + RenamedAssets + "，复制对象 " + CopiedObjects;
+            "，资源改名 " + RenamedAssets + "，对象改名 " + RenamedGameObjects +
+            "，对象保留 " + PreservedGameObjects + "，路径改写 " + RewrittenPaths +
+            "，参数改名 " + RenamedParameters + "，动画内部改名 " + RenamedAnimatorNames +
+            "，Avatar 重建 " + RebuiltAvatars + "，顶点重排 " + ReorderedMeshes +
+            "，形变重排网格 " + ShuffledShapeMeshes + "，同级重排组 " + ShuffledSiblingGroups +
+            "，顺序变化对象 " + ReorderedGameObjects + "，复制对象 " + CopiedObjects;
         public void Note(string text) { if (!Notes.Contains(text)) Notes.Add(text); }
     }
 
@@ -47,7 +67,7 @@ namespace AvatarTools.Obfuscation.Editor
     /// importers, source assets, scene files or prefab files. Animation graphs are deep-copied
     /// through serialized references, including synced-layer overrides and nested BlendTrees.
     /// </summary>
-    public sealed class GuardProcessor
+    public sealed partial class GuardProcessor
     {
         private readonly GameObject root;
         private readonly GuardSettings settings;
@@ -62,11 +82,17 @@ namespace AvatarTools.Obfuscation.Editor
             new Dictionary<SkinnedMeshRenderer, Dictionary<string, string>>();
         private readonly List<ClipSite> clips = new List<ClipSite>();
         private readonly HashSet<SkinnedMeshRenderer> meshSwaps = new HashSet<SkinnedMeshRenderer>();
+        private readonly HashSet<StateMachineBehaviour> behaviours = new HashSet<StateMachineBehaviour>();
+        private readonly HashSet<RuntimeAnimatorController> controllers = new HashSet<RuntimeAnimatorController>();
         private readonly Dictionary<SkinnedMeshRenderer, HashSet<string>> animated =
             new Dictionary<SkinnedMeshRenderer, HashSet<string>>();
         private readonly Dictionary<SkinnedMeshRenderer, HashSet<string>> nativeShapes =
             new Dictionary<SkinnedMeshRenderer, HashSet<string>>();
         private bool unknownDriver;
+        private readonly Dictionary<Transform, string> objectNames = new Dictionary<Transform, string>();
+        private readonly Dictionary<Transform, Dictionary<string, string>> hierarchyPaths =
+            new Dictionary<Transform, Dictionary<string, string>>();
+        private readonly HashSet<string> usedNames = new HashSet<string>(StringComparer.Ordinal);
 
         private sealed class ClipSite
         {
@@ -79,6 +105,7 @@ namespace AvatarTools.Obfuscation.Editor
             root = buildCopy != null ? buildCopy : throw new ArgumentNullException(nameof(buildCopy));
             settings = configuration ?? throw new ArgumentNullException(nameof(configuration));
             names = new UsernameNameGenerator(settings.UserName);
+            foreach (var t in root.GetComponentsInChildren<Transform>(true)) usedNames.Add(t.name);
             saveAsset = saver;
         }
 
@@ -87,12 +114,130 @@ namespace AvatarTools.Obfuscation.Editor
             if (PrefabUtility.IsPartOfPrefabAsset(root))
                 throw new InvalidOperationException("Avatar Guard accepts a build copy, not a prefab asset.");
             CollectUsage();
-            if (settings.FreezeShapes || settings.RenameShapes) ProcessShapes();
+            PlanParameterNames();
+            if (settings.ShuffleHierarchy) PlanSiblingOrder();
+            if (settings.FreezeShapes || settings.RenameShapes || settings.ShuffleShapes) ProcessShapes();
             else foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 if (r.sharedMesh != null) report.ShapesBefore += r.sharedMesh.blendShapeCount;
-            if (!settings.FreezeShapes && !settings.RenameShapes) report.ShapesAfter = report.ShapesBefore;
+            if (!settings.FreezeShapes && !settings.RenameShapes && !settings.ShuffleShapes) report.ShapesAfter = report.ShapesBefore;
+            if (settings.RenameHierarchy) PlanHierarchy();
+            else report.PreservedGameObjects = root.GetComponentsInChildren<Transform>(true).Length;
             RewriteComponentAssets();
+            // Binding analysis and all graph copies use the original paths. Rename only
+            // after the copied clips/masks have been rewritten successfully.
+            foreach (var pair in objectNames) pair.Key.name = pair.Value;
+            ApplyRebuiltAvatars();
+            if (settings.ShuffleHierarchy) ApplySiblingOrder();
+            if (settings.ReorderVertices) ReorderMeshes();
             return report;
+        }
+
+        private void PlanHierarchy()
+        {
+            var all = root.GetComponentsInChildren<Transform>(true);
+            var blocked = new HashSet<Transform>();
+            Action<Transform> protectPath = t =>
+            {
+                while (t != null && t != root.transform && t.IsChildOf(root.transform))
+                { blocked.Add(t); t = t.parent; }
+            };
+            Action<Transform> protectTree = t =>
+            {
+                if (t == null || !(t == root.transform || t.IsChildOf(root.transform))) return;
+                foreach (var child in t.GetComponentsInChildren<Transform>(true)) blocked.Add(child);
+                protectPath(t);
+            };
+            if (unknownDriver && settings.Mode == ProtectionMode.Conservative)
+            {
+                report.PreservedGameObjects = all.Length;
+                report.Note("未知运行驱动或 Legacy Animation：保留对象层级名称"); return;
+            }
+            foreach (var t in settings.PreserveObjects) protectTree(t);
+            if (!settings.RenameBones)
+                foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    protectPath(renderer.rootBone);
+                    foreach (var bone in renderer.bones) protectPath(bone);
+                }
+            foreach (var animator in root.GetComponentsInChildren<Animator>(true))
+            {
+                if (animator.avatar == null) continue;
+                if (!animator.avatar.isHuman || !animator.avatar.isValid)
+                { protectTree(animator.transform); report.Note("Generic/无效 Avatar 的内部骨架路径无法可靠重建，保留对应层级"); continue; }
+                if (!settings.RenameBones)
+                {
+                    for (int i = 0; i < (int)HumanBodyBones.LastBone; i++) protectPath(animator.GetBoneTransform((HumanBodyBones)i));
+                    var skeleton = new HashSet<string>(animator.avatar.humanDescription.skeleton.Select(x => x.name), StringComparer.Ordinal);
+                    foreach (var t in animator.GetComponentsInChildren<Transform>(true))
+                        if (skeleton.Contains(t.name)) protectPath(t);
+                }
+                // HumanDescription names do not include paths: duplicate names cannot
+                // be remapped unambiguously, even when their hierarchy paths are unique.
+                foreach (var group in animator.GetComponentsInChildren<Transform>(true).GroupBy(t => t.name))
+                    if (group.Count() > 1) foreach (var t in group) protectPath(t);
+            }
+            foreach (var group in all.GroupBy(t => AnimationUtility.CalculateTransformPath(t, root.transform)))
+                if (group.Count() > 1) foreach (var t in group) protectTree(t);
+            foreach (var t in all)
+                if (t.name.Contains("/") || t.name.StartsWith("$", StringComparison.Ordinal) ||
+                    t.name == "_AvatarMirrorReflection" || t.name == "_AvatarShadowClone") protectTree(t);
+
+            var relativeRoots = clips.Select(x => x.Root).Concat(root.GetComponentsInChildren<Animator>(true).Select(x => x.transform))
+                .Concat(new[] { root.transform }).Distinct().ToArray();
+            // Keep path strings used outside regular animation bindings (e.g. SDK audio
+            // behaviours and animation events) instead of guessing how they are resolved.
+            var strings = new HashSet<string>(StringComparer.Ordinal);
+            var holders = root.GetComponentsInChildren<Component>(true).Where(x => x != null && !(x is Transform) && !(x is AvatarBuildObfuscator)).Cast<Object>()
+                .Concat(behaviours.Cast<Object>()).Distinct();
+            foreach (var holder in holders)
+                using (var so = new SerializedObject(holder))
+                {
+                    var p = so.GetIterator();
+                    while (p.Next(true))
+                        if (settings.Mode == ProtectionMode.Conservative && p.propertyType == SerializedPropertyType.String &&
+                            p.propertyPath != "m_Name" && p.name != "SourcePath" && !string.IsNullOrEmpty(p.stringValue))
+                            strings.Add(p.stringValue);
+                }
+            foreach (var site in clips)
+            {
+                if (settings.Mode == ProtectionMode.Conservative)
+                    foreach (var evt in AnimationUtility.GetAnimationEvents(site.Clip))
+                        if (!string.IsNullOrEmpty(evt.stringParameter)) strings.Add(evt.stringParameter);
+                if (IsProxy(site.Clip))
+                    foreach (var b in AnimationUtility.GetCurveBindings(site.Clip).Concat(AnimationUtility.GetObjectReferenceCurveBindings(site.Clip)))
+                        foreach (var t in site.Root.GetComponentsInChildren<Transform>(true))
+                            if (AnimationUtility.CalculateTransformPath(t, site.Root) == b.path) protectPath(t);
+            }
+            foreach (var relativeRoot in relativeRoots)
+                foreach (var t in relativeRoot.GetComponentsInChildren<Transform>(true))
+                    if (strings.Contains(t.name) || strings.Contains(AnimationUtility.CalculateTransformPath(t, relativeRoot))) protectPath(t);
+
+            foreach (var t in all) if (!blocked.Contains(t)) objectNames[t] = NewName();
+            PrepareRebuiltAvatars(all, protectTree);
+            foreach (var t in blocked) objectNames.Remove(t);
+            report.RenamedGameObjects = objectNames.Count;
+            report.PreservedGameObjects = all.Length - objectNames.Count;
+            foreach (var relativeRoot in relativeRoots)
+            {
+                var map = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var group in relativeRoot.GetComponentsInChildren<Transform>(true)
+                    .GroupBy(t => AnimationUtility.CalculateTransformPath(t, relativeRoot)))
+                {
+                    if (group.Count() != 1) continue;
+                    var parts = new Stack<string>(); var t = group.First();
+                    while (t != relativeRoot)
+                    { parts.Push(objectNames.TryGetValue(t, out var value) ? value : t.name); t = t.parent; }
+                    map[group.Key] = string.Join("/", parts);
+                }
+                hierarchyPaths[relativeRoot] = map;
+            }
+            report.Note("对象保留包括未支持的 Avatar、代理动画路径、手动排除、歧义层级和当前模式需保留的字符串引用");
+        }
+
+        private string MapPath(string path, Transform relativeRoot)
+        {
+            if (hierarchyPaths.TryGetValue(relativeRoot, out var map) && map.TryGetValue(path, out var result)) return result;
+            return path;
         }
 
         private void CollectUsage()
@@ -101,10 +246,15 @@ namespace AvatarTools.Obfuscation.Editor
             Action<RuntimeAnimatorController, Transform> addController = (controller, relativeRoot) =>
             {
                 if (controller == null) return;
+                controllers.Add(controller);
                 foreach (var clip in controller.animationClips)
                     AddClip(clip, relativeRoot, sites);
                 foreach (var behaviour in FindBehaviours(controller))
-                    if (behaviour != null && !IsKnownNamespace(behaviour.GetType())) unknownDriver = true;
+                    if (behaviour != null)
+                    {
+                        behaviours.Add(behaviour);
+                        if (!IsKnownNamespace(behaviour.GetType())) unknownDriver = true;
+                    }
             };
             var descriptor = root.GetComponent<VRCAvatarDescriptor>();
             if (descriptor != null)
@@ -148,7 +298,9 @@ namespace AvatarTools.Obfuscation.Editor
                         }
                 }
             }
-            if (unknownDriver) report.Note("无法完整确认形变驱动；两种模式都跳过形变烘焙与改名，资源名称仍处理");
+            if (unknownDriver) report.Note(settings.Mode == ProtectionMode.Conservative
+                ? "无法完整确认驱动；保守模式保留形变、层级、参数和状态名，独立资源名称仍处理"
+                : "激进模式继续处理未知驱动；未确认的外部名称依赖可能失效");
             foreach (var site in clips)
             {
                 foreach (var binding in AnimationUtility.GetCurveBindings(site.Clip))
@@ -240,7 +392,7 @@ namespace AvatarTools.Obfuscation.Editor
                 if (source == null) continue;
                 report.ShapesBefore += source.blendShapeCount;
                 if (source.blendShapeCount == 0) continue;
-                if (unknownDriver || settings.Exclusions.Contains(renderer) || meshSwaps.Contains(renderer) ||
+                if (unknownDriver && settings.Mode == ProtectionMode.Conservative || settings.Exclusions.Contains(renderer) || meshSwaps.Contains(renderer) ||
                     ResolveRenderers(root.transform, AnimationUtility.CalculateTransformPath(renderer.transform, root.transform)).Count() != 1)
                 {
                     report.ShapesAfter += source.blendShapeCount;
@@ -284,7 +436,11 @@ namespace AvatarTools.Obfuscation.Editor
                         renameMap.Add(name, outputNames[i]);
                     }
                 }
-                if (!freeze.Any(x => x) && renameMap.Count == 0)
+                var retained = Enumerable.Range(0, count).Where(i => !freeze[i]).ToArray();
+                if (settings.ShuffleShapes && retained.Length > 1)
+                    retained = ShuffledIndices(retained.Length).Select(i => retained[i]).ToArray();
+                bool shuffled = !retained.SequenceEqual(Enumerable.Range(0, count).Where(i => !freeze[i]));
+                if (!freeze.Any(x => x) && renameMap.Count == 0 && !shuffled)
                 { report.ShapesAfter += count; return; }
                 copy = Object.Instantiate(source);
                 copy.name = settings.RenameAssets ? NewName() : source.name;
@@ -297,6 +453,7 @@ namespace AvatarTools.Obfuscation.Editor
                 copy.ClearBlendShapes();
                 for (int i = 0; i < count; i++)
                 {
+                    if (!freeze[i]) continue;
                     for (int frame = 0; frame < source.GetBlendShapeFrameCount(i); frame++)
                     {
                         source.GetBlendShapeFrameVertices(i, frame, dv, dn, dt);
@@ -315,9 +472,14 @@ namespace AvatarTools.Obfuscation.Editor
                                 }
                             }
                         }
-                        else copy.AddBlendShapeFrame(outputNames[i], source.GetBlendShapeFrameWeight(i, frame), dv, dn, dt);
                     }
                 }
+                foreach (int i in retained)
+                    for (int frame = 0; frame < source.GetBlendShapeFrameCount(i); frame++)
+                    {
+                        source.GetBlendShapeFrameVertices(i, frame, dv, dn, dt);
+                        copy.AddBlendShapeFrame(outputNames[i], source.GetBlendShapeFrameWeight(i, frame), dv, dn, dt);
+                    }
                 if (vertices.Any(v => !Finite(v))) throw new InvalidOperationException("非有限顶点数据");
                 copy.vertices = vertices;
                 if (normals.Length == vertices.Length) copy.normals = normals;
@@ -327,18 +489,18 @@ namespace AvatarTools.Obfuscation.Editor
                 Own(copy);
                 if (settings.RenameAssets) report.RenamedAssets++;
                 renderer.sharedMesh = copy;
-                int nextIndex = 0;
-                var newIndices = new int[count];
-                for (int i = 0; i < count; i++)
+                var newIndices = Enumerable.Repeat(-1, count).ToArray();
+                for (int i = 0; i < retained.Length; i++)
                 {
-                    newIndices[i] = freeze[i] ? -1 : nextIndex;
-                    if (!freeze[i]) renderer.SetBlendShapeWeight(nextIndex++, weights[i]);
+                    newIndices[retained[i]] = i;
+                    renderer.SetBlendShapeWeight(i, weights[retained[i]]);
                 }
                 shapeRenames[renderer] = renameMap;
                 UpdateDescriptor(renderer, renameMap, newIndices);
                 report.FrozenShapes += freeze.Count(x => x);
                 report.RenamedShapes += renameMap.Count;
-                report.ShapesAfter += nextIndex;
+                report.ShapesAfter += retained.Length;
+                if (shuffled) report.ShuffledShapeMeshes++;
             }
             catch (Exception exception)
             {
@@ -391,6 +553,12 @@ namespace AvatarTools.Obfuscation.Editor
                     var p = so.GetIterator(); bool changed = false;
                     while (p.Next(true))
                     {
+                        if (p.propertyType == SerializedPropertyType.String)
+                        {
+                            var mapped = MapSerializedString(component, p, relativeRoot);
+                            if (mapped != p.stringValue) { p.stringValue = mapped; changed = true; }
+                            continue;
+                        }
                         if (p.propertyType != SerializedPropertyType.ObjectReference) continue;
                         var original = p.objectReferenceValue;
                         var replacement = CloneAsset(original, relativeRoot);
@@ -405,16 +573,24 @@ namespace AvatarTools.Obfuscation.Editor
         {
             if (original == null || owned.Contains(original)) return original;
             if (original is AnimationClip proxy && IsProxy(proxy))
-            { report.Note("SDK/内置代理动画保留名称和身份"); return original; }
+            {
+                // Upstream optimizers can hand us temporary copies of SDK marker clips.
+                // Their temporary identity may be destroyed after this pass; recover the
+                // registered original so the copied graph retains the SDK's special motion.
+                var canonical = nadena.dev.ndmf.ObjectRegistry.GetReference(proxy).Object as AnimationClip;
+                report.Note("SDK/内置代理动画保留名称和身份");
+                return canonical != null && IsProxy(canonical) ? canonical : original;
+            }
             bool animationObject = original is RuntimeAnimatorController || original is AnimatorStateMachine ||
                 original is AnimatorState || original is AnimatorTransitionBase || original is StateMachineBehaviour ||
                 original is BlendTree || original is AvatarMask || original is AnimationClip;
             bool namedAsset = original is RuntimeAnimatorController || original is BlendTree || original is AvatarMask ||
                 original is AnimationClip || original is Mesh || original is Material || original is Texture2D ||
-                original is Avatar || original is VRCExpressionsMenu || original is VRCExpressionParameters;
+                original is Avatar || original is AudioClip || original is Shader || original is VRCExpressionsMenu || original is VRCExpressionParameters;
+            if (sharedAssets.TryGetValue(original, out var imported)) return imported;
             if (!animationObject && !namedAsset) return original;
             // With resource renaming disabled, copy only graphs which may contain renamed shape curves.
-            if (!settings.RenameAssets && !animationObject) return original;
+            if (!settings.RenameAssets && !animationObject && !(settings.ReorderVertices && original is Mesh)) return original;
             if (original is Texture2D texture && (!texture.isReadable ||
                 texture.format == TextureFormat.DXT1Crunched || texture.format == TextureFormat.DXT5Crunched))
             { report.Note("不可读或 Crunch 纹理保留原资源和名称，避免复制错误或改变导入设置"); return original; }
@@ -426,15 +602,18 @@ namespace AvatarTools.Obfuscation.Editor
             }
             if (map.TryGetValue(original, out var existing)) return existing;
             Object copy;
-            try { copy = CreateAssetCopy(original); }
+            try { copy = original is Shader shader ? CopyShader(shader) : CreateAssetCopy(original); }
+            catch (OperationCanceledException) { throw; }
             catch (Exception e)
             {
                 // A failed animation-graph clone cannot safely be mixed with renamed shape bindings.
                 if (animationObject) throw new InvalidOperationException("Cannot safely copy animation graph: " + original.name, e);
                 report.Note(original.GetType().Name + "：无法安全复制，保留原资源"); return original;
             }
-            copy.name = settings.RenameAssets && namedAsset ? NewName() : original.name;
+            if (copy == original) return original;
+            if (!(copy is Shader)) copy.name = settings.RenameAssets && namedAsset ? NewName() : original.name;
             map[original] = copy; // Register before walking cyclic state machines or menus.
+            nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(original), copy);
             Own(copy);
             if (settings.RenameAssets && namedAsset) report.RenamedAssets++;
             if (original is AnimatorOverrideController overrides)
@@ -450,8 +629,17 @@ namespace AvatarTools.Obfuscation.Editor
                     (AnimationClip)CloneAsset(pair.Value, relativeRoot))).ToList());
             }
             else if (original is AnimationClip clip) RewriteClip(clip, (AnimationClip)copy, relativeRoot);
-            else if (!(original is Mesh || original is Texture2D || original is Avatar))
+            else if (copy is AvatarMask mask)
+            {
+                for (int i = 0; i < mask.transformCount; i++)
+                {
+                    var path = mask.GetTransformPath(i); var mapped = MapPath(path, relativeRoot);
+                    if (path != mapped) { mask.SetTransformPath(i, mapped); report.RewrittenPaths++; }
+                }
+            }
+            else if (!(original is Mesh || original is Texture2D || original is Avatar || original is AudioClip || original is Shader))
                 RewriteSerializedReferences(original, copy, relativeRoot);
+            RewriteAnimatorNames(copy);
             return copy;
         }
 
@@ -463,6 +651,16 @@ namespace AvatarTools.Obfuscation.Editor
                 var p = read.GetIterator();
                 while (p.Next(true))
                 {
+                    // Names have already been assigned on the new asset. Copying all
+                    // source strings again would silently restore m_Name on materials,
+                    // controllers, BlendTrees and expression assets.
+                    if (p.propertyPath == "m_Name") continue;
+                    if (p.propertyType == SerializedPropertyType.String)
+                    {
+                        var targetString = write.FindProperty(p.propertyPath);
+                        if (targetString != null) targetString.stringValue = MapSerializedString(source, p, relativeRoot);
+                        continue;
+                    }
                     if (p.propertyType != SerializedPropertyType.ObjectReference) continue;
                     var original = p.objectReferenceValue;
                     if (original == null) continue;
@@ -484,7 +682,7 @@ namespace AvatarTools.Obfuscation.Editor
             foreach (var binding in AnimationUtility.GetCurveBindings(source))
             {
                 var mapped = MapBinding(binding, relativeRoot);
-                if (mapped.propertyName == binding.propertyName) continue;
+                if (mapped.propertyName == binding.propertyName && mapped.path == binding.path) continue;
                 oldBindings.Add(binding); newBindings.Add(mapped);
                 curves.Add(AnimationUtility.GetEditorCurve(source, binding));
             }
@@ -494,6 +692,7 @@ namespace AvatarTools.Obfuscation.Editor
                 AnimationUtility.SetEditorCurves(copy, newBindings.ToArray(), curves.ToArray());
             }
             var objectBindings = AnimationUtility.GetObjectReferenceCurveBindings(source);
+            var mappedObjectBindings = objectBindings.Select(b => MapBinding(b, relativeRoot)).ToArray();
             var objectCurves = new ObjectReferenceKeyframe[objectBindings.Length][];
             for (int i = 0; i < objectBindings.Length; i++)
             {
@@ -501,7 +700,11 @@ namespace AvatarTools.Obfuscation.Editor
                 for (int f = 0; f < values.Length; f++) values[f].value = CloneAsset(values[f].value, relativeRoot);
                 objectCurves[i] = values;
             }
-            if (objectBindings.Length > 0) AnimationUtility.SetObjectReferenceCurves(copy, objectBindings, objectCurves);
+            if (objectBindings.Length > 0)
+            {
+                AnimationUtility.SetObjectReferenceCurves(copy, objectBindings, new ObjectReferenceKeyframe[objectBindings.Length][]);
+                AnimationUtility.SetObjectReferenceCurves(copy, mappedObjectBindings, objectCurves);
+            }
             var clipSettings = AnimationUtility.GetAnimationClipSettings(copy);
             if (clipSettings.additiveReferencePoseClip != null)
             {
@@ -515,10 +718,15 @@ namespace AvatarTools.Obfuscation.Editor
 
         private EditorCurveBinding MapBinding(EditorCurveBinding binding, Transform relativeRoot)
         {
-            if (!binding.propertyName.StartsWith("blendShape.", StringComparison.Ordinal)) return binding;
-            var targets = ResolveRenderers(relativeRoot, binding.path).ToArray();
-            if (targets.Length == 1 && shapeRenames.TryGetValue(targets[0], out var names) &&
-                names.TryGetValue(binding.propertyName.Substring(11), out var name)) binding.propertyName = "blendShape." + name;
+            if (binding.propertyName.StartsWith("blendShape.", StringComparison.Ordinal))
+            {
+                var targets = ResolveRenderers(relativeRoot, binding.path).ToArray();
+                if (targets.Length == 1 && shapeRenames.TryGetValue(targets[0], out var names) &&
+                    names.TryGetValue(binding.propertyName.Substring(11), out var name)) binding.propertyName = "blendShape." + name;
+            }
+            var path = MapPath(binding.path, relativeRoot);
+            if (binding.type == typeof(Animator)) binding.propertyName = MapParameter(binding.propertyName);
+            if (path != binding.path) { binding.path = path; report.RewrittenPaths++; }
             return binding;
         }
 
@@ -560,6 +768,11 @@ namespace AvatarTools.Obfuscation.Editor
             saveAsset?.Invoke(value);
         }
 
-        private string NewName() { return names.Next(); }
+        private string NewName()
+        {
+            string value;
+            do { value = names.Next(); } while (!usedNames.Add(value));
+            return value;
+        }
     }
 }

@@ -2,67 +2,65 @@
 
 [中文](README.md) · [English](README.en.md)
 
-`VRCAvatarDescriptor` があるアバターのルートに **Avatar Tools / Build Obfuscator** を追加すると、NDMF のビルド用コピーに対してアセット名・BlendShape 名の難読化と、固定 BlendShape のベイク・削除を実行します。各ユーザーが自分のユーザー名を入力します（Unicode 対応）。ユーザー名から `o_…` 形式の不透明な名前を生成し、名前にユーザー名そのものは付けません。新規コンポーネントのユーザー名は空欄です。
+`VRCAvatarDescriptor` のあるルートに **Avatar Tools / Build Obfuscator** を追加し、自分のユーザー名を入力すると、NDMF のビルド用コピーを処理します。**0.3.0-beta.1** の名前は **`ユーザー名_IlIl…`**。Unicode の表示プレフィックスと、ASCII の大文字 `I` / 小文字 `l` 128 文字で構成します。正規化したユーザー名全体を生成シードにも使います。新規コンポーネントは空欄です。
 
-**ビルド後も Unity の Hierarchy / Scene / Project に元の名前が表示されるのは正常です。** 両モードとも NDMF のビルド用コピーだけを処理します。Console の `[Avatar Build Obfuscator]` に表示される件数・スキップ理由と、実際のビルド結果で確認してください。激進モードは主に MMD 互換形状の処理範囲を広げますが、ボーン・階層・実行時パラメーター名は保持します。
+**OSC・パスワード・実行時 Shader 復号は不要**です。暗号化ではなく、テクスチャ、最終形状、必要な動的 BlendShape はアップロードデータに残ります。
 
-## 導入
+## 導入と更新
 
-Unity 2022.3 の VRChat Avatar プロジェクトに、VCC で Avatar SDK と [NDMF](https://github.com/bdunderscore/ndmf) を先に導入してください。本ツールを Git から導入しても、これらの VPM 依存パッケージは自動導入されません。AAO は任意で、既存の設定は変更しません。
+Unity **2022.3**、Git、VCC で導入済みの Avatar SDK 3.7.0 以降と [NDMF](https://github.com/bdunderscore/ndmf) 1.14.8 以降 が必要です。Git 導入だけでは VPM 依存パッケージを自動導入しません。AAO・MA・VRCFury・TTT は任意で、設定は変更しません。
 
-### Git からインストール（推奨）
-
-先に [Git](https://git-scm.com/) をインストールしてください。Windows では、Unity が `PATH` から Git を見つけられる必要があります。
-
-1. **Window → Package Manager** を開きます。
-2. **＋ → Add package from git URL…** を選びます。
-3. 次の URL 全体を貼り付けて **Add** を押し、コンパイルの完了を待ちます。
-
-```text
-https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
-```
-
-**URL の入力は初回だけです。以後の更新は、Package Manager で Avatar Build Obfuscator を選び、Update を押してください。** `main` の新しいコミットを取得でき、URL の再入力は不要です。
-
-Unity は導入済みのコミットを固定するため、プロジェクトを開くたびに自動更新することはありません。パッケージはサブフォルダーにあるため `?path=…` を省略しないでください。`#main` が手動更新時に追跡するブランチです。[Unity の Git 導入手順](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)と[コミットの固定・更新](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks)を参照してください。
-
-### ベータ版と安定版
-
-`beta` には変更と必要な検証が完了した日常の更新を反映します。`main` は安定版用で、ベータ版の更新ごとには進めません。ベータ版には未発見の問題が残る可能性があります。ベータ版を利用する場合は、次の URL でインストールしてください。
+**Window → Package Manager → ＋ → Add package from git URL…** でベータ版の URL を入力します。
 
 ```text
 https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
 ```
 
-Git 版から切り替える場合は、**Add package from git URL…** でこの URL を一度入力します。同じパッケージの参照先が `beta` に切り替わり、その後は選択して **Update** を押すと更新できます。`#main` 版は自動で `beta` に切り替わりません。安定版に戻す場合は `#main` の URL を再入力してください。
+以後は **Avatar Build Obfuscator → Update** で更新します。導入済みコミットは手動更新まで固定されます。Windows では Git が `PATH` から見つかる必要があります。[Unity の Git パッケージ手順](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html)を参照してください。
 
-### Unity パッケージからインポート
+安定版は次の URL です。
 
-[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` をインポートする方法もあります。この導入方法は新版の Unity パッケージをインポートして更新し、Git の更新ボタンは使用しません。
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
+```
 
-**同じツールを二重に導入しないでください。** Unity パッケージ版から Git 版へ切り替える場合は、先に `Assets/AvatarBuildObfuscator` のプラグインファイルを削除してください。アバター、シーン、その他のアセットは残し、Git 版の導入後に既存コンポーネントとユーザー名の設定を確認してください。
+ブランチを切り替える場合は目的の URL を一度追加し直します。その後の **Update** は選択したブランチを追跡します。`main` はベータ更新ごとには進めません。`#v0.2.0` 等の公開タグは旧版への固定です。`?path=…` は省略しないでください。
 
-### コンポーネントを追加
+同じツールを二重導入しないでください。`.unitypackage` から切り替える前に `Assets/AvatarBuildObfuscator` のプラグインファイルを削除し、アバターや他のアセットは残します。導入後にコンポーネント参照と設定を確認してください。[Release 添付ファイル](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases)は最新ベータより古い場合があります。
 
-`VRCAvatarDescriptor` があるルートに **Avatar Tools → Build Obfuscator** を追加し、自分のユーザー名とモードを設定して通常通りビルドします。
+## 使い方とモード
 
-特定バージョンに固定する場合は、URL 末尾の `#main` を `#v0.2.0` などの公開タグに置き換えます。固定タグは `main` の更新を追跡しません。
+ユーザー名、モード、処理項目を設定して通常通りビルドします。表示プレフィックスは安全な最大 32 文字にし、危険なファイル名文字は `_` に置換します。シードは Trim/NFC 正規化した入力全体です。同じ入力と呼び出し順序で同じ系列になりますが、最適化ツールの走査順序が変わるとリソースごとの名前も変わり得ます。
 
-## モード
+**元の Hierarchy / Scene / Project に元の名前が残るのは正常**です。Console の **`[Avatar Build Obfuscator]`** の件数・保持理由と、実際のビルド結果を確認してください。
 
-- **保守 / Conservative（既定）**：対応アセットをコピーして改名し、アニメーションで使用されない通常の固定 BlendShape を現在のウェイトでベイクします。日本語・中国語および一般的な MMD 互換名は保持します。
-- **激進 / Aggressive**：未使用の MMD 互換形状もベイク対象にし、保持する互換形状の名前も難読化できます。固定名に依存する外部ワールドやツールでは表情が動かなくなる場合があります。
-- 両モードとも、アニメーション（定数カーブを含む）、SDK の口形・まばたきに必要な形状データを保持します。カーブ、口形名、まぶたのインデックスを合わせて更新します。
-- 不明なドライバー、アニメーションによるメッシュ差し替え、重複パス、手動除外などは安全のためスキップします。特殊なフレーム構成や範囲外ウェイトはベイクしません。
+両モードとも広い処理範囲を目指します。保守モードは依存の認識と一貫した再マッピングを優先し、激進モードは未知の名前依存リスクを許容します。アセット名、形状、階層、ボーン、パラメーター、Animator 内部名、頂点順序を個別に切り替えられます。
 
-名前の保持リスト・Renderer の除外リストを設定できます。他の最適化ツールの処理からも保護する必要がある場合、そのツール側の保持設定も必要です。
+- 共通：対応アセットのコピー、階層・Mask パスの更新、対応 Humanoid Avatar の再構築、独自パラメーター・Animator 内部名の変更、必須の動的形状の保持。
+- 保守：不明なドライバー、外部文字列パス、MMD 互換形状を保持。頂点の並べ替えは確認済みの内蔵 Shader に限定します。
+- 激進：不明な依存、互換形状名、自作 Shader の頂点順序も処理できます。外部連携が動かなくなる可能性があります。
+- 形状、Renderer、階層オブジェクト/子ツリー、パラメーターの保持設定があります。パラメーターは末尾 `*` の前方一致に対応します。
 
 ## 対象と制限
 
-Mesh、Material、読み取り可能な非 Crunch の Texture2D、AnimationClip、各種 Animator Controller、BlendTree、AvatarMask、Avatar、VRC メニュー・パラメーターのアセットオブジェクトが対象です。ボーン・階層、実行時パラメーター文字列、状態名、メニューの表示文字、Shader、SDK の代理アニメーションは互換名を保持します。Read/Write が無効なテクスチャ、Crunch テクスチャと未対応のリソースは元のリソースと名前を保持します。Importer の設定は変更しません。
+読み取り不可・Crunch を含む導入済みテクスチャと音声は、生成フォルダー内の独立ファイル/Importer コピーで処理します。元の圧縮データや設定を変更しません。アニメーション、各種 Controller、同期レイヤーの上書き、BlendTree、Mask、表情アセットを対応します。
 
-ベイク対象は単一フレーム・フレームウェイト 100・現在ウェイト 0–100 の通常形状です。元ファイル、Importer、`.meta` の GUID は書き換えません。コンポーネントの設定は通常通り Scene / Prefab に保存してください。
+パラメーターは定義、Animator カーブ、条件、状態フィールド、BlendTree、メニュー主/副パラメーター、Driver、PhysBone の接頭辞と自動接尾辞、Contact を合わせて更新します。メニューの表示文字は保持します。VRChat 内蔵パラメーター、既知の外部面捕/OSC 入力、SDK 代理アニメーションの実体は固定契約を保持します。
 
-**暗号化ツールではありません。アップロード済みデータからテクスチャや保持した動的 BlendShape を抽出することは可能です。** OSC、パスワード、専用 Shader は不要です。ネットワークへの接続やアバターの自動アップロードは行いません。ベイク後の外観はメッシュ形状として残ります。
+Humanoid はボーン名と内部の親名を合わせて再構築し、対応とスケールを確認します。未対応の Generic/無効 Avatar、曖昧なパス、再構築に失敗した階層は保持します。頂点順序の変更では生の頂点ストリーム、UV/色、トポロジー、可変ボーンウェイト、形状フレームを一緒に並べ替えるため、実行時の復元は不要です。Cloth、追加頂点ストリーム、読み取り不可メッシュは順序を保持します。
 
-[検証](TESTING.md)・[設計](ARCHITECTURE.md)・[MIT ライセンス](LICENSE)。`Tests~` は任意の検証ツールで、正式な Unity パッケージには含まれません。
+読み取れる `.shader` は属性・キーワード・Pass の契約を維持して別名で再コンパイルできます。内蔵/モバイル許可 Shader、コンテナー生成 Shader、NadeVision の固定 Shader 名は保持します。Shader 属性プロトコルの難読化は未実装です。未対応リソースは保持理由を記録します。
+
+ベイクは単一フレーム、フレームウェイト 100、現在ウェイト 0–100 の通常形状が対象です。定数カーブも動的使用とし、メッシュ差し替えと明示除外には保護規則があります。
+
+元シーン、モデル、Importer、元 `.meta` GUID は上書きしません。コンポーネント追加だけでは処理せず、アバターの自動アップロードも行いません。保守モードも、すべての未知のワールド・機器・拡張への互換保証ではありません。
+
+[TESTING.md](TESTING.md)、[ARCHITECTURE.md](ARCHITECTURE.md)、[CHANGELOG.md](CHANGELOG.md)、[MIT](LICENSE) を参照してください。`Tests~` は任意導入で、実モデルや非公開の検証データはインストールパッケージに含みません。Editor 検証はクライアント/実機の受け入れ試験と区別します。
+
+旧コンポーネントの GUID と移行情報は保持します。0.3 beta では要望によりユーザー名の表示プレフィックスを復活し、新項目を既定で有効化しました。更新後は設定を確認してください。[AvatarObfuscator](https://github.com/cocokoishi/AvatarObfuscator) を発想の参考にし、ASCII `I/l` と独立したコピー/参照更新を採用しています。
+
+## 順序の難読化
+
+BlendShape のインデックス順と GameObject の兄弟順を独立したスイッチで変更できます。現在のウェイト・まぶたインデックスを更新し、全フレームを保持します。親子関係とローカル座標は変えません。UI、同名の兄弟、Generic 骨格、手動保持の順序は維持し、Humanoid の骨対応も再確認します。
+
+インポートするコピーは一括処理し、ファイルごとの再インポートを避けます。コピー中にキャンセルでき、例外時もインポート停止を解除します。Unity ネイティブのインポート・Shader コンパイルは即時中断できない場合があります。

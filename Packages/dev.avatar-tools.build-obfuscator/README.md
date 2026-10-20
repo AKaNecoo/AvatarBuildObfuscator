@@ -1,25 +1,33 @@
-# Avatar Build Obfuscator 0.2.0
+# Avatar Build Obfuscator 0.3.0-beta.1
 
-在 `VRCAvatarDescriptor` 所在的 Avatar 根对象添加 **Avatar Tools / Build Obfuscator**，填写你自己的**用户名**，构建时由 NDMF 自动运行。用户名支持中文，仅用于派生 `o_…` 形式的乱码名称，不直接拼接到资源名中；新组件默认留空。
+## 中文
 
-**Hierarchy / Scene / Project 中的源名称在构建后仍保持原样。** 两种模式只处理构建副本。构建后在 Console 搜索 `[Avatar Build Obfuscator]` 查看处理数量和跳过原因，并检查实际构建产物。当前激进模式主要额外处理 MMD 兼容形变，不扩大骨骼、层级或运行参数的改名范围。
+在 Avatar 根对象添加 **Avatar Tools / Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。支持中文，名称显示为 `用户名_IlIl…`，后缀由 128 个 ASCII I/l 组成。新组件用户名留空。
 
-- **保守（默认）**：资源名混淆、普通静态 BlendShape 烘焙移除、动态形变名混淆；保留 MMD、日文/中文兼容形变。
-- **激进**：进一步处理未引用的 MMD 兼容形变；可能影响依赖固定名称的外部世界和工具。
-- 两档均保留动画、口型、眨眼需要的形变；未知驱动、网格替换、特殊数据与手动排除项会保留。
-- 不可读和 Crunch 贴图保留原资源及名称。Shader、骨骼、层级和运行参数保持兼容名称。
-- 处理 NDMF 构建副本，不覆盖源 FBX、贴图、材质、动画或 .meta。Unity 2022.3，需要 Avatar SDK 与 NDMF，AAO 可选。
+两档均处理支持的资源、层级/动画/Mask 路径、Humanoid 骨骼、自定义参数及动画内部名称。保守保护未知依赖；激进允许未知风险。可独立打乱 BlendShape 索引、GameObject 同级顺序和网格顶点顺序，无需解密。权重、眼皮索引、动画与骨骼映射同步，UI/重复同名等明确顺序依赖保留。
 
-用户名不是密码。不提供贴图/网格加密，不需要 OSC。上传内容中的贴图和保留的动态形变仍可提取。
+贴图（含不可读/Crunch）与音频使用独立文件及 Importer 副本，一次批量导入，保持源压缩和读取设置。原场景/FBX/纹理/材质/动画/Importer/.meta 不覆盖。构建产物中的贴图与必要动态形变仍可提取。没有 OSC、密码、运行时解密或自动上传。
 
-说明、源码与验证记录：<https://github.com/AKaNecoo/AvatarBuildObfuscator>
+需要 Unity2022.3、Avatar SDK3.7.0+、NDMF1.14.8+。AAO/MA/VRCFury/TTT 可选。查看 Console 的 `[Avatar Build Obfuscator]` 数量与保留原因。源工程名称不变，检查实际构建副本。升级后检查新增开关和组件引用。
 
-Git 安装地址末尾的 `#main` 跟随稳定版，`#beta` 跟随日常测试更新。更换分支时在 Package Manager 的 **Add package from git URL…** 中重新添加对应完整地址一次，以后点击 **Update** 更新所选分支。完整安装说明见仓库 README。
+Git 测试版：
+
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
+```
+
+在 Package Manager 的 Add package from git URL 输入一次，以后选中包点击 Update。`#main` 跟随稳定版。只安装一份；旧 Assets 安装迁移至 Git 前应移除重复插件文件。旧 Releases 附件可能落后于 beta。
 
 ## English
 
-Add **Avatar Tools / Build Obfuscator** to your avatar root and enter your own username before building with NDMF. Unicode usernames derive opaque `o_…` names; the literal username is not appended. The username is empty by default. Source assets remain unchanged. Conservative/Aggressive modes retain dynamic shapes and skip uncertain integrations. Unreadable/Crunch textures and compatibility-sensitive names are retained. This is obfuscation and static-shape pruning, not encryption; no OSC is required.
+Add the component to the avatar root and enter your own Unicode username. NDMF processes its build copy using visible username + 128 ASCII I/l names. Supported hierarchy, Humanoid, parameter and animation references are remapped. Independent switches shuffle morph indices, sibling order and mesh vertices. Conservative protects uncertain dependencies; Aggressive accepts unknown compatibility risks. Required shapes remain usable; no runtime decryption is needed.
+
+Texture/audio copies use a single import batch without editing source assets/importers. Requires Unity2022.3, Avatar SDK3.7.0+, NDMF1.14.8+. Install the beta Git URL above once, then use Package Manager Update. Original assets remain unchanged; uploaded textures and necessary morphs remain extractable.
 
 ## 日本語
 
-ルートに **Avatar Tools / Build Obfuscator** を追加し、自分のユーザー名を入力して NDMF でビルドします。Unicode ユーザー名から不透明な `o_…` 名を生成し、ユーザー名そのものは名前に付けません。既定は空欄です。元アセットは変更しません。保守・激進の両モードとも必要な動的形状と不明な依存を保持します。読み取り不可・Crunch テクスチャなどは互換名を保持します。暗号化ではありません。OSC は不要です。
+ルートにコンポーネントを追加し、自分のユーザー名を入力します。NDMF のビルドコピーを `ユーザー名_IlIl…` で難読化し、階層・Humanoid・パラメーター・アニメーションの参照を更新します。形状インデックス、兄弟順、頂点順は独立したスイッチです。保守モードは不明な依存を保持し、激進モードは未知の互換性リスクを許容します。
+
+テクスチャ・音声のコピーを一括インポートし、元アセット・Importer は変更しません。Unity2022.3、Avatar SDK3.7.0+、NDMF1.14.8+ が必要です。上記 Git URL を一度追加し、以後 Package Manager の Update を使います。暗号化や OSC は不要で、必要な形状とテクスチャの抽出を防ぐ保証はありません。
+
+[Full documentation / 完整说明](https://github.com/AKaNecoo/AvatarBuildObfuscator)

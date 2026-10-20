@@ -2,66 +2,65 @@
 
 [中文](README.md) · [日本語](README.ja.md)
 
-Add **Avatar Tools / Build Obfuscator** to the root GameObject containing `VRCAvatarDescriptor`. NDMF runs it on the build copy, after Modular Avatar, VRCFury, TexTransTool and Avatar Optimizer when present. Each user enters their own username (Unicode supported). It derives an opaque `o_…` naming sequence; resource names do not include the literal username. New components start with an empty username.
+Add **Avatar Tools / Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username and build with NDMF. **0.3.0-beta.1** uses **`username_IlIl…`** names: a visible Unicode prefix and 128 ASCII capital `I` / lowercase `l` characters. The complete normalized username also seeds the deterministic sequence. New components leave it empty.
 
-**Original names remaining in Unity's Hierarchy / Scene / Project after a build are expected.** Both modes process only the NDMF build copy. Check the `[Avatar Build Obfuscator]` counts and skip reasons in the Console, and inspect the build output. Aggressive mode mainly expands processing of MMD compatibility shapes; it also preserves bone, hierarchy and runtime parameter names.
+There is **no OSC, password or runtime shader decryption**. Uploaded textures, final geometry and required dynamic blendshapes remain extractable. Obfuscation does not provide confidentiality.
 
-## Install
+## Install and update
 
-Use a Unity 2022.3 VRChat Avatar project with the Avatar SDK and [NDMF](https://github.com/bdunderscore/ndmf) already installed through VCC. Installing this tool through Git does not install those VPM dependencies for you. AAO is optional and its configuration is not changed.
+Requires Unity **2022.3**, Git, and Avatar SDK 3.7.0+ plus [NDMF](https://github.com/bdunderscore/ndmf) 1.14.8+ installed through VCC. Git does not install VPM dependencies automatically. AAO, MA, VRCFury and TTT are optional; their settings are not changed.
 
-### Install with Git (recommended)
-
-Install [Git](https://git-scm.com/) first. On Windows, Unity must be able to find Git through `PATH`.
-
-1. Open **Window → Package Manager**.
-2. Choose **＋ → Add package from git URL…**.
-3. Paste this complete URL, click **Add**, and wait for compilation:
-
-```text
-https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
-```
-
-**Enter this URL once. To update later:** select **Avatar Build Obfuscator** in **Package Manager** and click **Update** to fetch new commits from `main`. You do not need to enter the URL again.
-
-Unity locks the installed commit; it does not fetch updates every time the project opens. Keep `?path=…` because the package lives in a repository subfolder. `#main` selects the branch used for manual updates. See Unity's [Git installation guide](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html) and [locked Git dependencies](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-git.html#git-locks).
-
-### Beta and stable updates
-
-`beta` receives ongoing changes after the relevant validation. `main` is reserved for stable versions and does not advance with every beta update. Beta versions may have undiscovered issues. To follow beta updates, install with:
+In **Window → Package Manager → ＋ → Add package from git URL…**, enter the beta URL:
 
 ```text
 https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
 ```
 
-To switch a Git installation to beta, enter this URL once using **Add package from git URL…**. This changes the branch reference for the same package. Later, select the package and click **Update** to follow `beta`. A `#main` installation stays on stable; add the `#main` URL again to switch back.
+Enter it once. Later select **Avatar Build Obfuscator → Update**. Unity locks the installed commit until you update manually. On Windows, Git must be available through `PATH`. See [Unity's Git package guide](https://docs.unity3d.com/2022.3/Documentation/Manual/upm-ui-giturl.html).
 
-### Import a Unity package
+For stable versions, use:
 
-Alternatively, import a `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases). Update this installation by importing a newer Unity package, rather than using the Git update button.
+```text
+https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
+```
 
-**Install only one copy.** Before switching from a Unity-package installation to Git, remove the plugin files under `Assets/AvatarBuildObfuscator`. Keep your avatar, scenes and other assets. After installing the Git package, check the existing component and username settings; duplicate installations cause assembly conflicts.
+To switch branches, add the desired URL once; subsequent **Update** actions follow that branch. `main` does not advance with each beta. Published tags such as `#v0.2.0` pin an older release. Keep `?path=…`.
 
-### Add the component
+Install only one copy. Before switching from `.unitypackage`, remove plugin files under `Assets/AvatarBuildObfuscator`, preserving avatars and other assets. Check component references and settings after migration. [Release attachments](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) may predate the latest beta.
 
-Add **Avatar Tools → Build Obfuscator** to the root containing `VRCAvatarDescriptor`, enter your own username, choose a mode and build normally.
+## Use
 
-To pin a release instead, replace `#main` with a published tag such as `#v0.2.0`. A pinned tag does not follow updates to `main`.
+Enter a username, select a mode and build normally. A maximum 32-character filename-safe prefix is displayed; unsafe characters become underscores. The full Trim/NFC-normalized input still seeds HMAC. Identical input and call order produce identical names; optimizer traversal can change between builds.
+
+Inspect **`[Avatar Build Obfuscator]`** Console counts and skip reasons, plus the actual build output. **Original names remaining in Hierarchy / Scene / Project are expected.** Both modes operate on the NDMF copy.
 
 ## Modes
 
-- **Conservative**, the default: copies and renames supported asset objects; bakes ordinary unanimated blendshapes at their current weight; preserves Japanese/Chinese and common MMD compatibility shapes.
-- **Aggressive**: also allows unused MMD compatibility shapes to be baked and remaining compatibility shapes to be renamed. External worlds or tools expecting those names may stop driving them.
-- Both modes retain shapes used by animation curves (including constant curves), SDK visemes and eyelids. Animation bindings, viseme names and eyelid indices are updated together.
-- Both modes skip uncertain shape processing: unknown drivers, animated mesh swaps, ambiguous paths, or explicit renderer exclusions. Nonstandard frames or extrapolated weights are not baked.
-- Enter externally required shape names in the preserve list, or exclude a renderer. Configure upstream optimizers separately if those shapes must survive their processing too.
+Both aim for broad coverage. Conservative requires recognized, consistently remapped dependencies; Aggressive permits unknown name dependencies. Independent switches control asset names, shapes, hierarchy, bones, parameters, animator internals, blendshape index order, sibling order and vertex order.
 
-## Scope and limits
+- Both copy supported assets, rewrite hierarchy and mask paths, rebuild supported Humanoid avatars, rename custom parameters and animator internals, and preserve essential dynamic shapes.
+- Conservative protects uncertain drivers, external string paths and MMD compatibility shapes. Its vertex permutation is restricted to audited built-in shaders.
+- Aggressive also processes uncertain drivers and compatibility shape names, and permits vertex permutation with custom shaders. External integrations may break.
+- Explicit shape, renderer, hierarchy/subtree and parameter preservation is available; parameter patterns support a trailing `*`.
 
-Supported asset copies include meshes, materials, readable non-Crunch Texture2D, clips, controllers, override controllers, blend trees, masks, Avatar objects and VRC expression menu/parameter assets. Bone and hierarchy names, runtime parameter strings, state names, visible menu labels, shaders and SDK proxy clips retain compatible names. Unreadable textures (Read/Write disabled), Crunch textures and unsupported resource types keep their original resources and names; importer settings are never changed.
+Blendshape permutation remaps current weights and SDK eyelid indices while preserving every retained frame. Sibling permutation changes neither parenting nor local transforms. UI, duplicate sibling names, Generic skeletons and manual preservation retain their order; Humanoid bone identities are rechecked. Both order switches work independently of renaming.
 
-Only single-frame shapes with a frame weight of 100 and a current weight within 0–100 are baked. Source files, importers and `.meta` GUIDs are not changed. Save your component configuration in the normal scene/prefab workflow.
+Imported copies use one asset-import batch rather than an import per file. Copy progress supports cancellation and always releases import suspension on errors. Unity native imports/shader compilation may not stop immediately.
 
-**This is obfuscation and shape pruning, not encryption. Textures and retained dynamic blendshapes remain extractable from uploaded content.** No OSC, passwords, custom shader, network requests or automatic avatar upload is involved. The final baked appearance remains part of the mesh geometry.
+## Coverage and contracts
 
-See [TESTING.md](TESTING.md), [ARCHITECTURE.md](ARCHITECTURE.md) and [MIT License](LICENSE). The opt-in `Tests~` tools and private avatar fixtures are not included in the Unity package.
+Imported textures, including unreadable/Crunch data, and audio use independent generated files/importer copies without changing source settings or compressed data. Supported graphs include clips, controllers, override controllers, synced overrides, blend trees, masks and expression assets.
+
+Parameter remapping covers definitions, Animator curves, conditions, state fields, blend trees, menu main/sub-parameters, drivers, PhysBone prefixes/generated suffixes and Contacts. Visible menu labels remain readable. VRChat built-ins, known external face-tracking/OSC inputs and true SDK proxy identities retain their contracts.
+
+Humanoid names and internal parent names are rebuilt and checked for bone mapping and scale. Unsupported Generic/invalid avatars, ambiguous paths and failed rebuilds preserve affected hierarchy. Vertex permutation keeps raw vertex streams, all channels, topology, variable bone weights and morph frames together; no runtime reversal is needed. Cloth, additional vertex streams and unreadable meshes retain order.
+
+Readable `.shader` sources can be copied and recompiled under a new name while retaining property/keyword/pass interfaces. Built-in/mobile-whitelisted/container-generated shaders and NadeVision's fixed shader identity are preserved. Shader property protocol obfuscation is not implemented. Unknown-resource fallbacks are reported.
+
+Only ordinary single-frame shapes with frame weight 100 and current weight 0–100 are baked; constant animation curves count as dynamic usage. Mesh swaps and explicit exclusions retain their protected shape structures.
+
+Source scenes, assets, importers and original `.meta` GUIDs are never overwritten by the processor. Adding the component alone does not run it. No automatic avatar upload occurs. Conservative is not a universal compatibility guarantee for every unrecognized world, device or extension.
+
+See [TESTING.md](TESTING.md), [ARCHITECTURE.md](ARCHITECTURE.md), [CHANGELOG.md](CHANGELOG.md) and [MIT License](LICENSE). Opt-in `Tests~` fixtures and private avatar evidence are excluded from the installed package. Editor results do not replace client/device acceptance.
+
+Existing component GUIDs and migration metadata are retained. Version 0.3 beta restores visible username prefixes by request and enables new switches by default; review settings before building. Naming ideas were informed by [AvatarObfuscator](https://github.com/cocokoishi/AvatarObfuscator); this implementation uses ASCII `I/l` and independently maintains its asset isolation and reference mapping.

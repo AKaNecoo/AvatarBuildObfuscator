@@ -15,11 +15,26 @@ namespace AvatarTools.Obfuscation
     {
         public ProtectionMode mode = ProtectionMode.Conservative;
         [FormerlySerializedAs("namePrefix")]
-        [Tooltip("填写你自己的用户名，支持中文。用户名用于派生混淆种子，不作为资源名称前缀。")]
+        [Tooltip("填写你自己的用户名，支持中文。处理后的名称为 用户名_IlIl…；用户名也用于派生混淆种子。")]
         public string userName = "";
         public bool renameAssets = true;
         public bool freezeUnusedBlendShapes = true;
         public bool renameDynamicBlendShapes = true;
+        [Tooltip("打乱保留形变的索引顺序，同步权重和 SDK 眼皮索引。独立于名称混淆。")]
+        public bool shuffleBlendShapeOrder = true;
+        [Tooltip("混淆构建副本对象名，同时重写动画与 AvatarMask 路径；保守模式保留尚无法验证的依赖。")]
+        public bool renameGameObjects = true;
+        [Tooltip("打乱构建副本的同级对象顺序，不改变父子关系和坐标。UI、重复同名和已知顺序依赖保留。")]
+        public bool shuffleGameObjectOrder = true;
+        public bool renameParameters = true;
+        public bool renameAnimatorInternals = true;
+        public bool renameBones = true;
+        [Tooltip("在复制的网格中重排顶点及其全部关联数据，无需解密。保守模式只处理能确认材质不依赖顶点 ID 的网格。")]
+        public bool reorderMeshVertices = true;
+        [Tooltip("保留自定义参数名；末尾 * 表示前缀匹配。VRChat 内置参数自动保留。")]
+        public string[] preserveParameters = new string[0];
+        [Tooltip("保留这些对象及其子树和祖先的层级名称，适用于按名称查找的外部工具。")]
+        public Transform[] preserveGameObjects = new Transform[0];
         [Tooltip("这些形变保留原名和原始数据。适用于外部工具、特殊世界等依赖。")]
         public string[] preserveBlendShapes = new string[0];
         [Tooltip("这些 Renderer 的形变完全跳过；资源名称仍可混淆。")]

@@ -1,0 +1,133 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace AvatarTools.Obfuscation.Editor
+{
+    public sealed partial class GuardProcessor
+    {
+        /// <summary>
+        /// Run before opening NDMF's serialization scope: asset imports must be allowed
+        /// to complete. CopyAsset preserves compressed/imported data and importer settings
+        /// without changing Read/Write, decoding textures or touching the source files.
+        /// </summary>
+        public void PrepareImportedAssets(string generatedFolder)
+        {
+            if (!settings.RenameAssets || !AssetDatabase.IsValidFolder(generatedFolder)) return;
+            if (!generatedFolder.StartsWith("Assets/", StringComparison.Ordinal))
+                throw new ArgumentException("Generated assets must be inside this project's Assets");
+            var sources = WalkReferencedAssets().Where(x => x is Texture || x is AudioClip).ToArray();
+            var pending = new List<Tuple<Object, string>>();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            // CopyAsset normally refreshes and imports for every single file. Hundreds
+            // of avatar textures/audio then repeatedly enter import/postprocessor work.
+            // Queue copies as one batch and load the new objects only after imports.
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                for (int i = 0; i < sources.Length; i++)
+                {
+                    var asset = sources[i];
+                    if (asset is RenderTexture || !AssetDatabase.IsMainAsset(asset)) continue;
+                    string path = AssetDatabase.GetAssetPath(asset);
+                    var importer = AssetImporter.GetAtPath(path);
+                    if (!(importer is TextureImporter || importer is AudioImporter)) continue;
+                    if (EditorUtility.DisplayCancelableProgressBar("Avatar Build Obfuscator",
+                        "复制构建资源 " + (i + 1) + "/" + sources.Length + "（完成后统一导入）", (float)i / sources.Length))
+                        throw new OperationCanceledException("用户取消了构建资源复制");
+                    string destination = AssetDatabase.GenerateUniqueAssetPath(generatedFolder + "/" + NewName() + Path.GetExtension(path));
+                    if (!AssetDatabase.CopyAsset(path, destination))
+                    { report.Note("导入资源无法复制，保留原资源：" + asset.GetType().Name); continue; }
+                    pending.Add(Tuple.Create(asset, destination));
+                }
+            }
+            finally
+            {
+                // Always release import suspension, including user cancellation/errors.
+                try { AssetDatabase.StopAssetEditing(); }
+                finally { EditorUtility.ClearProgressBar(); }
+            }
+            // In an Editor callback StopAssetEditing can defer discovery until the
+            // next refresh. Complete that single batch before loading replacements.
+            if (pending.Count > 0) AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            foreach (var item in pending)
+            {
+                var asset = item.Item1; var destination = item.Item2;
+                var copy = AssetDatabase.LoadAssetAtPath(destination, asset.GetType());
+                if (copy == null) throw new InvalidOperationException("新复制资源无法导入：" + destination);
+                if (asset is Texture2D a && copy is Texture2D b &&
+                    (a.width != b.width || a.height != b.height || a.format != b.format || a.mipmapCount != b.mipmapCount ||
+                     a.isReadable != b.isReadable || a.graphicsFormat != b.graphicsFormat))
+                    throw new InvalidOperationException("复制贴图改变了导入格式：" + AssetDatabase.GetAssetPath(asset));
+                sharedAssets[asset] = copy;
+                nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(asset), copy);
+                Own(copy); report.RenamedAssets++;
+                if (asset is Texture) report.ImportedTextureCopies++;
+            }
+            watch.Stop();
+            report.Note("批量复制/导入 " + pending.Count + " 个贴图/音频，用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒");
+        }
+
+        private IEnumerable<Object> WalkReferencedAssets()
+        {
+            var visited = new HashSet<Object>();
+            var queue = new Queue<Object>(root.GetComponentsInChildren<Component>(true).Where(x => x != null && !(x is Transform) && !(x is AvatarBuildObfuscator)));
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                if (current == null || !visited.Add(current)) continue;
+                yield return current;
+                if (current is Texture || current is AudioClip || current is Mesh || current is Avatar || current is Shader) continue;
+                if (!(current is Component || current is RuntimeAnimatorController || current is ScriptableObject || current is AnimationClip || current is Material ||
+                    current is AnimatorStateMachine || current is AnimatorState || current is AnimatorTransitionBase || current is BlendTree)) continue;
+                using (var so = new SerializedObject(current))
+                {
+                    var p = so.GetIterator();
+                    while (p.Next(true))
+                        if (p.propertyType == SerializedPropertyType.ObjectReference && p.objectReferenceValue != null &&
+                            !(p.objectReferenceValue is GameObject) && !(p.objectReferenceValue is Component) && !(p.objectReferenceValue is MonoScript))
+                            queue.Enqueue(p.objectReferenceValue);
+                }
+            }
+        }
+
+        private Shader CopyShader(Shader source)
+        {
+            string path = AssetDatabase.GetAssetPath(source);
+            if (!path.EndsWith(".shader", StringComparison.OrdinalIgnoreCase) || !File.Exists(path) ||
+                source.name.StartsWith("VRChat/Mobile/", StringComparison.Ordinal) || source.name.StartsWith("Hidden/Internal", StringComparison.Ordinal) ||
+                source.name == "NadeVision/Depth Aware Nade")
+            { report.Note("内置/移动白名单/非源码 Shader 保留契约名称与实现"); return source; }
+            string code = File.ReadAllText(path);
+            var declaration = Regex.Match(code, "\\bShader\\s*\"[^\"]+\"");
+            if (!declaration.Success) return source;
+            string name = NewName();
+            code = code.Substring(0, declaration.Index) + "Shader \"" + name + "\"" + code.Substring(declaration.Index + declaration.Length);
+            var directory = Path.GetDirectoryName(path).Replace('\\', '/');
+            code = Regex.Replace(code, "(#\\s*(?:include|include_with_pragmas)\\s*\")([^\"]+)(\")", match =>
+            {
+                var include = match.Groups[2].Value;
+                if (include.StartsWith("Assets/", StringComparison.Ordinal) || include.StartsWith("Packages/", StringComparison.Ordinal)) return match.Value;
+                var resolved = directory + "/" + include;
+                return File.Exists(resolved) ? match.Groups[1].Value + resolved + match.Groups[3].Value : match.Value;
+            });
+            if (EditorUtility.DisplayCancelableProgressBar("Avatar Build Obfuscator",
+                "创建 Shader 副本（仅此构建）：" + source.name, .5f))
+            { EditorUtility.ClearProgressBar(); throw new OperationCanceledException("用户取消了 Shader 副本创建"); }
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Shader shader;
+            try { shader = ShaderUtil.CreateShaderAsset(code, true); }
+            finally { EditorUtility.ClearProgressBar(); }
+            report.Note("Shader 副本创建用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒：" + source.name);
+            if (ShaderUtil.ShaderHasError(shader))
+            { Object.DestroyImmediate(shader); throw new InvalidOperationException("复制 Shader 编译失败，停止本次构建：" + source.name); }
+            return shader;
+        }
+    }
+}

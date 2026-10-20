@@ -1,8 +1,8 @@
 {
   "name": "dev.avatar-tools.build-obfuscator",
-  "version": "0.2.0",
+  "version": "0.3.0-beta.1",
   "displayName": "Avatar Build Obfuscator",
-  "description": "Build-only asset and blendshape name obfuscation with conservative static blendshape baking. No OSC or texture encryption. Original project assets remain unchanged.",
+  "description": "Build-only username-prefixed I/l asset, shape and optional hierarchy name obfuscation with path remapping and static shape baking. No OSC or encryption. Original project assets remain unchanged.",
   "unity": "2022.3",
   "author": {
     "name": "Avatar Build Obfuscator contributors"
@@ -10,7 +10,7 @@
   "license": "MIT",
   "url": "https://github.com/AKaNecoo/AvatarBuildObfuscator",
   "vpmDependencies": {
-    "nadena.dev.ndmf": ">=1.6.0 <2.0.0",
+    "nadena.dev.ndmf": ">=1.14.8 <2.0.0",
     "com.vrchat.avatars": ">=3.7.0"
   }
 }

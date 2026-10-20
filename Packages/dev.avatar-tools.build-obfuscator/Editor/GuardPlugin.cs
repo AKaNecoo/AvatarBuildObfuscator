@@ -41,10 +41,14 @@ namespace AvatarTools.Obfuscation.Editor
                 {
                     var state = context.GetState<GuardBuildState>();
                     if (state.Settings == null) return;
+                    var processor = new GuardProcessor(context.AvatarRootObject, state.Settings,
+                        asset => context.AssetSaver.SaveAsset(asset));
+                    var containerPath = UnityEditor.AssetDatabase.GetAssetPath(context.AssetSaver.CurrentContainer);
+                    if (!string.IsNullOrEmpty(containerPath))
+                        processor.PrepareImportedAssets(System.IO.Path.GetDirectoryName(containerPath)?.Replace('\\', '/'));
                     using (context.OpenSerializationScope())
                     {
-                        state.Report = new GuardProcessor(context.AvatarRootObject, state.Settings,
-                            asset => context.AssetSaver.SaveAsset(asset)).Run();
+                        state.Report = processor.Run();
                     }
                     Debug.Log("[Avatar Build Obfuscator] " + state.Report.Summary, context.AvatarRootObject);
                     foreach (var note in state.Report.Notes)

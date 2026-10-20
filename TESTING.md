@@ -1,73 +1,83 @@
-# Validation — 0.2.0
+# Validation — 0.3.0-beta.1
 
-Validated on 2026-10-19 in a connected Windows Unity Editor. This records Editor/build evidence, not a completed VRChat client or device acceptance test.
+Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
 
 ## Environment
 
-- Unity 2022.3.22f1, Windows, Direct3D 11
-- VRChat Avatars SDK 3.10.5
-- NDMF 1.14.8
-- Modular Avatar 1.19.0-alpha.0
-- Avatar Optimizer 1.9.20
-- VRCFury 1.1434.0
-- Existing custom lilToon-based materials retained their shaders
+Unity2022.3.22f1, D3D11; Avatars SDK3.10.5; NDMF1.14.8; Modular Avatar1.19.0-alpha.0; Avatar Optimizer1.9.20; VRCFury1.1434.0. Existing lilToon/custom materials, face tracking, NadeVision and third-party avatar construction are present. The package declares NDMF1.14.8+ because older 1.6 lacks a replacement-registry API used here.
 
-## Synthetic Editor checks
+## Synthetic checks
 
-**29 passed, 0 failed.** Each case captures Unity Error / Assert / Exception logs and fails if any occur during the assertion body.
+**49 PASS, 0 FAIL.** Each case fails on Unity native Error/Assert/Exception messages as well as assertions. Coverage includes deterministic username/I/l sequences, Unicode/path-safe names and empty defaults; static geometry/normals at weights0/35/100; dynamic and constant curves; MMD profiles; native visemes and eyelids; nested/shared Animator graphs; persistent-byte isolation; synced and override-controller links; manual exclusions; mesh swaps; special frames/extrapolation; SDK proxy identity; unknown-driver profiles; cyclic menus; hierarchy float/PPtr/mask paths; parameter/menu/driver/PhysBone/Contact links; coherent vertex channels/skinning/shapes; unreadable/Crunch and readable texture integrity; shader copies; and resource names surviving serialized reference traversal.
 
-Checks cover username-derived deterministic sequences (2,048 distinct outputs), different usernames, Unicode normalization, path-safe opaque names, empty defaults and required username input; bake weights 0/35/100 with before/after `SkinnedMeshRenderer.BakeMesh` geometry and normal comparisons; dynamic animation curves; MMD behavior in both modes; SDK visemes and eyelid index remapping; child Animator relative roots; one controller shared by two Animator roots; persistent controllers and nested BlendTrees with forced saves and byte comparison; synced motion/behaviour overrides; AnimatorOverrideController; constant curves; manual preservation/exclusion; mesh swaps; special frames and extrapolated weights; proxy identities; unknown components; asset-name renaming disabled; cyclic expression menus; unreadable-texture identity retention; and readable RGBA32/DXT1/DXT5/BC7 GPU pixel comparisons.
+New order tests cover both modes, current weights and geometry, multiple morph frames, eyelid indices, animation target identity, independent/disabled switches, and duplicate/UI/manual order preservation. Eight imported fixture textures produce **one import callback batch**, not one per file. This is a focused import-batching regression, not a claim that every external postprocessor runs only once.
 
-The existing 0.1.0 demo component was upgraded with its script .meta GUID retained. Its previously entered value migrated from `namePrefix` to `userName`; the new type and value also survived saving, closing and reopening the demo scene. New components start with an empty username. The old type/field names occur only in compatibility migration metadata and historical upgrade notes.
+Tests~ is opt-in. Copy its Editor/Runtime sources and asmdefs into a disposable test project's Assets hierarchy. Run `GuardValidation.RunAll(outputJsonPath)`. Full tests use `FullAvatarValidation.Start(sourceId, outputDirectory)`, three `RunNext()` calls, then `Finish()`. Import the test-only OrderValidationProbe too: it records renderer identities after upstream optimization and before obfuscation so order-independent comparisons are meaningful. All synthetic fixtures and build outputs stay under the validation directory. Never use tests as a reason to save over a source scene.
 
-`Tests~/Editor/GuardValidation.cs` is an opt-in harness. To reproduce, copy `Tests~/Editor` and `Tests~/Runtime` into separate Editor/Runtime folders under a test project's Assets directory, retain their asmdefs, and call `GuardValidation.RunAll(outputJsonPath)` from an Editor script. Its synthetic fixtures are written only under `Assets/__AvatarBuildObfuscatorValidation_20261019/Fixtures`.
+## Complete builds
 
-## Complete avatar builds
-
-Three fresh NDMF builds of one existing avatar were compared. The avatar already had AAO, so the baseline includes its existing optimization. The added component did not change AAO settings.
+Fresh baseline/Conservative/Aggressive builds include existing upstream optimizers. No optimizer settings were injected or changed. The final saved comparison was closed/reopened before functional sampling.
 
 | Metric | Baseline | Conservative | Aggressive |
 | --- | ---: | ---: | ---: |
 | Objects | 414 | 414 | 414 |
+| Renamed objects | 0 | 365 | 368 |
 | Renderers | 37 | 37 | 37 |
-| BlendShapes | 290 | 286 | 249 |
-| Renamed retained BlendShapes | 0 | 246 | 249 |
-| Materials | 18 | 18 | 18 |
-| Referenced material textures | 53 | 53 | 53 |
-| Controllers | 8 | 8 | 8 |
-| Clips | 827 | 827 | 827 |
+| Retained BlendShapes | 290 | 286 | 249 |
+| Renamed retained shapes | 0 | 246 | 249 |
 | Renamed mesh instances | 0 | 25 | 25 |
+| Materials | 18 | 18 | 18 |
 | Renamed materials | 0 | 18 | 18 |
-| Renamed material textures | 0 | 35 | 35 |
+| Material textures | 53 | 53 | 53 |
+| Renamed material textures | 0 | 52 | 52 |
+| Controllers | 8 | 8 | 8 |
+| Unique clips | 827 | 827 | 827 |
 | Renamed clips | 0 | 787 | 787 |
-| Missing actual animation paths | 0 | 0 | 0 |
-| Missing BlendShape bindings | 0 | 0 | 0 |
+| SDK proxy clips | 40 | 40 | 40 |
+| Animator states | 647 | 647 | 647 |
+| Empty state motions | 40 | 40 | 40 |
 | Humanoid bones | 53 | 53 | 53 |
-| AvatarBuildObfuscator components in output | 0 | 0 | 0 |
-| Unity Error/Assert/Exception logs during build/render | 0 | 0 | 0 |
-| Build + inspection + render time, seconds | 18.73 | 17.62 | 18.69 |
+| Missing animation paths | 0 | 0 | 0 |
+| Missing shape bindings | 0 | 0 | 0 |
+| Missing mask paths | 0 | 0 | 0 |
+| Missing parameter references | 0 | 0 | 0 |
+| Marker components in output | 0 | 0 | 0 |
+| Unity Error/Assert/Exception logs | 0 | 0 | 0 |
+| Renamed parameters | 0 | 262 | 291 |
+| Renamed Animator internals | 0 | 2144 | 2144 |
+| Rebuilt Human Avatars | 0 | 1 | 1 |
+| Meshes with shuffled morph order | 0 | 2 | 2 |
+| Shuffled sibling groups | 0 | 45 | 45 |
+| Objects whose sibling index changed | 0 | 216 | 212 |
+| Vertex-permuted meshes | 0 | 0 | 28 |
+| Build/inspection/render seconds | 18.21 | 75.16 | 71.03 |
 
-AAO inserts 87 deliberate `$AvatarOptimizerClipLengthDummy$` bindings in every build. They are counted separately, not treated as actual missing targets. Runtime parameter names are not rewritten by this package; upstream tools can generate fresh internal parameter names per build.
+Names use a neutral Chinese fixture username; real user/asset identities are excluded. Deliberate AAO clip-length dummy paths are counted separately from real missing bindings. Built-in and SDK proxy identities remain contractual. Generic/ambiguous hierarchy, duplicate siblings, UI order and other documented exceptions remain protected.
 
-At 512×768, a single static rendered frame differed from baseline at 3 pixels for Conservative and 7 pixels for Aggressive out of 393,216 pixels. Mean absolute channel differences were 0.000359 and 0.000364 on a 0–255 scale. This is a static appearance check, not proof of every animation, expression, runtime integration or viewing angle.
+## Reloaded pose and texture comparisons
 
-The final comparison scene was saved, closed and reopened. All three outputs retained the expected shape counts, 53 humanoid bones, and zero missing actual paths or shape bindings after reload.
+**13 paired clips, 39 sampled poses, 18 material groups and 102 texture pairs passed.** Selected clips cover Human motion, blendshapes and Transform animation at normalized0/0.37/0.83. Corresponding renderers are matched by recorded component identity, not post-shuffle traversal order. Triangle-expanded skinned positions/normals and Human bone positions are compared in avatar-local coordinates.
 
-## Source integrity and packaging
+Maximum position difference: **3.9991e-7 metres**; bone position difference: **8.9407e-8 metres**; normal-vector difference: **2.2302e-7**. Thresholds are0.0002metres for positions/bones and0.002 for normals. GPU texture samples (up to256×256 per pair) show **0 differing pixels**, matching dimensions and graphics formats. Native sampling errors: **0**. This samples texture data rather than exhaustively comparing every full-resolution pixel/mip.
 
-A SHA-256 manifest was taken before deployment for **21,666 existing files** under Assets, Packages and ProjectSettings. After verification, **0 original files changed and 0 were missing**. Source files, importers, GUIDs, controller sources and the original scene were included. Library, Temp, Logs and UserSettings were not part of this source-file comparison. Private manifests and avatar data are excluded from this repository.
+A512×768 static render differs from baseline at a small number of pixels (material/particle timing and rasterization can vary). Static screenshots are supplementary evidence; the numeric pose and texture checks establish the stronger comparison. These checks do not exercise every controller transition, networked state, audio event or external device.
 
-Unity exports only `Assets/AvatarBuildObfuscator` with `ExportPackageOptions.Recurse`, without dependency inclusion. `Tools/verify_release.py` compares exported asset bytes and `.meta` files against the package source and rejects paths outside that folder. No avatar meshes, textures, scenes, generated build assets, account credentials or test fixtures are included in the release.
+## Import performance and cancellation
 
-## Issues caught before release
+The initial complete Conservative run took322.4seconds while copying/importing resources individually. Batching reduced measured complete runs to about69–75seconds on this project. Final batches copy/import362 texture/audio files in roughly48–51seconds. Six shader-source copy creations measured about0.00–0.01seconds each. These are local timings, not a universal performance guarantee or a claim that a fresh GPU shader cache compiles instantly.
 
-Early development runs found an override-controller key remapping issue, native errors from instantiating imported unreadable textures, and native strong-pointer assertions from instantiating NDMF temporary animation graphs. The release uses explicit override reconstruction, skips unreadable/Crunch textures, and creates animation/ScriptableObject copies with `CopySerialized` followed by explicit reference remapping. A fixture also incorrectly used a Boolean as a BlendTree float parameter; that test fixture was corrected. Final checks capture native errors as failures.
+Copy/Shader preparation has cancellation boundaries, always releases import suspension and clears its own progress UI. An already-running Unity native import or shader compiler may not stop immediately. Native work is not interrupted by killing the Editor.
 
-## Not verified
+## Source integrity and installation changes
 
-- Actual VRChat upload, networking, menu use, face tracking and client runtime.
-- Standalone Quest/Android or iOS device behavior.
-- Every third-party runtime component, special world expression driver, mesh format or Unity/SDK version.
-- Confidentiality against extraction: this package does not provide it.
+A fresh SHA-256 manifest covers22,232 pre-existing files under Assets, Packages and ProjectSettings. Excluding the intentionally replaced plugin installation, validation fixtures, manifest/lock changes and VRCFury's generated temp package leaves **21,635 protected original files**, including13,285 source Assets files. **0 protected originals changed or went missing** at the final integrity checkpoint.
 
-External tools may use shape names that do not appear in local animations. Use preserve/exclusion settings, and validate a copy before relying on Aggressive mode for those integrations.
+AAO automatically changes `legacyClampBlendShapeWeights` from1 to0 after script reload in Edit Mode. This was traced to AAO's initialization hook; the single field was restored and the complete ProjectSettings file matched the original SHA-256 exactly. VRCFury-generated temp controllers/logs are classified as build caches, not model source changes. Library/Temp/Logs/UserSettings are not source-manifest evidence.
+
+The duplicate old Assets plugin was byte-checked before removal; the test project uses one UPM installation. Original component GUIDs are retained. Git beta is the delivery channel for this update; existing0.2.0 release attachments were not rebuilt. No avatar assets, reports, credentials or mappings are published.
+
+## Issues caught and remaining limits
+
+This iteration caught canonical proxy motions being lost when temporary upstream assets were destroyed, private Humanoid parent-name remapping, NadeVision's fixed shader-name lookup, resource names being restored by a generic serialized-string walk, and repeated per-resource import overhead. Regression checks cover the repaired behavior. A new BlendTree fixture initially omitted its float parameter; the fixture was corrected before the final pass.
+
+Actual VRChat upload/client runtime, network/menu/face-tracking interaction and Quest/iOS devices are **not verified**. Arbitrary external name/index consumers, every custom shader/mesh format and every Unity/SDK version are not covered. Conservative uses recognized contracts and protection rules; Aggressive explicitly permits unknown compatibility risks. Texture pixels, necessary dynamic morphs and final geometry remain extractable.
