@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 """Publish CI-built archives on push, keeping a version's product tree immutable."""
 from pathlib import Path
 import argparse

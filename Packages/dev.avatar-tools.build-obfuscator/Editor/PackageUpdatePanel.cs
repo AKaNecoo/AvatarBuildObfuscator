@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-only
+// Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 using UnityEngine;
 using UnityEngine.UIElements;
 

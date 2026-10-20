@@ -1,4 +1,10 @@
-# Architecture — 0.3 beta
+# Architecture
+
+## Licensing and distribution
+
+Release 0.5.0 and later use GPL-3.0-only. Root and packaged LICENSE files contain the same unmodified GPLv3 text, package.json declares that SPDX identifier, and project-owned C#/Python sources carry matching identifiers and copyright notices. Earlier published MIT releases retain their original grants; this change does not rewrite their tags or archives.
+
+The distributed package contains plugin source and its metadata, not Unity, VRChat SDK or NDMF binaries. These separately installed dependencies retain their own terms; the GPL declaration does not relicense them. Applying the tool to avatar data does not by itself license that data under GPL. No additional linking exception is declared.
 
 ## Build lifecycle and ownership
 
@@ -8,13 +14,19 @@ The processor accepts a nonpersistent build copy and rejects prefab assets. New 
 
 ## Names, parameters and hierarchy
 
-A Trim/NFC-normalized username seeds a SHA-256 key. HMAC-SHA256 counter output generates 128 ASCII I/l characters; the filename-safe visible username prefix is limited to 32 UTF-16 characters. Full input still affects the seed. The username is not a password. Names and permutations are deterministic for identical call order, which upstream optimizers may change between builds.
+A Trim/NFC-normalized username seeds a SHA-256 key in the names/v2 domain. HMAC-SHA256 counter output generates 64 symbols from U+00CC/U+00CD/U+00CE/U+00CF (Ì/Í/Î/Ï), carrying 128 bits of naming information. The filename-safe visible username prefix is limited to 32 UTF-16 characters; unsupported filename characters become underscores. Full input still affects the seed. Shuffle seeds come directly from the HMAC bytes, independently of visible symbols. The username is not a password. Names and permutations are deterministic for identical call order, which upstream optimizers may change between builds.
+
+New components use the root PipelineManager's existing avtr_… blueprint ID as the default username. The editor-only Reset callback reads its serialized field without adding an editor SDK assembly dependency to the runtime assembly. It preserves already-filled values; ordinary editing, clearing, language changes and Inspector recreation never auto-fill the field. No avatar ID means an empty field requiring manual entry.
+
+Temporary imported texture/audio filenames fit a 240-character full-path budget, with eight characters reserved for unique suffixes. The physical name retains at least one prefix character and 32 generated symbols (64 bits); in-memory names retain the full prefix and 64-symbol suffix. If the directory itself leaves insufficient room, the original reference is kept and reported instead of attempting an unsafe native import. Source files and importers remain unchanged.
 
 Float and object animation bindings and AvatarMask paths are rewritten relative to each Animator root before names are applied. Shared graphs are cached per relative root. Ambiguous paths, explicit preservation, Generic/invalid avatars and recognized fixed contracts protect affected hierarchy. Conservative also protects unknown drivers and external path strings; Aggressive permits unknown dependencies.
 
 Humanoid rebuilding uses a separate hierarchy probe. Public skeleton names and Unity's private `SkeletonBone.parentName` are remapped; native AvatarBuilder output must preserve bone Transform identities and scale. Failed probes protect the affected hierarchy before any path rewrite. Rebuilt avatars are new assets.
 
 Custom parameter mappings are shared across Animator definitions/curves, state fields, transition conditions, BlendTrees, expression menus/parameters, parameter-driver sources/targets, PhysBone prefixes/generated suffixes, and Contacts. VRChat built-ins and recognized external face-tracking inputs keep protocol names. Animator layer/state/machine/transition names can change; execution order, layer indices and transition priority remain intact. Menu labels remain user-facing text.
+
+Per-component preservation lists protect BlendShapes, renderers, parameters and object subtrees/ancestors. Parameter entries ending in `*` match a prefix. These settings do not prevent upstream plugins from removing the same data; those plugins need their own preservation configuration. Conservative retains recognized MMD/world-driven compatibility names. Aggressive may rename retained compatibility shapes and remove unused ones. Known contracts that cannot be safely remapped remain protected in both modes.
 
 ## Animation graph isolation and proxy identity
 

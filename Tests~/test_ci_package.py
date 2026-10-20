@@ -1,4 +1,8 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 import importlib.util
+import json
 from pathlib import Path
 import shutil
 import tempfile
@@ -50,6 +54,19 @@ class PackageTests(unittest.TestCase):
         p = self.package / "Runtime/AvatarBuildObfuscator.cs.meta"
         p.write_text(p.read_text().replace("7c5e3c2dfef2cf4469c50c0ba239aac9", "e" * 32))
         with self.assertRaisesRegex(ValueError, "component GUID"):
+            ci.validate(self.package)
+
+    def test_license_identifier_matches_release(self):
+        p = self.package / "package.json"
+        manifest = json.loads(p.read_text())
+        manifest["license"] = "MIT"
+        p.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError, "license"):
+            ci.validate(self.package)
+
+    def test_license_text_matches_repository(self):
+        (self.package / "LICENSE").write_text("MIT License\n")
+        with self.assertRaisesRegex(ValueError, "GPL license text"):
             ci.validate(self.package)
 
 

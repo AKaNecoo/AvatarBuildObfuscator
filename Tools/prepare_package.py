@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 """Copy the license and adopt Unity-generated .meta GUIDs from an explicit test project."""
 from pathlib import Path
 import shutil

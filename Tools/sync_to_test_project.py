@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 """Deploy only this package into the authorized, connected test project."""
 from pathlib import Path
 import json

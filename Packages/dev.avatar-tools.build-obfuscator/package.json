@@ -1,13 +1,13 @@
 {
   "name": "dev.avatar-tools.build-obfuscator",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "displayName": "Avatar Build Obfuscator",
   "description": "Build-only username-prefixed Unicode homoglyph asset, shape and hierarchy name obfuscation with path remapping and static shape baking. Defaults to the avatar ID when available. No OSC or runtime decryption. Original project assets remain unchanged.",
   "unity": "2022.3",
   "author": {
     "name": "Avatar Build Obfuscator contributors"
   },
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "url": "https://github.com/AKaNecoo/AvatarBuildObfuscator",
   "vpmDependencies": {
     "nadena.dev.ndmf": ">=1.14.8 <2.0.0",

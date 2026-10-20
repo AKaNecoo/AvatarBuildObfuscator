@@ -1,53 +1,47 @@
-# Avatar Build Obfuscator 0.4.0
+# Avatar Build Obfuscator
 
-0.4.0：组件搜索名为 **Avatar Build Obfuscator**，用户名保持左标签、右输入框的单行布局，使用原生绑定文本控件。Search **Avatar Build Obfuscator**; the username keeps its single-row layout with a native bound text field. **Avatar Build Obfuscator** を検索。ユーザー名は1行配置のネイティブ入力欄です。
+[中文](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/main/README.md) · [English](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/main/README.en.md) · [日本語](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/main/README.ja.md)
 
 ## 中文
 
-顶部 **语言 / Language / 言語** 支持简体中文、English、日本語，选择保存在组件中，只影响界面显示。0.3.0-beta.2 修复了默认 NDMF 临时目录被误拒绝、导致 Play 预处理失败的问题。
+VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖源资产，无需运行时解密。
 
-在 Avatar 根对象添加 **Avatar Tools / Avatar Build Obfuscator**，填写自己的用户名，NDMF 构建时自动处理副本。支持中文，名称显示为 `用户名_ÌÍÎÏ…`，后缀由 64 个 Ì/Í/Î/Ï（U+00CC–00CF）组成，承载128位命名信息。新添加组件默认使用模型 avtr_… ID，可自行修改；无ID则手动填写，正常编辑不会自动回填。
+1. 在 Avatar 根对象添加 **Avatar Tools → Avatar Build Obfuscator**。
+2. 填写用户名并选择保守或激进模式。新组件默认读取已有 Avatar ID，可自行修改。
+3. 使用 VRChat SDK 正常构建；源工程名称保持原样。
 
-两档均处理支持的资源、层级/动画/Mask 路径、Humanoid 骨骼、自定义参数及动画内部名称。保守保护未知依赖；激进允许未知风险。可独立打乱 BlendShape 索引、GameObject 同级顺序和网格顶点顺序，无需解密。权重、眼皮索引、动画与骨骼映射同步，UI/重复同名等明确顺序依赖保留。
+支持“用户名＋`Ì/Í/Î/Ï`”名称混淆、固定／未使用 BlendShape 烘焙移除，以及形变、同级对象和顶点顺序重排。保守保护未知依赖，激进允许未知兼容风险。
 
-贴图（含不可读/Crunch）与音频使用独立文件及 Importer 副本，一次批量导入，保持源压缩和读取设置。原场景/FBX/纹理/材质/动画/Importer/.meta 不覆盖。构建产物中的贴图与必要动态形变仍可提取。没有 OSC、密码、运行时解密或自动上传。
-
-需要 Unity2022.3、Avatar SDK3.7.0+、NDMF1.14.8+。AAO/MA/VRCFury/TTT 可选。查看 Console 的 `[Avatar Build Obfuscator]` 数量与保留原因。源工程名称不变，检查实际构建副本。升级后检查新增开关和组件引用。
-
-Git 测试版：
-
-```text
-https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#beta
-```
-
-在 Package Manager 的 Add package from git URL 输入一次，以后选中包点击 Update。`#main` 跟随稳定版。只安装一份；旧 Assets 安装迁移至 Git 前应移除重复插件文件。旧 Releases 附件可能落后于 beta。
+组件内可切换语言、检查或安装更新。自动安装默认关闭。混淆不保证防提取，贴图、最终几何和必要动态形变仍可提取。
 
 ## English
 
-Use **语言 / Language / 言語** for Simplified Chinese, English or Japanese Inspector text. The per-component choice affects display only. Beta.2 fixes Play preprocessing by accepting NDMF's actual default generated-output tree.
+Build-time obfuscation for VRChat avatars. NDMF processes a build copy without overwriting source assets; no runtime decoder is required.
 
-Add the component to the avatar root. New components default to its avtr_… ID when available; edit it freely or fill it manually if no ID exists. Normal edits never refill a cleared field. NDMF processes its build copy using visible username + 64 Ì/Í/Î/Ï symbols (128 bits). Supported hierarchy, Humanoid, parameter and animation references are remapped. Independent switches shuffle morph indices, sibling order and mesh vertices. Conservative protects uncertain dependencies; Aggressive accepts unknown compatibility risks. Required shapes remain usable; no runtime decryption is needed.
+1. Add **Avatar Tools → Avatar Build Obfuscator** to the avatar root.
+2. Enter your username and choose Conservative or Aggressive. New components default to an existing avatar ID and remain editable.
+3. Build normally with the VRChat SDK; original project names stay unchanged.
 
-Texture/audio copies use a single import batch without editing source assets/importers. Requires Unity2022.3, Avatar SDK3.7.0+, NDMF1.14.8+. Install the beta Git URL above once, then use Package Manager Update. Original assets remain unchanged; uploaded textures and necessary morphs remain extractable.
+Supports username + `Ì/Í/Î/Ï` names, baking/removing supported fixed or unused BlendShapes, and morph/sibling/vertex order shuffling. Conservative protects unknown dependencies; Aggressive accepts unknown compatibility risks.
+
+Choose the display language and check/install updates in the component. Automatic installation defaults off. Textures, final geometry and required dynamic shapes remain extractable.
 
 ## 日本語
 
-上部の **语言 / Language / 言語** で簡体字中国語・English・日本語を切り替えます。コンポーネントごとの表示設定で、処理結果は変わりません。beta.2 では NDMF 既定一時フォルダーを許可し、Play 前処理の失敗を修正しました。
+VRChat アバターのビルド時難読化ツールです。NDMF がコピーを処理し、元アセットは上書きしません。実行時復号は不要です。
 
-ルートに追加するとモデルの avtr_… ID を既定値にします。自由に編集でき、IDがない場合は手動入力します。通常の編集では自動入力しません。NDMF のビルドコピーを `ユーザー名_ÌÍÎÏ…` で難読化し、階層・Humanoid・パラメーター・アニメーションの参照を更新します。形状インデックス、兄弟順、頂点順は独立したスイッチです。保守モードは不明な依存を保持し、激進モードは未知の互換性リスクを許容します。
+1. ルートに **Avatar Tools → Avatar Build Obfuscator** を追加します。
+2. ユーザー名と保守／激進モードを設定します。新規追加時は既存の Avatar ID が初期値になり、自由に変更できます。
+3. VRChat SDK で通常どおりビルドします。元の名前は変わりません。
 
-テクスチャ・音声のコピーを一括インポートし、元アセット・Importer は変更しません。Unity2022.3、Avatar SDK3.7.0+、NDMF1.14.8+ が必要です。上記 Git URL を一度追加し、以後 Package Manager の Update を使います。暗号化や OSC は不要で、必要な形状とテクスチャの抽出を防ぐ保証はありません。
+「ユーザー名＋`Ì/Í/Î/Ï`」の名前、対応可能な固定・未使用 BlendShape のベイクと除去、形状・兄弟・頂点順の並べ替えに対応します。保守は未知の依存を保護し、激進は未知の互換性リスクを許容します。
 
-[Full documentation / 完整说明](https://github.com/AKaNecoo/AvatarBuildObfuscator)
+コンポーネントで言語選択と更新ができます。自動インストールは初期状態でオフです。テクスチャ、最終形状、必要な動的形状は抽出可能です。
 
-## 更新 / Updates / 更新
+---
 
-组件内提供三语版本提示、检查与一键更新。自动检查开启，自动安装默认关闭。Git和官方Assets安装包均支持；本地file开发包和手动固定版本不覆盖。安装包校验SHA-256后导入，完成/失败/取消后删除临时下载。设置仅保存在工程UserSettings。
+Requires / 需要 / 必要環境: **Unity 2022.3 · Avatar SDK 3.7.0+ · NDMF 1.14.8+**.
 
-Git and official Assets installations support update checks, one-click updates and opt-in automatic installs. Checks default on, installs off. Temporary downloads are verified and deleted after import/failure/cancellation. Local development installs and manual pins are respected. Preferences are project-local.
+[Installation and full documentation / 安装与完整说明 / 導入・詳細](https://github.com/AKaNecoo/AvatarBuildObfuscator)
 
-Gitと公式Assets導入に対応し、更新確認・手動更新・任意の自動インストールを提供します。自動インストールは初期状態でオフです。一時パッケージは検証後、成功・失敗・キャンセル時に削除します。開発用ローカル版と手動固定版は保持し、設定は工程内UserSettingsに保存します。
-
-CI builds UPM TGZ, ZIP, Unity archives and checksums. Hosted package checks do not replace Unity/Avatar runtime tests. See repository README/TESTING for scope.
-
-0.4.0: 临时贴图/音频磁盘名称按完整路径限制缩短；构建对象保留完整用户名和64字符Ì/Í/Î/Ï名。目录过长则保留资源并报告。Temporary disk names respect native import path limits; full internal names remain. Overlong directories retain source references with a report. 一時ファイル名はパス制限に合わせて短縮し、内部名は維持します。出力先が長すぎる場合は元の参照を保持して報告します。
+License: [GPL-3.0-only](LICENSE). Copyright (c) 2026 Avatar Build Obfuscator contributors. Earlier MIT releases and separately installed dependencies retain their original terms.

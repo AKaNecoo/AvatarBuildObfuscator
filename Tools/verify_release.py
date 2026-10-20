@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 """Verify Unity's exported package contains only this package and exact source bytes."""
 from pathlib import Path, PurePosixPath
 import hashlib

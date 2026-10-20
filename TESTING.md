@@ -1,6 +1,12 @@
-# Validation — 0.4.0
+# Validation
 
 Validated on 2026-10-20 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository.
+
+## 0.5.0 license and documentation checks
+
+The 0.5.0 release changes licensing, documentation and distribution validation. All 26 C# files differ from 0.4.0 only by SPDX/copyright comments; all assembly definitions and metas are unchanged. The root/package GPLv3 text and GPL-3.0-only metadata match. Earlier MIT releases retain their original terms.
+
+Local checks pass 60 assertions against the actual update policy, 15 name-generator assertions, eight archive/validation regressions (including license identifier/text rejection), and three reproducible archive formats with exact-source readback. Three-language README structure, UTF-8/code fences and relative links were checked. No Unity project changes or runtime reruns were needed; the Editor/model/Play results below remain the 0.4.0 checkpoint evidence.
 
 ## Update and CI candidate checks
 

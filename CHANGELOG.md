@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 — 2026-10-20
+
+- License this release under GPL-3.0-only, with matching root/package license text, package metadata and source identifiers. Earlier MIT-licensed releases keep their original terms.
+- Shorten Chinese, English, Japanese and bundled READMEs to installation/use guides; keep implementation and compatibility details in ARCHITECTURE.md.
+- Update release validation for the GPL identifier and matching license text. Processing, Inspector and updater behavior remain unchanged from 0.4.0.
+
 ## 0.4.0 — 2026-10-20
 
 - Use the four Unicode symbols Ì/Í/Î/Ï (U+00CC–00CF) for generated suffixes: 64 symbols carry the existing 128 bits of naming information. Retain visible user prefixes and source component fields/GUIDs.

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 """Validate and reproducibly build the distributable package, without a Unity license."""
 from pathlib import Path
 import argparse
@@ -19,8 +22,11 @@ def validate(package=PACKAGE):
     manifest = json.loads((package / "package.json").read_text(encoding="utf-8-sig"))
     if manifest["name"] != NAME or not VERSION.fullmatch(manifest["version"]):
         raise ValueError("Invalid package identity/version")
-    if manifest["unity"] != "2022.3" or manifest["license"] != "MIT":
+    if manifest["unity"] != "2022.3" or manifest["license"] != "GPL-3.0-only":
         raise ValueError("Unexpected minimum Unity version/license")
+    license_bytes = (package / "LICENSE").read_bytes()
+    if not license_bytes.startswith(b"GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007") or license_bytes != (ROOT / "LICENSE").read_bytes():
+        raise ValueError("Package GPL license text differs from repository LICENSE")
     entries = sorted(package.rglob("*"))
     guids, paths = set(), set()
     for path in entries:

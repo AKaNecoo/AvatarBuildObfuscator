@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (c) 2026 Avatar Build Obfuscator contributors
+
 """Hash project content without making backups. Evidence stays in this repository."""
 from pathlib import Path
 import hashlib
