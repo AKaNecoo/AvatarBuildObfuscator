@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0-beta.2 — 2026-10-21
+
+- Group readable hierarchy notices, holder and fingerprint under one independently generated container; retain complete material tags.
+- Preserve original object transforms and metadata opt-outs; no source-scene changes or runtime components are required.
+
 ## 0.6.0-beta.1 — 2026-10-21
 
 - Add per-build randomization, local residual audits with a late SDK check, and exact zero-delta shape/curve pruning.

@@ -25,6 +25,8 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Authorization tags isolate source material even with asset naming off", MetadataIsolation);
             Run("Disabling metadata adds no declaration or fingerprint objects", MetadataDisabled);
             Run("Fingerprint-only builds carry no authorization claim", FingerprintOnly);
+            Run("Notice-only builds use one independent named metadata subtree", NoticeOnly);
+            Run("Metadata subtree preserves original objects in both protection modes", MetadataSubtreeIsolation);
             Run("SDK completion audit sees later source references and names", LateAudit);
             Run("Animated zero-delta shapes and curves are removed with source isolation", () => EmptyShape(false, false));
             Run("Multiple zero-delta frames can be removed", () => EmptyShape(true, false));
@@ -109,8 +111,53 @@ namespace AvatarTools.Obfuscation.Validation
         {
             var root = Root(); root.GetComponent<AvatarBuildObfuscator>().embedBuildFingerprint = true;
             Renderer(root, "Body", Mesh()); Process(root);
-            Check(root.GetComponentsInChildren<Transform>(true).Length == 3 &&
+            var fingerprint = root.GetComponentsInChildren<Transform>(true).Single(t => t.name.StartsWith("BUILD_FINGERPRINT_", StringComparison.Ordinal));
+            Check(root.GetComponentsInChildren<Transform>(true).Length == 4 && fingerprint.parent.parent == root.transform &&
+                UsernameNameGenerator.IsGeneratedName(fingerprint.parent.name) &&
                 !root.GetComponentsInChildren<Transform>(true).Any(t => t.name.Contains("AUTHORIZATION_NOTICE")), "Notice added despite being disabled");
+        }
+
+        private static void NoticeOnly()
+        {
+            var root = Root(); root.GetComponent<AvatarBuildObfuscator>().embedOwnershipNotice = true;
+            Renderer(root, "Body", Mesh()); Process(root);
+            var notice = root.GetComponentsInChildren<Transform>(true).Single(t => t.name == OwnershipNotice.Chinese);
+            Check(root.GetComponentsInChildren<Transform>(true).Length == 6 && notice.parent.parent == root.transform &&
+                notice.parent.childCount == 3 && UsernameNameGenerator.IsGeneratedName(notice.parent.name), "Notice container missing or extra fingerprint added");
+        }
+
+        private static void MetadataSubtreeIsolation()
+        {
+            foreach (var mode in new[] { ProtectionMode.Conservative, ProtectionMode.Aggressive })
+                foreach (bool rename in new[] { false, true })
+                {
+                    var source = Root(); var marker = source.GetComponent<AvatarBuildObfuscator>();
+                    marker.renameGameObjects = rename; marker.embedOwnershipNotice = marker.embedBuildFingerprint = true;
+                    marker.rightsHolder = "Example holder"; marker.auditBuild = true;
+                    var sourceRenderer = Renderer(source, "Body", Mesh());
+                    sourceRenderer.transform.localPosition = new Vector3(1, 2, 3);
+                    sourceRenderer.transform.localRotation = Quaternion.Euler(5, 15, 25);
+                    sourceRenderer.transform.localScale = new Vector3(.8f, 1.2f, 1);
+                    string sourceSettings = EditorJsonUtility.ToJson(marker);
+                    var build = Track(Object.Instantiate(source)); var renderer = build.GetComponentInChildren<SkinnedMeshRenderer>();
+                    var position = renderer.transform.localPosition; var rotation = renderer.transform.localRotation; var scale = renderer.transform.localScale;
+                    var report = Process(build, mode);
+                    var english = build.GetComponentsInChildren<Transform>(true).Single(t => t.name.StartsWith("AUTHORIZATION_NOTICE: ", StringComparison.Ordinal));
+                    var container = english.parent;
+                    Check(container.parent == build.transform && UsernameNameGenerator.IsGeneratedName(container.name) &&
+                        container.name.StartsWith("Synthetic_User_", StringComparison.Ordinal) && container.childCount == 5, "Metadata is not grouped beneath an ordinary generated name");
+                    Check(build.transform.childCount == 2 && container != renderer.transform && container.localPosition == Vector3.zero &&
+                        container.localRotation == Quaternion.identity && container.localScale == Vector3.one, "Container alters functional hierarchy or transforms");
+                    var leaves = container.GetComponentsInChildren<Transform>(true);
+                    Check(leaves.All(t => t.GetComponents<Component>().Length == 1) && leaves.All(t => t.gameObject.hideFlags == HideFlags.None), "Metadata has runtime components or unsafe hide flags");
+                    Check(leaves.Any(t => t.name == OwnershipNotice.Chinese) && leaves.Any(t => t.name == OwnershipNotice.Japanese) &&
+                        leaves.Any(t => t.name == "BUILD_FINGERPRINT_" + report.BuildFingerprint) && leaves.Any(t => t.name == "DECLARED_RIGHTS_HOLDER: Example holder"), "Readable metadata lost");
+                    Check(renderer.transform.parent == build.transform && renderer.transform.localPosition == position && renderer.transform.localRotation == rotation &&
+                        renderer.transform.localScale == scale && source.transform.childCount == 1 && sourceRenderer.name == "Body" &&
+                        EditorJsonUtility.ToJson(marker) == sourceSettings, "Source or functional object modified");
+                    Check(!report.AuditEntries.Any(e => e.category == "retained-object-name" && leaves.Any(t =>
+                        AnimationUtility.CalculateTransformPath(t, build.transform) == e.path)), "Intentional metadata misreported as a retained original name");
+                }
         }
 
         private static void LateAudit()

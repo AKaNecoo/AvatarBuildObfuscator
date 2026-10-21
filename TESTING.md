@@ -2,7 +2,15 @@
 
 Latest checks: 2026-10-21 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
 
-## 0.6.0-beta.1 processing and metadata
+## 0.6.0-beta.2 nested declarations
+
+The local candidate passes **59 processing checks and 30 enhancement checks**, plus 60 update-policy assertions, 28 naming/notice assertions, eight Python archive regressions and exact readback of all 48 files in three archive formats. New coverage checks notice-only and fingerprint-only containers, both metadata options off, both protection modes with object renaming on/off, normal Transform-only nodes, readable leaves, audit exclusions and unchanged original objects/settings. Existing material-tag/source isolation checks continue to pass.
+
+Local SDK Play enters and returns to Edit with zero observed errors, 392 generated object names, 53 Human bones and zero markers. All five configured readable leaves (three notices, holder and fingerprint) share one generated direct-child container; none is an immediate child of the avatar. The container has identity local transforms, only Transform components and no hide/save flags. All 20 material notices/fingerprints still match the late SDK report. The original source component's serialized settings and 858-object hierarchy are retained.
+
+Only the declaration-parenting logic and version changed in the installed product. The username Inspector, existing hierarchy renaming/remapping and geometry/texture processors are unchanged; beta.1 pose/texture and input results below remain that version's evidence. No duplicate unitypackage installation or full pose/input rerun is required for this scoped change.
+
+## 0.6.0-beta.1 processing and metadata (historical)
 
 The local development package passes **59 existing processing checks, 28 enhancement checks and 51 Inspector input checks**. Enhancements cover randomized and reproducible builds; exact-zero pruning and copied-curve removal; native/manual/proxy preservation; synchronized-shape geometry and rejection cases; independent material metadata; metadata opt-outs; SDK-stage audit refresh; and UV raw-mip/GPU sampling with Repeat/Clamp/Mirror wrapping. Unsupported shaders, unreadable textures, material animation/sharing, MirrorOnce and renderer property blocks are exercised as preservation cases. The Unity-independent checks pass **60 update-policy and 28 naming/notice assertions**; eight Python archive regressions and all three archive formats pass exact-source readback for 48 package files.
 

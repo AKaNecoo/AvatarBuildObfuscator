@@ -48,23 +48,27 @@ namespace AvatarTools.Obfuscation.Editor
                 if (settings.EmbedNotice) material.SetOverrideTag(NoticeTag, notice);
                 if (settings.EmbedFingerprint) material.SetOverrideTag(FingerprintTag, fingerprint);
             }
+            // Keep the readable notices out of the avatar's immediate child list.
+            // This ordinary, independently named subtree contains no functional bindings.
+            var container = AddMetadataObject(NewName(), root.transform).transform;
             if (settings.EmbedNotice)
             {
-                AddMetadataObject("AUTHORIZATION_NOTICE: " + OwnershipNotice.English);
-                AddMetadataObject(OwnershipNotice.Chinese);
-                AddMetadataObject(OwnershipNotice.Japanese);
+                AddMetadataObject("AUTHORIZATION_NOTICE: " + OwnershipNotice.English, container);
+                AddMetadataObject(OwnershipNotice.Chinese, container);
+                AddMetadataObject(OwnershipNotice.Japanese, container);
                 if (!string.IsNullOrWhiteSpace(settings.RightsHolder))
-                    AddMetadataObject("DECLARED_RIGHTS_HOLDER: " + SafeMetadataName(settings.RightsHolder));
+                    AddMetadataObject("DECLARED_RIGHTS_HOLDER: " + SafeMetadataName(settings.RightsHolder), container);
             }
-            if (settings.EmbedFingerprint) AddMetadataObject("BUILD_FINGERPRINT_" + fingerprint);
+            if (settings.EmbedFingerprint) AddMetadataObject("BUILD_FINGERPRINT_" + fingerprint, container);
         }
 
         private static string SafeMetadataName(string value) => OwnershipNotice.Clean(value, 128).Replace('/', '_').Replace('\\', '_');
-        private void AddMetadataObject(string value)
+        private GameObject AddMetadataObject(string value, Transform parent)
         {
             var child = new GameObject(value);
-            child.transform.SetParent(root.transform, false);
+            child.transform.SetParent(parent, false);
             metadataObjects.Add(child);
+            return child;
         }
 
         public void AuditOutput(string stage)
