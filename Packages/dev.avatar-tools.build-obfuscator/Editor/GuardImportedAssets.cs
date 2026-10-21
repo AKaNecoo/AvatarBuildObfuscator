@@ -117,27 +117,7 @@ namespace AvatarTools.Obfuscation.Editor
         }
 
         private IEnumerable<Object> WalkReferencedAssets()
-        {
-            var visited = new HashSet<Object>();
-            var queue = new Queue<Object>(root.GetComponentsInChildren<Component>(true).Where(x => x != null && !(x is Transform) && !(x is AvatarBuildObfuscator)));
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-                if (current == null || !visited.Add(current)) continue;
-                yield return current;
-                if (current is Texture || current is AudioClip || current is Mesh || current is Avatar || current is Shader) continue;
-                if (!(current is Component || current is RuntimeAnimatorController || current is ScriptableObject || current is AnimationClip || current is Material ||
-                    current is AnimatorStateMachine || current is AnimatorState || current is AnimatorTransitionBase || current is BlendTree)) continue;
-                using (var so = new SerializedObject(current))
-                {
-                    var p = so.GetIterator();
-                    while (p.Next(true))
-                        if (p.propertyType == SerializedPropertyType.ObjectReference && p.objectReferenceValue != null &&
-                            !(p.objectReferenceValue is GameObject) && !(p.objectReferenceValue is Component) && !(p.objectReferenceValue is MonoScript))
-                            queue.Enqueue(p.objectReferenceValue);
-                }
-            }
-        }
+            => BuildMetadataInspection.Dependencies(root);
 
         private Shader CopyShader(Shader source)
         {

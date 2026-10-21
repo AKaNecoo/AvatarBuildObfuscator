@@ -273,9 +273,10 @@ namespace AvatarTools.Obfuscation.Validation
             return Tuple.Create(root, r, material, texture);
         }
 
-        private static void UvRotation(TextureWrapMode wrap)
+        private static void UvRotation(TextureWrapMode wrap, string shaderName = "Unlit/Texture")
         {
             var fixture = UvFixture(); var root = fixture.Item1; var r = fixture.Item2; var material = fixture.Item3; var source = fixture.Item4;
+            material.shader = Shader.Find(shaderName);
             source.wrapMode = wrap; var originalUv = r.sharedMesh.uv;
             var mips = Enumerable.Range(0, source.mipmapCount).Select(i => source.GetPixelData<byte>(i).ToArray()).ToArray();
             var before = UvPixels(root); var report = Process(root); var texture = (Texture2D)r.sharedMaterial.mainTexture; var after = UvPixels(root);
@@ -295,6 +296,7 @@ namespace AvatarTools.Obfuscation.Validation
         private static void UvUnsupported(string reason)
         {
             var fixture = UvFixture(); var root = fixture.Item1; var r = fixture.Item2;
+            if (reason == "manual") root.GetComponent<AvatarBuildObfuscator>().excludeUvRenderers = new Renderer[] { r };
             if (reason == "shader") r.sharedMaterial.shader = Shader.Find("Standard");
             if (reason == "unreadable") fixture.Item4.Apply(false, true);
             if (reason == "mirror-once") fixture.Item4.wrapModeU = TextureWrapMode.MirrorOnce;

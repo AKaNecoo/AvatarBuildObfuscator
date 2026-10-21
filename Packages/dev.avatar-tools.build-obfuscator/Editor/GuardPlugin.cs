@@ -45,6 +45,7 @@ namespace AvatarTools.Obfuscation.Editor
                     using (PackageUpdates.DuringBuild())
                     {
                         var state = context.GetState<GuardBuildState>();
+                        BuildComparison.Capture(context.AvatarRootObject);
                         if (state.Settings == null) return;
                         var processor = new GuardProcessor(context.AvatarRootObject, state.Settings,
                             asset => context.AssetSaver.SaveAsset(asset));

@@ -25,6 +25,9 @@ namespace AvatarTools.Obfuscation.Editor
         public HashSet<Transform> PreserveObjects;
         public HashSet<string> PreserveShapes;
         public HashSet<SkinnedMeshRenderer> Exclusions;
+        public bool ReorderBonePalette;
+        public HashSet<Renderer> PreserveVertexOrder, ExcludeUv;
+        public HashSet<SkinnedMeshRenderer> PreserveBonePalette;
 
         public GuardSettings(AvatarBuildObfuscator component)
         {
@@ -50,6 +53,10 @@ namespace AvatarTools.Obfuscation.Editor
             RenameAnimatorInternals = component.renameAnimatorInternals;
             RenameBones = component.renameBones;
             ReorderVertices = component.reorderMeshVertices;
+            ReorderBonePalette = component.reorderBonePalette;
+            PreserveVertexOrder = new HashSet<Renderer>(component.preserveVertexOrderRenderers ?? new Renderer[0]);
+            PreserveBonePalette = new HashSet<SkinnedMeshRenderer>(component.preserveBonePaletteRenderers ?? new SkinnedMeshRenderer[0]);
+            ExcludeUv = new HashSet<Renderer>(component.excludeUvRenderers ?? new Renderer[0]);
             PreserveParameters = component.preserveParameters ?? new string[0];
             PreserveObjects = new HashSet<Transform>(component.preserveGameObjects ?? new Transform[0]);
             PreserveShapes = new HashSet<string>(component.preserveBlendShapes ?? new string[0], StringComparer.Ordinal);
@@ -67,6 +74,11 @@ namespace AvatarTools.Obfuscation.Editor
         public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
         public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
         public string BuildFingerprint, AuditStage, PackageVersion, Mode;
+        public string AvatarName, SourceAvatarId, CreatedUtc;
+        public int ReorderedBonePalettes, RemappedBoneEntries, OutputObjects, OutputMaterials, OutputTextures, OutputMeshes;
+        public int NoticeMaterials, FingerprintMaterials, MetadataMismatches;
+        public bool NoticeEnabled, FingerprintEnabled;
+        public bool VertexPermutationEnabled, BonePaletteEnabled, UvEnabled, ShapeMergeEnabled;
         public bool Randomized;
         public List<AuditEntry> AuditEntries = new List<AuditEntry>();
         public List<string> Notes = new List<string>();
@@ -78,7 +90,7 @@ namespace AvatarTools.Obfuscation.Editor
             "，Avatar 重建 " + RebuiltAvatars + "，顶点重排 " + ReorderedMeshes +
             "，形变重排网格 " + ShuffledShapeMeshes + "，同级重排组 " + ShuffledSiblingGroups +
             "，顺序变化对象 " + ReorderedGameObjects + "，复制对象 " + CopiedObjects +
-            "，空形变移除 " + PrunedEmptyShapes + "，同步形变合并 " + MergedShapePairs + "，UV 变换网格 " + TransformedUvMeshes;
+            "，空形变移除 " + PrunedEmptyShapes + "，同步形变合并 " + MergedShapePairs + "，UV 变换网格 " + TransformedUvMeshes + "，骨骼索引表重排 " + ReorderedBonePalettes;
         public void Note(string text) { if (!Notes.Contains(text)) Notes.Add(text); }
     }
 
@@ -128,6 +140,16 @@ namespace AvatarTools.Obfuscation.Editor
             report.BuildFingerprint = names.BuildFingerprint();
             report.Randomized = settings.RandomizeEachBuild;
             report.Mode = settings.Mode.ToString();
+            report.AvatarName = root.name;
+            report.CreatedUtc = DateTime.UtcNow.ToString("o");
+            report.NoticeEnabled = settings.EmbedNotice;
+            report.FingerprintEnabled = settings.EmbedFingerprint;
+            report.VertexPermutationEnabled = settings.ReorderVertices;
+            report.BonePaletteEnabled = settings.ReorderBonePalette;
+            report.UvEnabled = settings.TransformUv;
+            report.ShapeMergeEnabled = settings.MergeShapes;
+            try { report.SourceAvatarId = GlobalObjectId.GetGlobalObjectIdSlow(nadena.dev.ndmf.ObjectRegistry.GetReference(root).Object).ToString(); }
+            catch (Exception) { report.SourceAvatarId = ""; }
             report.PackageVersion = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(AvatarBuildObfuscator).Assembly)?.version ?? "unmanaged";
             foreach (var t in root.GetComponentsInChildren<Transform>(true)) usedNames.Add(t.name);
             saveAsset = saver;
@@ -155,8 +177,10 @@ namespace AvatarTools.Obfuscation.Editor
             ApplyRebuiltAvatars();
             if (settings.ShuffleHierarchy) ApplySiblingOrder();
             if (settings.ReorderVertices) ReorderMeshes();
+            if (settings.ReorderBonePalette) ReorderBonePalettes();
             if (settings.TransformUv) TransformUvTextures();
             EmbedBuildMetadata();
+            BuildComparison.RecordShapeNames(shapeRenames, report.MergedShapePairs > 0);
             if (settings.AuditBuild) { AuditOutput("ndmf-pass"); BuildAuditCompletion.Register(root, this); }
             return report;
         }
@@ -635,7 +659,7 @@ namespace AvatarTools.Obfuscation.Editor
             if (!animationObject && !namedAsset) return original;
             // With resource renaming disabled, copy only graphs which may contain renamed shape curves.
             if (!settings.RenameAssets && !animationObject &&
-                !((settings.ReorderVertices || settings.TransformUv) && original is Mesh) &&
+                !((settings.ReorderVertices || settings.TransformUv || settings.ReorderBonePalette && original is Mesh skinned && skinned.isReadable && skinned.bindposes.Length > 1) && original is Mesh) &&
                 !((settings.EmbedNotice || settings.EmbedFingerprint || settings.TransformUv) && original is Material) &&
                 !(settings.TransformUv && original is Texture2D)) return original;
             if (original is Texture2D texture && (!texture.isReadable ||

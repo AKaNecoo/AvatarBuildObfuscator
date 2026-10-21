@@ -16,6 +16,7 @@ namespace AvatarTools.Obfuscation.Editor
         private InspectorLanguage language;
         private float inspectorWidth;
         private bool showExperiments;
+        private ObfuscationPreset preset;
 
         private void OnEnable() { properties.Clear(); }
         private SerializedProperty Property(string name)
@@ -114,16 +115,23 @@ namespace AvatarTools.Obfuscation.Editor
         private void DrawOptions()
         {
             var mode = Property("mode");
+            preset = (ObfuscationPreset)EditorGUILayout.ObjectField(InspectorLocalization.Text("preset", language), preset, typeof(ObfuscationPreset), false);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button(InspectorLocalization.Text("savePreset", language)))
+                { serializedObject.ApplyModifiedProperties(); ObfuscationPreset.Save((AvatarBuildObfuscator)target); }
+                using (new EditorGUI.DisabledScope(preset == null))
+                    if (GUILayout.Button(InspectorLocalization.Text("applyPreset", language)))
+                    { serializedObject.ApplyModifiedProperties(); preset.Apply((AvatarBuildObfuscator)target); serializedObject.Update(); }
+            }
             Help("naming");
             if (string.IsNullOrWhiteSpace(Property("userName").stringValue)) Help("usernameRequired", MessageType.Warning);
             Field("randomizeEachBuild");
             Field("auditBuild");
             if (GUILayout.Button(InspectorLocalization.Text("viewAudit", language)))
-            {
-                var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Application.dataPath), "Library/AvatarBuildObfuscator/Reports/latest.json");
-                if (System.IO.File.Exists(path)) EditorUtility.RevealInFinder(path);
-                else Debug.Log(InspectorLocalization.Text("noAudit", language));
-            }
+                BuildReportWindow.Open(language);
+            if (GUILayout.Button(InspectorLocalization.Text("compareBuild", language)))
+                BuildComparisonWindow.Open(((AvatarBuildObfuscator)target).gameObject, language);
             Field("renameAssets");
             Field("freezeUnusedBlendShapes");
             Field("pruneEmptyBlendShapes");
@@ -135,6 +143,7 @@ namespace AvatarTools.Obfuscation.Editor
             Field("renameParameters");
             Field("renameAnimatorInternals");
             Field("reorderMeshVertices");
+            Field("reorderBonePalette");
             Field("embedBuildFingerprint");
             Field("embedOwnershipNotice");
             if (Property("embedOwnershipNotice").boolValue)
@@ -155,6 +164,9 @@ namespace AvatarTools.Obfuscation.Editor
             Field("preserveParameters", true);
             Field("preserveBlendShapes", true);
             Field("excludedRenderers", true);
+            Field("preserveVertexOrderRenderers", true);
+            Field("preserveBonePaletteRenderers", true);
+            Field("excludeUvRenderers", true);
             if (mode.enumValueIndex == (int)ProtectionMode.Aggressive) Help("aggressiveHelp", MessageType.Warning);
             else Help("conservativeHelp");
             Help("limits");

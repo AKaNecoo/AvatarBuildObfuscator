@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0-beta.3 — 2026-10-21
+
+- Add a searchable build-report window, local notice/fingerprint inspection and temporary baseline-versus-obfuscated build checks.
+- Reorder copied skin bone palettes with weight/bind-pose remapping; add per-renderer preservation and identity-free operation presets.
+- Extend experimental lossless UV rotation to built-in Unlit/Transparent and Unlit/Transparent Cutout. Unsupported shader/data contracts remain preserved.
+
 ## 0.6.0-beta.2 — 2026-10-21
 
 - Group readable hierarchy notices, holder and fingerprint under one independently generated container; retain complete material tags.

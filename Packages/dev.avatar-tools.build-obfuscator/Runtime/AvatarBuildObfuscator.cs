@@ -46,6 +46,10 @@ namespace AvatarTools.Obfuscation
         public bool renameBones = true;
         [Tooltip("在复制的网格中重排顶点及其全部关联数据，无需解密。保守模式只处理能确认材质不依赖顶点 ID 的网格。")]
         public bool reorderMeshVertices = true;
+        public bool reorderBonePalette = true;
+        public Renderer[] preserveVertexOrderRenderers = new Renderer[0];
+        public SkinnedMeshRenderer[] preserveBonePaletteRenderers = new SkinnedMeshRenderer[0];
+        public Renderer[] excludeUvRenderers = new Renderer[0];
         [Tooltip("保留自定义参数名；末尾 * 表示前缀匹配。VRChat 内置参数自动保留。")]
         public string[] preserveParameters = new string[0];
         [Tooltip("保留这些对象及其子树和祖先的层级名称，适用于按名称查找的外部工具。")]

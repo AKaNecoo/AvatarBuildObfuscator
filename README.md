@@ -8,7 +8,7 @@
 
 - 混淆资源、对象、骨骼、参数、Animator 内部及动态 BlendShape 名称，使用“用户名＋`Ì/Í/Î/Ï` 乱码”。
 - 烘焙并移除可处理的固定／未使用 BlendShape，保留必要的动态形变。
-- 可独立打乱 BlendShape、同级 GameObject 和网格顶点顺序，并更新相关引用。
+- 可独立打乱 BlendShape、同级 GameObject、网格顶点和蒙皮骨骼索引表，并更新相关引用。
 - 每次构建可重新随机化，移除无效果空形变，并生成本地残留审计报告。
 - 可嵌入三语授权声明和构建指纹；实验性的 UV/贴图旋转与同步形变合并默认关闭。
 
@@ -29,6 +29,8 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 1. 在 **Hierarchy** 选中 Avatar 根对象，到右侧 **Inspector** 底部点击 **Add Component（添加组件）**，搜索 **Avatar Build Obfuscator**，选择 **Avatar Tools → Avatar Build Obfuscator**。
 2. 填写用户名并选择模式。新组件默认读取已有 Avatar ID，可自行修改；没有 ID 时手动填写。
 3. 使用 VRChat SDK 正常构建。效果在构建副本中查看，源 Hierarchy 和 Project 名称保持原样。
+
+组件中的 **查看最近一次构建报告** 可搜索处理记录、查看保留原因并核对声明／指纹；**测试构建与对照检查** 可生成临时副本进行采样比较，关闭窗口后清理。采样不代替 VRChat 内的完整功能测试。局部保留列表可跳过特定 Renderer 的处理，预设仅保存处理开关与模式。
 
 组件支持简体中文、English、日本語。各处理项可单独开关，也可配置保留项。填写的权利人和联系地址会随声明公开；声明不认证身份，也不保证 AI 拒绝。
 

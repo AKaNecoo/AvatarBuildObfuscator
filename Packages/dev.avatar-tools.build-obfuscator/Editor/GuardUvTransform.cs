@@ -28,10 +28,10 @@ namespace AvatarTools.Obfuscation.Editor
                 var materials = group.SelectMany(r => r.sharedMaterials).Distinct().ToArray();
                 if (!owned.Contains(mesh) || !mesh.isReadable || !mesh.HasVertexAttribute(VertexAttribute.TexCoord0) || mesh.GetVertexAttributeDimension(VertexAttribute.TexCoord0) != 2 ||
                     mesh.GetVertexAttributeFormat(VertexAttribute.TexCoord0) != VertexAttributeFormat.Float32 ||
-                    group.Any(r => r.HasPropertyBlock() || r.GetComponent<Cloth>() != null || r is MeshRenderer mr && mr.additionalVertexStreams != null) ||
+                    group.Any(r => settings.ExcludeUv.Contains(r) || r.HasPropertyBlock() || r.GetComponent<Cloth>() != null || r is MeshRenderer mr && mr.additionalVertexStreams != null) ||
                     materials.Length == 0 || materials.Any(m => !UvMaterial(m)) ||
                     renderers.Any(r => RenderMesh(r) != mesh && r.sharedMaterials.Any(materials.Contains)))
-                { report.Note("实验 UV：仅支持独立可读 UV0 网格、独立材质和内置 Unlit/Texture；其他契约保留"); continue; }
+                { report.Note("实验 UV：仅支持独立可读 UV0 网格、独立材质和内置 Unlit 贴图系列；手动排除或其他契约保留"); continue; }
                 var uv = mesh.uv;
                 if (uv.Length != mesh.vertexCount || uv.Any(v => !Finite(new Vector3(v.x, v.y, 0)))) continue;
                 var replacementUv = uv.Select(v => Vector2.one - v).ToArray();
@@ -69,7 +69,8 @@ namespace AvatarTools.Obfuscation.Editor
 
         private bool UvMaterial(Material material)
         {
-            if (material == null || !owned.Contains(material) || material.shader == null || material.shader.name != "Unlit/Texture") return false;
+            if (material == null || !owned.Contains(material) || material.shader == null ||
+                !(material.shader.name == "Unlit/Texture" || material.shader.name == "Unlit/Transparent" || material.shader.name == "Unlit/Transparent Cutout")) return false;
             string path = AssetDatabase.GetAssetPath(material.shader);
             if (path != "Resources/unity_builtin_extra" && path != "Library/unity default resources") return false;
             var texture = material.mainTexture as Texture2D;

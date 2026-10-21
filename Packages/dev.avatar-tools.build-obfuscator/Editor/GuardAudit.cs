@@ -15,7 +15,7 @@ namespace AvatarTools.Obfuscation.Editor
 {
     [Serializable] public sealed class AuditEntry
     {
-        public string category, type, name, path, reason;
+        public string category, type, name, path, reason, sourceGlobalId;
     }
 
     public sealed partial class GuardProcessor
@@ -74,6 +74,15 @@ namespace AvatarTools.Obfuscation.Editor
         public void AuditOutput(string stage)
         {
             if (root == null) return;
+            var outputAssets = WalkReferencedAssets().ToArray();
+            report.OutputObjects = root.GetComponentsInChildren<Transform>(true).Count(t => !metadataObjects.Contains(t.gameObject));
+            report.OutputMaterials = outputAssets.OfType<Material>().Distinct().Count();
+            report.OutputTextures = outputAssets.OfType<Texture>().Distinct().Count();
+            report.OutputMeshes = outputAssets.OfType<Mesh>().Distinct().Count();
+            var metadata = BuildMetadataInspection.Inspect(root, outputAssets.OfType<Material>(), false);
+            report.NoticeMaterials = metadata.noticeMaterials;
+            report.FingerprintMaterials = metadata.fingerprintMaterials;
+            report.MetadataMismatches = metadata.invalidFingerprints + metadata.fingerprints.Count(f => f != report.BuildFingerprint);
             report.AuditStage = stage;
             report.AuditEntries.Clear();
             foreach (var t in root.GetComponentsInChildren<Transform>(true))
@@ -122,7 +131,13 @@ namespace AvatarTools.Obfuscation.Editor
         }
 
         private void Audit(string category, Object asset, string path, string reason) => report.AuditEntries.Add(new AuditEntry
-        { category = category, type = asset.GetType().Name, name = asset.name, path = path, reason = reason });
+        { category = category, type = asset.GetType().Name, name = asset.name, path = path, reason = reason, sourceGlobalId = SourceId(asset) });
+
+        private static string SourceId(Object asset)
+        {
+            try { return GlobalObjectId.GetGlobalObjectIdSlow(nadena.dev.ndmf.ObjectRegistry.GetReference(asset).Object).ToString(); }
+            catch (Exception) { return ""; }
+        }
 
         private static bool IsProxyAsset(Object asset, string path) => asset is AnimationClip clip && IsProxy(clip) ||
             path == "Resources/unity_builtin_extra" || path == "Library/unity default resources" || path.StartsWith("Packages/com.vrchat.", StringComparison.Ordinal);
@@ -134,6 +149,7 @@ namespace AvatarTools.Obfuscation.Editor
     {
         private static readonly Dictionary<int, GuardProcessor> pending = new Dictionary<int, GuardProcessor>();
         public int callbackOrder => int.MaxValue;
+        internal static void Forget(GameObject root) { if (root != null) pending.Remove(root.GetInstanceID()); }
         internal static void Register(GameObject root, GuardProcessor processor)
         {
             if (pending.Count >= 16) pending.Clear();

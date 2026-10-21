@@ -12,6 +12,15 @@ namespace AvatarTools.Obfuscation.Editor
         internal static readonly string[] LanguageNames = { "简体中文", "English", "日本語" };
         private static readonly Dictionary<string, string[]> Copy = new Dictionary<string, string[]>
         {
+            { "compareBuild", new[] { "测试构建与对照检查", "Test build and comparison", "テストビルドと比較検査" } },
+            { "preset", new[] { "处理设置预设", "Operation preset", "処理設定プリセット" } },
+            { "savePreset", new[] { "保存开关与模式", "Save operations and mode", "処理とモードを保存" } },
+            { "applyPreset", new[] { "应用预设（保留身份与引用）", "Apply preset (keep identity / references)", "適用（名義・参照を保持）" } },
+            { "reorderBonePalette", new[] { "重排蒙皮骨骼索引表", "Reorder skin bone palettes", "スキニングのボーン索引表を並べ替え" } },
+            { "reorderBonePalette.tip", new[] { "同时重映射独立网格的骨骼权重、绑定矩阵和 Renderer 骨骼数组。不改父子关系；Cloth、网格切换和不完整骨骼表保留。", "Remaps copied mesh weights, bind poses and renderer bone arrays together. Keeps hierarchy intact; preserves Cloth, mesh swaps and incomplete palettes.", "コピーのウェイト・バインド行列・Renderer のボーン配列を一緒に再対応付けします。階層は変えず、Cloth・メッシュ切替・不完全な表を保持します。" } },
+            { "preserveVertexOrderRenderers", new[] { "保留顶点顺序的 Renderer", "Preserve vertex order on renderers", "頂点順を保持する Renderer" } },
+            { "preserveBonePaletteRenderers", new[] { "保留骨骼索引表的 Renderer", "Preserve bone palettes on renderers", "ボーン索引表を保持する Renderer" } },
+            { "excludeUvRenderers", new[] { "跳过 UV 处理的 Renderer", "Skip UV processing on renderers", "UV 処理を除外する Renderer" } },
             { "randomizeEachBuild", new[] { "每次构建重新随机化", "Randomize each build", "ビルドごとにランダム化" } },
             { "randomizeEachBuild.tip", new[] { "同一用户名每次生成不同后缀与排列。关闭可复现相同输入；随机盐只存在于构建内存。", "Generates new suffixes and permutations each build. Disable for repeatable inputs; salts stay in build memory.", "同じユーザー名でも毎回異なる接尾辞と順序を生成します。無効時は同じ入力で再現可能です。ソルトはビルド中のメモリにのみ保持します。" } },
             { "auditBuild", new[] { "生成构建残留审计报告", "Write build audit report", "ビルド監査レポートを保存" } },
@@ -30,7 +39,7 @@ namespace AvatarTools.Obfuscation.Editor
             { "experiments", new[] { "实验功能（默认关闭）", "Experimental features (off by default)", "実験的な機能（既定で無効）" } },
             { "experimentalUvTransform", new[] { "UV 与贴图无损旋转（实验）", "Lossless UV / texture rotation", "UV とテクスチャの無損失回転" } },
             { "mergeSynchronizedBlendShapes", new[] { "合并完全同步的动态形变（实验）", "Merge identically driven shapes", "完全に同期した動的形状を統合" } },
-            { "experimentsHelp", new[] { "UV 目前仅支持内置 Unlit/Texture、可读未压缩贴图和独立 UV0 网格；不支持的组合保留。动态合并仅处理相同初始权重且所有已知曲线完全一致的普通形变，保留口型/眼皮接口。请先在构建副本验证。", "UV rotation supports built-in Unlit/Texture, readable uncompressed textures and independent UV0 meshes; unsupported combinations retain data. Shape merging requires identical initial weights and all known curves, and preserves viseme/eyelid contracts. Validate build copies first.", "UV 回転は組み込み Unlit/Texture・読み取り可能な非圧縮テクスチャ・独立した UV0 メッシュのみ対応します。形状統合は初期ウェイトと既知の全曲線が一致する通常形状のみで、口形・まぶた契約を保持します。ビルドコピーで検証してください。" } },
+            { "experimentsHelp", new[] { "UV 目前仅支持内置 Unlit/Texture、Transparent、Transparent Cutout，可读未压缩贴图和独立 UV0 网格；不支持的组合保留。动态合并仅处理相同初始权重且所有已知曲线完全一致的普通形变，保留口型/眼皮接口。请先在构建副本验证。", "UV rotation supports the built-in Unlit texture/transparent/cutout family, readable uncompressed textures and independent UV0 meshes; unsupported combinations retain data. Shape merging requires identical initial weights and all known curves, and preserves viseme/eyelid contracts. Validate build copies first.", "UV 回転は組み込み Unlit の Texture・Transparent・Transparent Cutout と、読み取り可能な非圧縮テクスチャ・独立した UV0 メッシュのみ対応します。形状統合は初期ウェイトと既知の全曲線が一致する通常形状のみで、口形・まぶた契約を保持します。ビルドコピーで検証してください。" } },
             { "update.title", new[] { "版本与更新", "Version and updates", "バージョンと更新" } },
             { "update.ready", new[] { "可检查当前渠道的已验证更新。", "Check this channel for verified updates.", "現在のチャンネルの検証済み更新を確認できます。" } },
             { "update.checking", new[] { "正在后台检查更新…", "Checking in the background…", "バックグラウンドで確認中…" } },

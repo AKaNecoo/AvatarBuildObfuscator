@@ -28,6 +28,8 @@ namespace AvatarTools.Obfuscation.Editor
                 .Select(c => c.GetComponent<SkinnedMeshRenderer>()).Where(r => r != null).Select(r => r.sharedMesh));
             foreach (var mesh in owned.OfType<Mesh>().ToArray())
             {
+                if (renderers.Any(r => RenderMesh(r) == mesh && settings.PreserveVertexOrder.Contains(r)))
+                { report.Note("顶点重排：共享网格中存在手动保留的 Renderer"); continue; }
                 if (mesh.vertexCount < 2) continue;
                 if (!mesh.isReadable || clothMeshes.Contains(mesh) || renderers.OfType<MeshRenderer>().Any(r => r.additionalVertexStreams != null))
                 { report.Note("顶点重排：不可读网格、Cloth 或额外顶点流保持顺序"); continue; }
