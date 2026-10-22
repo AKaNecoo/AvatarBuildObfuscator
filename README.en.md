@@ -32,7 +32,7 @@ Use `#beta` for test releases. Alternatively, import a `.unitypackage` from [Rel
 
 Use **Show latest build report** to search retained items and inspect notices/fingerprints. **Test build and comparison** creates temporary copies for sampled checks and cleans them when the window closes; it does not replace full VRChat testing. Per-renderer lists preserve selected operations, and presets store only operation switches and mode.
 
-The component supports Simplified Chinese, English and Japanese. Options can be switched independently. Declared rights holders and contacts are published with the notice; it does not authenticate ownership or guarantee AI refusal.
+The component supports Simplified Chinese, English and Japanese. Options can be switched independently. Declared rights holders and contacts are published with the notice; it does not authenticate ownership or guarantee that AI will refuse to assist in reverse-engineering the model.
 
 | Mode | Behavior |
 | --- | --- |

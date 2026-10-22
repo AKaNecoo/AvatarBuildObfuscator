@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 — 2026-10-22
+
+- Promote the tested 0.6.0 beta features to stable: build randomization, audits, notices/fingerprints, shape pruning, diagnostics, bone-palette reordering and operation presets.
+- Retain opt-in UV/texture rotation and synchronized-shape merging within their existing compatibility limits.
+- Clarify in all README languages that notices do not guarantee AI will refuse to assist in reverse-engineering the model. Processing code is unchanged from 0.6.0-beta.3.
+
 ## 0.6.0-beta.3 — 2026-10-21
 
 - Add a searchable build-report window, local notice/fingerprint inspection and temporary baseline-versus-obfuscated build checks.

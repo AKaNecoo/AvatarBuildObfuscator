@@ -1,6 +1,14 @@
 # Validation
 
-Latest checks: 2026-10-21 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+Latest Editor checks: 2026-10-21 in the authorized connected Windows test Editor. Stable-release documentation and packaging checks: 2026-10-22. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+
+## 0.6.0 stable promotion
+
+The stable candidate changes only README wording, release documentation and the package version relative to the tested `0.6.0-beta.3` product commit `5146934`. All C# sources, assembly definitions and GUID metadata are identical; the Editor, model and Play results below remain explicitly beta.3 evidence rather than newly repeated stable-version runs. The six Chinese/English/Japanese README notice descriptions now specify refusal to assist in reverse-engineering the model.
+
+The final beta.3 Git installation also passed actual SDK Play enter/exit with zero observed errors, 392 generated names, 53 Human bones and zero configuration markers. All 21 reachable material notices/fingerprints matched the final SDK report. The final protected-file enumeration and hashes retained all 23,013 files, including 12,154 metas, with no changes, missing files or unexpected additions. The saved source scene and original component fields were preserved; its unsaved-scene flag was retained. Build-induced settings changes were reconciled to the exact fresh starting saved-file SHA. An initial native iOS API value disagreed with that starting file; restoring the original file and allowing normal reload retained the original saved value instead of forcing the stale native cache.
+
+Stable preparation passes 60 actual update-policy assertions, 28 naming/notice assertions, eight archive regressions and exact readback of all 60 product files in three package formats. The six README notice descriptions, 19 relative documentation links, short trilingual release notes and unchanged processing/GUID content are checked. No Unity Editor connection or duplicate unitypackage installation is needed for this documentation/version-only change. Full VRChat client, network/device and extraction-resistance evaluations remain outside the verified scope.
 
 ## 0.6.0-beta.3 diagnostics and bone palettes
 

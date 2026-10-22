@@ -1,6 +1,6 @@
 {
   "name": "dev.avatar-tools.build-obfuscator",
-  "version": "0.6.0-beta.3",
+  "version": "0.6.0",
   "displayName": "Avatar Build Obfuscator",
   "description": "Build-copy avatar obfuscation, per-build randomization, shape pruning, local audits and optional authorization notices/fingerprints. Experimental UV rotation and synchronized-shape merging. No runtime decoder; source assets are preserved.",
   "unity": "2022.3",
