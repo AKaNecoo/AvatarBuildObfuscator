@@ -12,6 +12,8 @@ Build-time obfuscation for VRChat avatars. Add the component and NDMF processes 
 - Randomize each build, prune zero-delta shapes and write a local residual-data audit.
 - Embed multilingual authorization notices and build fingerprints. Experimental UV/texture rotation and synchronized-shape merging default off.
 
+Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations; see the [compatibility matrix](ARCHITECTURE.md#exact-pruning-and-experimental-transforms). Decoding compressed textures may increase output size. NonToon texture conversion is not enabled yet.
+
 ## Install
 
 Requires **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) through VCC first.

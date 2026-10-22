@@ -1,17 +1,17 @@
 ## 中文
 
-- 正式发布构建随机化、空形变清理、授权声明与构建指纹。
-- 新增报告与构建对照、蒙皮骨骼表重排、局部保留及预设；UV／同步形变实验选项默认关闭。
-- 明确 README 中的 AI 拒绝指“拒绝协助逆向本模型”。
+- 实验贴图旋转新增部分 lilToon、Poiyomi 和 UnlitWF 支持。
+- 支持部分不可读压缩贴图，新增转换用量统计及上限。
+- 不兼容项继续保留；NonToon 暂不转换，实验默认关闭。
 
 ## English
 
-- Release build randomization, zero-delta pruning, authorization notices and fingerprints as stable.
-- Add reports/comparisons, skin bone-palette permutation, local preservation and presets; experimental UV/shape merging remains off by default.
-- Clarify that AI refusal in the README means refusing to assist in reverse-engineering the model.
+- Extend experimental texture rotation to selected lilToon, Poiyomi and UnlitWF configurations.
+- Support selected unreadable compressed textures; add conversion usage reporting and a payload limit.
+- Preserve incompatible inputs. NonToon conversion remains pending; experiments default off.
 
 ## 日本語
 
-- ビルドごとのランダム化・空形状の削除・許諾声明・識別子を正式版として公開。
-- レポートと比較検査・ボーン表並べ替え・個別保持・プリセットを追加。実験的な UV／形状統合は既定で無効。
-- README の AI に関する記述を、本モデルのリバースエンジニアリングへの協力拒否であると明確化。
+- 実験的なテクスチャ回転で lilToon・Poiyomi・UnlitWF の一部設定に対応。
+- 一部の読み取り不可圧縮テクスチャに対応し、使用量表示と上限を追加。
+- 未対応項目は保持。NonToon は未対応、実験機能は既定で無効。

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0-beta.1 — 2026-10-22
+
+- Extend opt-in texture rotation to reviewed stock lilToon 2.4.1 variants, unlocked Poiyomi Toon 10.0.27 main textures, and UnlitWF 2.14.0 opaque second/back-face layers; NonToon remains explicitly preserved pending rendering validation.
+- Add build-only per-mip GPU decoding for supported unreadable/compressed LDR textures, shared-copy reuse, material-atomic preservation and a 256 MiB payload budget; report converted materials/textures and decoding size.
+- Compensate material sampling without changing mesh UVs; retain known incompatible features and coordinate/texture animation, while allowing verified color curves, material-slot swaps and unrelated stock-lilToon uniforms. Source assets and importers remain unchanged.
+
 ## 0.6.0 — 2026-10-22
 
 - Promote the tested 0.6.0 beta features to stable: build randomization, audits, notices/fingerprints, shape pruning, diagnostics, bone-palette reordering and operation presets.

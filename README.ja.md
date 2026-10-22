@@ -12,6 +12,8 @@ VRChat アバターをビルド時に難読化するツールです。コンポ�
 - ビルドごとのランダム化、空形状の削除、ローカル監査レポートに対応。
 - 三言語の許諾声明とビルド識別子を埋め込み可能。実験的な UV/テクスチャ回転・同期形状統合は既定で無効。
 
+実験的なテクスチャ回転は lilToon 2.4.1・Poiyomi 10.0.27・UnlitWF 2.14.0 の一部設定に対応します。[対応表](ARCHITECTURE.md#exact-pruning-and-experimental-transforms)をご確認ください。圧縮テクスチャの変換で出力容量が増える場合があります。NonToon のテクスチャ変換は未対応です。
+
 ## インストール
 
 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先に VCC から SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。

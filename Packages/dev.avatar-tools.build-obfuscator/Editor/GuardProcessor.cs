@@ -73,6 +73,8 @@ namespace AvatarTools.Obfuscation.Editor
         public int RenamedParameters, RenamedAnimatorNames, RebuiltAvatars, ReorderedMeshes, ImportedTextureCopies;
         public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
         public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
+        public int TransformedUvMaterials, TransformedUvTextures, DecodedUvTextures;
+        public long UvTextureBytes;
         public string BuildFingerprint, AuditStage, PackageVersion, Mode;
         public string AvatarName, SourceAvatarId, CreatedUtc;
         public int ReorderedBonePalettes, RemappedBoneEntries, OutputObjects, OutputMaterials, OutputTextures, OutputMeshes;

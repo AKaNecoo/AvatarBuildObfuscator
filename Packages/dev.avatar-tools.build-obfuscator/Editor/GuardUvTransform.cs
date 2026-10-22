@@ -17,10 +17,11 @@ namespace AvatarTools.Obfuscation.Editor
     {
         private void TransformUvTextures()
         {
+            var renderers = root.GetComponentsInChildren<Renderer>(true);
+            TransformProfileTextures(renderers);
             // This deliberately small support matrix needs no shader decoder and no lossy re-encoding.
             if (unknownDriver || root.GetComponentsInChildren<ParticleSystemRenderer>(true).Length != 0 || MaterialUvAnimated())
-            { report.Note("实验 UV：未知驱动、粒子网格或材质动画，保留 UV/贴图"); return; }
-            var renderers = root.GetComponentsInChildren<Renderer>(true);
+            { report.Note("实验 UV：内置 Unlit 网格路线因未知驱动、粒子或材质动画保留；Shader适配结果另列"); return; }
             var rotated = new Dictionary<Texture2D, Texture2D>();
             foreach (var group in renderers.Where(r => RenderMesh(r) != null).GroupBy(RenderMesh))
             {

@@ -12,6 +12,8 @@
 - 每次构建可重新随机化，移除无效果空形变，并生成本地残留审计报告。
 - 可嵌入三语授权声明和构建指纹；实验性的 UV/贴图旋转与同步形变合并默认关闭。
 
+实验贴图旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27 和 UnlitWF 2.14.0 配置，具体范围见[兼容说明](ARCHITECTURE.md#exact-pruning-and-experimental-transforms)。压缩贴图转换可能增加产物体积；NonToon 的贴图转换尚未启用。
+
 ## 安装
 
 需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。先通过 VCC 安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。

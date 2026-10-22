@@ -16,6 +16,8 @@ VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖
 
 可每次构建随机化、裁剪空形变、生成本地审计、嵌入三语授权声明与指纹。声明中的权利人和联系地址会公开；声明不认证身份，也不保证 AI 会拒绝协助逆向本模型。UV/贴图旋转与同步形变合并为默认关闭的实验选项。
 
+实验旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27 和 UnlitWF 2.14.0 配置；压缩贴图转换可能增大产物。NonToon 暂不转换，具体范围见仓库兼容说明。
+
 组件内可切换语言、检查或安装更新。自动安装默认关闭。混淆不保证防提取，贴图、最终几何和必要动态形变仍可提取。
 
 ## English
@@ -32,6 +34,8 @@ Supports username + `Ì/Í/Î/Ï` names, baking/removing supported fixed or unus
 
 Supports per-build randomization, zero-delta pruning, local audits, authorization notices and fingerprints. Declared holders/contacts are public; the notice does not authenticate ownership or guarantee that AI will refuse to assist in reverse-engineering the model. Experimental UV/texture rotation and synchronized-shape merging default off.
 
+Experimental rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations. Decoding compressed textures may increase output size. NonToon conversion is pending; see the repository compatibility matrix.
+
 Choose the display language and check/install updates in the component. Automatic installation defaults off. Textures, final geometry and required dynamic shapes remain extractable.
 
 ## 日本語
@@ -47,6 +51,8 @@ VRChat アバターのビルド時難読化ツールです。NDMF がコピー�
 「ユーザー名＋`Ì/Í/Î/Ï`」の名前、対応可能な固定・未使用 BlendShape のベイクと除去、形状・兄弟・頂点順の並べ替えに対応します。保守は未知の依存を保護し、激進は未知の互換性リスクを許容します。
 
 ビルドごとのランダム化・空形状の削除・ローカル監査・許諾声明と識別子に対応します。申告した権利者・連絡先は公開されます。声明は本人確認を行わず、AI が本モデルのリバースエンジニアリングへの協力を拒否することも保証しません。実験的な UV/テクスチャ回転・同期形状統合は既定で無効です。
+
+実験的な回転は lilToon 2.4.1・Poiyomi 10.0.27・UnlitWF 2.14.0 の一部設定に対応します。圧縮テクスチャの変換で容量が増える場合があります。NonToon は未対応です。詳細はリポジトリの対応表をご確認ください。
 
 コンポーネントで言語選択と更新ができます。自動インストールは初期状態でオフです。テクスチャ、最終形状、必要な動的形状は抽出可能です。
 

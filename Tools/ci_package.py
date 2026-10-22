@@ -46,7 +46,7 @@ def validate(package=PACKAGE):
         else:
             if not Path(str(path) + ".meta").is_file():
                 raise ValueError(f"Missing .meta: {relative}")
-            if path.is_file() and path.suffix not in (".cs", ".asmdef", ".json", ".md") and path.name != "LICENSE":
+            if path.is_file() and path.suffix not in (".cs", ".asmdef", ".json", ".md") and path.name != "LICENSE" and relative != "Editor/TextureMip.shader":
                 raise ValueError(f"Non-product file: {relative}")
             if path.suffix in (".asmdef", ".json"):
                 json.loads(path.read_text(encoding="utf-8-sig"))
