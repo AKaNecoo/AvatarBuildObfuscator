@@ -8,7 +8,7 @@ The user explicitly requests stable publication and reports having tested basic 
 
 Relative to the tested `0.7.0-beta.2` commit `57abe0d`, the stable product changes only `package.json` from `0.7.0-beta.2` to `0.7.0`. All 69 other package files, including C#, shader, assembly definitions, bundled documentation and GUID metadata, are identical. Earlier beta.2 Git-install, two-mode model, SDK Play and source-integrity results below remain evidence for that tested implementation; no new connected-Editor run is claimed for the version-only promotion.
 
-Stable preparation reruns the 60 update-policy, 28 naming and 166 compressed-block assertions, eight archive regressions, and exact readback of all 70 product files in UPM/TGZ, ZIP and unitypackage archives. The short Chinese/English/Japanese release notes cover changes since 0.6.0, retain the experimental compatibility limits, and do not claim content encryption or measured VRChat download-size reductions. The withdrawn 0.7.0-beta.1 Release remains a draft.
+Stable preparation reruns the 60 update-policy, 28 naming and 166 compressed-block assertions, eight archive regressions, and exact readback of all 70 product files in UPM/TGZ, ZIP and unitypackage archives. The short Chinese/English/Japanese release notes cover changes since 0.6.0, retain the experimental compatibility limits, and do not claim content encryption or measured VRChat download-size reductions. The withdrawn 0.7.0-beta.1 Release is not republished.
 
 ## 0.7.0-beta.2 texture storage and streaming
 
