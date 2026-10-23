@@ -12,6 +12,12 @@ The root component implements `IEditorOnly`. The NDMF Resolving pass captures se
 
 The processor accepts a nonpersistent build copy and rejects prefab assets. New resources go to the NDMF asset saver. Imported textures/audio are independently copied into its generated folder before opening the serialization scope; `StartAssetEditing`/`StopAssetEditing` group copies, followed by one synchronous refresh. Loads occur after that batch completes. Import suspension and progress UI are released in `finally`, including cancellation. The path guard accepts Assets descendants and the exact `Packages/nadena.dev.ndmf/__Generated` tree used by normal Play/SDK callbacks. It rejects other package source folders and dot-segment traversal. The earlier Assets-only gate passed manual tests but broke real SDK preprocessing; regression coverage now includes both roots. Source importers, compression and Read/Write settings are not changed. Unsupported embedded/built-in assets retain their source identity.
 
+### Subtree mode resolution
+
+The root component can assign Conservative or Aggressive to selected descendant Transforms. At Resolving, settings capture each source Transform and Renderer before upstream optimization; the nearest configured ancestor wins and the last duplicate entry wins. Null, invalid and outside-avatar entries are ignored with a report note. A surviving node retains its captured policy after reparenting. New descendants inherit a surviving explicit scope; otherwise they inherit the root default. Renderer modes are frozen before this processor mutates meshes.
+
+When an upstream merge removes a Conservative renderer and a new or mesh-changed Aggressive renderer could contain its data, that output falls back to Conservative and the report counts it. This is deliberately coarse because the available replacement registry does not expose every contributor of many-to-one merges. Shared meshes, bone palettes and material textures use the strictest relevant renderer policy; global parameters and Animator internals use Conservative if any configured subtree is Conservative. Without subtree entries, the previous avatar-wide policy is retained. Presets omit Transform references.
+
 ## Names, parameters and hierarchy
 
 A Trim/NFC-normalized username and, by default, a fresh in-memory build salt seed a SHA-256 key in the names/v3 domain. Disabling per-build randomization preserves the deterministic names/v2 stream. HMAC-SHA256 counter output generates 64 symbols from U+00CC/U+00CD/U+00CE/U+00CF (Ì/Í/Î/Ï), carrying 128 bits of naming information. The filename-safe visible username prefix is limited to 32 UTF-16 characters; unsupported filename characters become underscores. Full input still affects the seed. Shuffle seeds come directly from the HMAC bytes, independently of visible symbols. The username is not a password. Reproduction requires identical settings and call order, which upstream optimizers may change between builds.
@@ -106,6 +112,14 @@ A transactional per-material plan checks all dependent textures before mutation;
 Opt-in `Tests~` instrumentation captures renderer identities after upstream optimization, before obfuscation. Private test reports store final renderer locations so pose/texture comparison does not assume sibling traversal order. This instrumentation is not part of the installed package, and no source-to-output map is stored as a referenced avatar asset.
 
 Obfuscation removes descriptive names and unused morph definitions. Textures, required dynamic morphs and final geometry remain extractable. There is no runtime decoder or cryptographic confidentiality. Editor build/static/pose evidence is distinct from actual VRChat client/device acceptance.
+
+### VPM listing and install ownership
+
+The GitHub Pages index at `https://akanecoo.github.io/AvatarBuildObfuscator/index.json` lists published 0.7.0+ release ZIPs. A trusted main/beta release workflow validates each ZIP, exact product paths, manifest identity/version/dependencies, SHA-256 and historical listing continuity before deploying Pages. Drafts and the withdrawn 0.7.0-beta.1 release are excluded. The listing includes prereleases for ALCOM/VCC users who opt in; it is a community repository, not a curated VRChat endorsement. Each package manifest uses its exact release ZIP URL and versioned changelog URL.
+
+VPM's `legacyFolders` entry names the stable unitypackage root GUID. The package manager may migrate an old Assets installation only when that GUID matches, including if its folder moved; arbitrary same-named user folders are not migration targets. Git installations are UPM dependencies and must first be removed through Unity Package Manager before VPM installation. Keep avatar assets and component settings outside the plugin installation folder.
+
+The component detects a VPM installation only when Unity reports an Embedded package at the exact project Packages path and the project `vpm-manifest.json` locks the same package version. Malformed or oversized lock data fails closed. For VPM, the component opens the ALCOM/VCC guide and disables its Git/unitypackage update controls; ALCOM/VCC owns updates and removal. The 0.7.0 archive itself is VPM-installable, but its older component UI predates this detection; the updated UI starts with 0.8.0-beta.1.
 
 ## Inspector language
 

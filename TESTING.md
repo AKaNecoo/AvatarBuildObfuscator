@@ -1,6 +1,20 @@
 # Validation
 
-Latest connected Editor checks: 2026-10-23 in the authorized Windows test Editor. Stable packaging/promotion checks: 2026-10-24. Editor/build/sample checks are separate from the user's online basic-function testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+Latest connected Editor checks: 2026-10-24 in the authorized Windows test Editor. Stable packaging/promotion checks: 2026-10-24. Editor/build/sample checks are separate from the user's online basic-function testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+
+## 0.8.0-beta.1 subtree modes and VPM candidate
+
+In Unity 2022.3.22f1, the subtree suite passes 14 cases covering inherited/duplicate/invalid rules, reparenting and generated objects, ambiguous upstream merges, real shape processing, shared resources and preset isolation. The existing 59 processing, 30 enhancement, 15 diagnostic and 64 shader/texture cases also pass. The Inspector input/language fixture passes 51 checks. The Editor reports no C# compile errors after the new runtime and editor scripts are loaded.
+
+On the real authorized avatar with the local development package, separate Conservative and Aggressive build comparisons each pass 16 renderer pairs, 35 geometry/pose/shape samples, 33 material slots, 2,108 source dependencies and zero missing bindings. Both comparisons report unchanged source memory and dependency bytes within their own runs; maximum position errors are 1.1921e-7 m and 2.3958e-7 m. These sampled results do not cover every Animator transition, VRChat client, physics or network behavior. A first attempt to start the Aggressive run immediately after Conservative was correctly rejected because Unity was still importing; it passed when run after the Editor became idle.
+
+Unity-independent checks pass 60 update-policy, 28 naming, 166 compressed-texture-block and 25 VPM installation-policy assertions. Python passes 20 archive and VPM-listing tests, including path/identity/digest/immutability failures. The three archive formats read back all 74 product files. The isolated vrc-get 1.9.3/vrc-get-vpm 0.0.17 fixture installs the published 0.7.0 ZIP, upgrades to the candidate 0.8.0-beta.1 ZIP, uninstalls while retaining SDK dependencies, and migrates original and relocated legacy unitypackage folders by GUID without changing extra user files. Only its environment-root selection is locally changed; this checks VPM core behavior, not live Unity compilation in those empty fixture projects.
+
+A temporary scene copy with global Aggressive plus a Conservative Body subtree reached 6 Conservative and 22 Aggressive post-optimizer renderers, with zero ambiguous-merge fallbacks. Its build comparison found 16 renderer pairs, 35 geometry samples, 33 material slots, no missing bindings and a 1.1921e-7 m maximum position difference; saved dependencies were unchanged. The comparison labelled its temporary input copy `source-change-detected` because Editor-memory serialization changed during the SDK run, so it is recorded as partial evidence. The original Milfy scene retained all 858 GameObjects, hierarchy order and component settings; only the new empty subtree field and two SDK constraint execution-group cache indices differ from the initial Editor snapshot. The scene's dirty flag changed during the broader Editor tests and was not forcibly cleared.
+
+A complete protected-file scan found one changed file out of 26,903: `ProjectSettings.asset`. The changed byte was an SDK-written `m_Automatic` value under `WindowsStandaloneSupport`. Flipping only that byte produced the unique full-file SHA-256 match to the fresh pre-test baseline; the exact original bytes were restored. All protected scene/model/texture/material/animation files and metas matched. The final scan must be repeated after installation transitions.
+
+Real-project Git/VPM installation transitions, beta CI/release and public Pages index checks remain promotion gates for this candidate.
 
 ## 0.7.0 stable promotion
 

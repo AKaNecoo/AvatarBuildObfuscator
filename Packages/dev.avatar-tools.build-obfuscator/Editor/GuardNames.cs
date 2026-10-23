@@ -52,13 +52,13 @@ namespace AvatarTools.Obfuscation.Editor
             // changing the external sender is a known functional break in either mode.
             if (value.StartsWith("FT/v2/", StringComparison.Ordinal) || value.StartsWith("Drive/FT/", StringComparison.Ordinal) ||
                 value.StartsWith("v2/", StringComparison.Ordinal) || value.StartsWith("VRCFaceTracking/", StringComparison.Ordinal)) return true;
-            return settings.Mode == ProtectionMode.Conservative && value.StartsWith("FT/", StringComparison.Ordinal);
+            return settings.GlobalMode == ProtectionMode.Conservative && value.StartsWith("FT/", StringComparison.Ordinal);
         }
 
         private void PlanParameterNames()
         {
             if (!settings.RenameParameters) return;
-            if (unknownDriver && settings.Mode == ProtectionMode.Conservative)
+            if (unknownDriver && settings.GlobalMode == ProtectionMode.Conservative)
             { report.Note("未知驱动：保守模式保留运行参数与动画内部名称"); return; }
             var all = new HashSet<string>(controllers.SelectMany(BaseControllers).SelectMany(c => c.parameters).Select(p => p.name), StringComparer.Ordinal);
             foreach (var d in root.GetComponentsInChildren<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>(true))
@@ -116,14 +116,14 @@ namespace AvatarTools.Obfuscation.Editor
             if (type.StartsWith("VRC.SDK3.Dynamics.", StringComparison.Ordinal) && p.name == "parameter") return MapParameter(value);
             // Unknown custom drivers are permitted in Aggressive; update explicit parameter
             // fields, but never indiscriminately replace all user-facing strings.
-            if (settings.Mode == ProtectionMode.Aggressive && (p.name == "parameter" || p.name == "parameterName")) return MapParameter(value);
+            if (settings.GlobalMode == ProtectionMode.Aggressive && (p.name == "parameter" || p.name == "parameterName")) return MapParameter(value);
             return value;
         }
 
         private void RewriteAnimatorNames(Object copy)
         {
             if (!namedAnimatorObjects.Add(copy)) return;
-            bool graphNames = settings.RenameAnimatorInternals && (!unknownDriver || settings.Mode == ProtectionMode.Aggressive);
+            bool graphNames = settings.RenameAnimatorInternals && (!unknownDriver || settings.GlobalMode == ProtectionMode.Aggressive);
             if (copy is AnimatorController controller)
             {
                 var parameters = controller.parameters;

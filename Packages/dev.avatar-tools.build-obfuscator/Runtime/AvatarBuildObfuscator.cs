@@ -10,6 +10,13 @@ namespace AvatarTools.Obfuscation
     public enum ProtectionMode { Conservative, Aggressive }
     public enum InspectorLanguage { SimplifiedChinese, English, Japanese }
 
+    [System.Serializable]
+    public sealed class SubtreeModeOverride
+    {
+        public Transform root;
+        public ProtectionMode mode = ProtectionMode.Conservative;
+    }
+
     /// <summary>Editor-only build instructions. NDMF runs them on its build copy.</summary>
     [AddComponentMenu("Avatar Tools/Avatar Build Obfuscator")]
     [DisallowMultipleComponent]
@@ -19,6 +26,7 @@ namespace AvatarTools.Obfuscation
     {
         public InspectorLanguage inspectorLanguage = InspectorLanguage.SimplifiedChinese;
         public ProtectionMode mode = ProtectionMode.Conservative;
+        public SubtreeModeOverride[] subtreeModes = new SubtreeModeOverride[0];
         [FormerlySerializedAs("namePrefix")]
         [Tooltip("新添加时默认使用模型的 avtr_… ID，可自行修改。处理后的名称为 用户名_ÌÍÎÏ…；用户名也用于派生混淆种子。")]
         public string userName = "";

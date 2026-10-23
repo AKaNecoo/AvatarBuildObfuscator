@@ -18,13 +18,17 @@ VRChat アバターをビルド時に難読化するツールです。コンポ�
 
 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先に VCC から SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
 
-**Window → Package Manager → ＋ → Add package from git URL…** を開き、次を入力します。
+**ALCOM／VCC：** [パッケージリポジトリのページ](https://akanecoo.github.io/AvatarBuildObfuscator/)からリポジトリを追加し、プロジェクトのパッケージ一覧で **Avatar Build Obfuscator** をインストールします。beta はプレリリースの表示を有効にしてください。NDMF 公式リポジトリへのリンクもあります。
+
+**Git：** **Window → Package Manager → ＋ → Add package from git URL…** を開き、次を入力します。
 
 ```text
 https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
 ```
 
-テスト版は末尾を `#beta` に変更します。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` も利用できます。重複を避けるため、導入方法はどちらか一方にしてください。
+テスト版は末尾を `#beta` に変更します。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` も利用できます。重複を避けるため、導入方法は一つにしてください。
+
+VPM に移行する場合、Git 版は先に Package Manager で削除し、ALCOM／VCC から導入します。公開済み `.unitypackage` の旧フォルダーは GUID で移行できます。プラグインのフォルダー内に独自のモデルアセットを置かず、アバター上のコンポーネント設定は保持してください。
 
 ## 使い方
 
@@ -41,9 +45,11 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 | 保守（既定） | 機能の維持を優先し、確認できない依存関係を保持します。 |
 | 激進 | 処理範囲を広げ、未知の互換性リスクを許容します。外部連携に影響する場合があります。 |
 
+**サブツリー別のモード**で体・衣装・アクセサリーを個別に設定できます。最も近い設定済み祖先を継承します。共有アセットと全体パラメータ／コントローラーは保守優先で、最適化による統合元が不明な場合は保守に戻して報告します。
+
 ## 更新
 
-コンポーネントのバージョン・更新欄から確認・更新できます。Git 導入は Package Manager も利用できます。自動確認は初期状態でオン、自動インストールはオフです。パッケージ方式の更新では一時ダウンロードを処理後に削除します。
+VPM 版は **ALCOM／VCC** で更新します。Git・`.unitypackage` 版はコンポーネントのバージョン・更新欄を利用でき、Git は Package Manager からも更新できます。自動確認は初期状態でオン、自動インストールはオフです。パッケージ方式の更新では一時ダウンロードを処理後に削除します。
 
 ## 注意
 

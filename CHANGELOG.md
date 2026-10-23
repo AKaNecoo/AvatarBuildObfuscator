@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0-beta.1 — 2026-10-24
+
+- Add Conservative/Aggressive overrides per avatar subtree, with inherited scope resolution and conservative fallback for ambiguous upstream merges and shared resources.
+- Publish an ALCOM/VCC community repository index from verified release ZIPs; support GUID-checked migration of legacy unitypackage installations.
+- Detect VPM-managed installs so the component directs updates to ALCOM/VCC instead of applying its Git or unitypackage updater.
+
 ## 0.7.0 — 2026-10-24
 
 - Promote the tested 0.7.0-beta.2 product to stable after the user's online basic-function smoke test. Processing code, shader contracts and asset GUIDs are unchanged from beta.2.

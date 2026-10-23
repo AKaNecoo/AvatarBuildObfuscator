@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 
 namespace AvatarTools.Obfuscation.Editor
 {
-    public sealed class GuardSettings
+    public sealed partial class GuardSettings
     {
         public ProtectionMode Mode;
         public string UserName;
@@ -61,6 +61,7 @@ namespace AvatarTools.Obfuscation.Editor
             PreserveObjects = new HashSet<Transform>(component.preserveGameObjects ?? new Transform[0]);
             PreserveShapes = new HashSet<string>(component.preserveBlendShapes ?? new string[0], StringComparer.Ordinal);
             Exclusions = new HashSet<SkinnedMeshRenderer>(component.excludedRenderers ?? new SkinnedMeshRenderer[0]);
+            CaptureSubtreeModes(component);
         }
 
     }
@@ -75,6 +76,7 @@ namespace AvatarTools.Obfuscation.Editor
         public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
         public int TransformedUvMaterials, TransformedUvTextures, DecodedUvTextures;
         public int LosslessCompressedUvTextures, RecompressedUvTextures;
+        public int SubtreeOverrides, ConservativeScopeRenderers, AggressiveScopeRenderers, ScopeFallbackRenderers;
         public long UvTextureBytes;
         public string BuildFingerprint, AuditStage, PackageVersion, Mode;
         public string AvatarName, SourceAvatarId, CreatedUtc;
@@ -139,10 +141,11 @@ namespace AvatarTools.Obfuscation.Editor
         {
             root = buildCopy != null ? buildCopy : throw new ArgumentNullException(nameof(buildCopy));
             settings = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            settings.ResolveBuildScopes(root, report);
             names = new UsernameNameGenerator(settings.UserName, settings.RandomizeEachBuild ? UsernameNameGenerator.NewBuildSalt() : null);
             report.BuildFingerprint = names.BuildFingerprint();
             report.Randomized = settings.RandomizeEachBuild;
-            report.Mode = settings.Mode.ToString();
+            report.Mode = settings.HasSubtreeOverrides ? "Mixed (" + settings.Mode + ")" : settings.Mode.ToString();
             report.AvatarName = root.name;
             report.CreatedUtc = DateTime.UtcNow.ToString("o");
             report.NoticeEnabled = settings.EmbedNotice;
@@ -203,12 +206,15 @@ namespace AvatarTools.Obfuscation.Editor
                 foreach (var child in t.GetComponentsInChildren<Transform>(true)) blocked.Add(child);
                 protectPath(t);
             };
-            if (unknownDriver && settings.Mode == ProtectionMode.Conservative)
+            if (unknownDriver && !settings.HasSubtreeOverrides && settings.Mode == ProtectionMode.Conservative)
             {
                 report.PreservedGameObjects = all.Length;
                 report.Note("未知运行驱动或 Legacy Animation：保留对象层级名称"); return;
             }
             foreach (var t in settings.PreserveObjects) protectTree(t);
+            if (unknownDriver && settings.HasSubtreeOverrides)
+                foreach (var t in all.Where(t => settings.ModeFor(t) == ProtectionMode.Conservative))
+                { blocked.Add(t); protectPath(t); }
             if (!settings.RenameBones)
                 foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
@@ -250,13 +256,13 @@ namespace AvatarTools.Obfuscation.Editor
                 {
                     var p = so.GetIterator();
                     while (p.Next(true))
-                        if (settings.Mode == ProtectionMode.Conservative && p.propertyType == SerializedPropertyType.String &&
+                        if (settings.GlobalMode == ProtectionMode.Conservative && p.propertyType == SerializedPropertyType.String &&
                             p.propertyPath != "m_Name" && p.name != "SourcePath" && !string.IsNullOrEmpty(p.stringValue))
                             strings.Add(p.stringValue);
                 }
             foreach (var site in clips)
             {
-                if (settings.Mode == ProtectionMode.Conservative)
+                if (settings.GlobalMode == ProtectionMode.Conservative)
                     foreach (var evt in AnimationUtility.GetAnimationEvents(site.Clip))
                         if (!string.IsNullOrEmpty(evt.stringParameter)) strings.Add(evt.stringParameter);
                 if (IsProxy(site.Clip))
@@ -354,7 +360,9 @@ namespace AvatarTools.Obfuscation.Editor
                         }
                 }
             }
-            if (unknownDriver) report.Note(settings.Mode == ProtectionMode.Conservative
+            if (unknownDriver && settings.HasSubtreeOverrides)
+                report.Note("未知驱动：按子树模式保留或处理形变和层级；共享资源、全局参数与控制器保守优先，激进子树可能影响外部联动");
+            else if (unknownDriver) report.Note(settings.GlobalMode == ProtectionMode.Conservative
                 ? "无法完整确认驱动；保守模式保留形变、层级、参数和状态名，独立资源名称仍处理"
                 : "激进模式继续处理未知驱动；未确认的外部名称依赖可能失效");
             foreach (var site in clips)
@@ -448,7 +456,7 @@ namespace AvatarTools.Obfuscation.Editor
                 if (source == null) continue;
                 report.ShapesBefore += source.blendShapeCount;
                 if (source.blendShapeCount == 0) continue;
-                if (unknownDriver && settings.Mode == ProtectionMode.Conservative || settings.Exclusions.Contains(renderer) || meshSwaps.Contains(renderer) ||
+                if (unknownDriver && settings.ModeFor(renderer) == ProtectionMode.Conservative || settings.Exclusions.Contains(renderer) || meshSwaps.Contains(renderer) ||
                     ResolveRenderers(root.transform, AnimationUtility.CalculateTransformPath(renderer.transform, root.transform)).Count() != 1)
                 {
                     report.ShapesAfter += source.blendShapeCount;
@@ -479,7 +487,7 @@ namespace AvatarTools.Obfuscation.Editor
                     var name = names[i];
                     bool preserve = settings.PreserveShapes.Contains(name) ||
                         fixedShapeNames.TryGetValue(renderer, out var fixedNames) && fixedNames.Contains(name) ||
-                        settings.Mode == ProtectionMode.Conservative && CompatibilityShape(name);
+                        settings.ModeFor(renderer) == ProtectionMode.Conservative && CompatibilityShape(name);
                     bool driven = animated.TryGetValue(renderer, out var used) && used.Contains(name) ||
                         nativeShapes.TryGetValue(renderer, out var native) && native.Contains(name);
                     // Deliberately skip unusual in-between/extrapolation setups, even in Aggressive mode.

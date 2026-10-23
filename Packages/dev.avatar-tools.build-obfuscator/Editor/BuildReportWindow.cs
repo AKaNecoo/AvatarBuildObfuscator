@@ -96,6 +96,9 @@ namespace AvatarTools.Obfuscation.Editor
                     report.LosslessCompressedUvTextures + " / " + report.RecompressedUvTextures;
             }
             summary.text += "\n" + T("已启用：顶点／骨骼表／UV／形变合并", "Enabled: vertex / palette / UV / shape merge", "有効: 頂点・ボーン表・UV・形状統合") + ": " + report.VertexPermutationEnabled + " / " + report.BonePaletteEnabled + " / " + report.UvEnabled + " / " + report.ShapeMergeEnabled;
+            if (report.SubtreeOverrides != 0)
+                summary.text += "\n" + T("子树配置／保守Renderer／激进Renderer／来源回退", "Subtree overrides / conservative / aggressive / provenance fallback", "サブツリー設定・保守Renderer・積極Renderer・由来不明の保持") + ": " +
+                    report.SubtreeOverrides + " / " + report.ConservativeScopeRenderers + " / " + report.AggressiveScopeRenderers + " / " + report.ScopeFallbackRenderers;
             summary.style.whiteSpace = WhiteSpace.Normal; summary.style.marginTop = summary.style.marginBottom = 8; content.Add(summary);
             var notes = new Foldout { text = T("处理与保留说明", "Processing and preservation notes", "処理と保持の説明"), value = false };
             foreach (var note in report.Notes ?? new List<string>()) { var label = new Label(note); label.style.whiteSpace = WhiteSpace.Normal; notes.Add(label); }

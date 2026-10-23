@@ -26,7 +26,7 @@ namespace AvatarTools.Obfuscation.Editor
         // Mesh UVs/tangents and unrelated projection maps are left untouched by this route.
         private void TransformProfileTextures(Renderer[] renderers)
         {
-            if (GraphicsSettings.currentRenderPipeline != null || unknownDriver && settings.Mode == ProtectionMode.Conservative)
+            if (GraphicsSettings.currentRenderPipeline != null || unknownDriver && !settings.HasSubtreeOverrides && settings.Mode == ProtectionMode.Conservative)
             { report.Note("实验 UV：Shader适配仅支持内置渲染管线；保守模式保留未知驱动"); return; }
             const long budget = 256L * 1024 * 1024;
             long bytes = 0;
@@ -36,6 +36,8 @@ namespace AvatarTools.Obfuscation.Editor
             {
                 if (!owned.Contains(material)) continue;
                 var users = renderers.Where(r => r.sharedMaterials.Contains(material)).ToArray();
+                if (unknownDriver && users.Any(r => settings.ModeFor(r) == ProtectionMode.Conservative))
+                { report.Note("实验 UV：共享材质包含保守子树且存在未知驱动，保留"); continue; }
                 string family, reason;
                 List<UvSlot> plan;
                 try { plan = ProfilePlan(material, out family, out reason); }

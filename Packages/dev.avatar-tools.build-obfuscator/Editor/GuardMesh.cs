@@ -22,12 +22,22 @@ namespace AvatarTools.Obfuscation.Editor
                 (AssetDatabase.GetAssetPath(m.shader) == "Resources/unity_builtin_extra" ||
                  AssetDatabase.GetAssetPath(m.shader) == "Library/unity default resources") &&
                 (m.shader.name == "Standard" || m.shader.name == "Unlit/Texture" || m.shader.name == "Unlit/Color"));
-            if (settings.Mode == ProtectionMode.Conservative && !auditedShaders)
+            if (!settings.HasSubtreeOverrides && settings.Mode == ProtectionMode.Conservative && !auditedShaders)
             { report.Note("顶点重排：保守模式保留未确认顶点 ID 依赖的自定义 Shader 网格"); return; }
             var clothMeshes = new HashSet<Mesh>(root.GetComponentsInChildren<Cloth>(true)
                 .Select(c => c.GetComponent<SkinnedMeshRenderer>()).Where(r => r != null).Select(r => r.sharedMesh));
             foreach (var mesh in owned.OfType<Mesh>().ToArray())
             {
+                if (settings.HasSubtreeOverrides)
+                {
+                    var users = renderers.Where(r => RenderMesh(r) == mesh).ToArray();
+                    if (users.Any(r => settings.ModeFor(r) == ProtectionMode.Conservative) &&
+                        !users.SelectMany(r => r.sharedMaterials).Where(m => m != null).All(m => m.shader != null &&
+                            (AssetDatabase.GetAssetPath(m.shader) == "Resources/unity_builtin_extra" ||
+                             AssetDatabase.GetAssetPath(m.shader) == "Library/unity default resources") &&
+                            (m.shader.name == "Standard" || m.shader.name == "Unlit/Texture" || m.shader.name == "Unlit/Color")))
+                    { report.Note("顶点重排：共享网格的保守子树保留未验证Shader索引依赖"); continue; }
+                }
                 if (renderers.Any(r => RenderMesh(r) == mesh && settings.PreserveVertexOrder.Contains(r)))
                 { report.Note("顶点重排：共享网格中存在手动保留的 Renderer"); continue; }
                 if (mesh.vertexCount < 2) continue;

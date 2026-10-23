@@ -76,6 +76,22 @@ namespace AvatarTools.Obfuscation.Editor
             }
         }
         internal static bool Legacy => Installed == null && LegacyManifest != null;
+        internal static bool Vpm
+        {
+            get
+            {
+                if (Installed == null || Installed.source != PackageSource.Embedded) return false;
+                try
+                {
+                    string project = Path.GetDirectoryName(Application.dataPath);
+                    string manifest = Path.Combine(project, "Packages/vpm-manifest.json");
+                    return File.Exists(manifest) && VpmInstallPolicy.IsManaged(Installed.source.ToString(), Installed.resolvedPath,
+                        project, Installed.version, File.ReadAllText(manifest));
+                }
+                catch (IOException) { return false; }
+                catch (UnauthorizedAccessException) { return false; }
+            }
+        }
         internal static string Channel => Legacy ?
             (Settings.managedChannel == "main" || Settings.managedChannel == "beta" ? Settings.managedChannel :
                 CurrentVersion.Contains("-") ? "beta" : "main") :

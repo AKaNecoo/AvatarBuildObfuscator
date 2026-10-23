@@ -92,7 +92,7 @@ namespace AvatarTools.Obfuscation.Editor
                     Audit("retained-object-name", t, AnimationUtility.CalculateTransformPath(t, root.transform),
                         t == root.transform ? "Avatar root identity" : !settings.RenameHierarchy ? "Object renaming disabled" :
                         settings.PreserveObjects.Any(p => p != null && (t == p || t.IsChildOf(p) || p.IsChildOf(t))) ? "Explicit preserved subtree or ancestor" :
-                        unknownDriver && settings.Mode == ProtectionMode.Conservative ? "Conservative unknown-driver preservation" :
+                        unknownDriver && settings.ModeFor(t) == ProtectionMode.Conservative ? "Conservative unknown-driver preservation" :
                         "SDK, humanoid or fixed-path contract; see build notes");
             }
             foreach (var asset in WalkReferencedAssets())

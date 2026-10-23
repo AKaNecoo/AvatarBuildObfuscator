@@ -16,6 +16,7 @@ namespace AvatarTools.Obfuscation.Editor
         private InspectorLanguage language;
         private float inspectorWidth;
         private bool showExperiments;
+        private bool showSubtreeModes;
         private ObfuscationPreset preset;
 
         private void OnEnable() { properties.Clear(); }
@@ -115,6 +116,7 @@ namespace AvatarTools.Obfuscation.Editor
         private void DrawOptions()
         {
             var mode = Property("mode");
+            DrawSubtreeModes();
             preset = (ObfuscationPreset)EditorGUILayout.ObjectField(InspectorLocalization.Text("preset", language), preset, typeof(ObfuscationPreset), false);
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -172,6 +174,36 @@ namespace AvatarTools.Obfuscation.Editor
             Help("limits");
             Help("imports");
             Help("verification");
+        }
+
+        private void DrawSubtreeModes()
+        {
+            var entries = Property("subtreeModes");
+            showSubtreeModes = EditorGUILayout.Foldout(showSubtreeModes,
+                InspectorLocalization.Text("subtreeModes", language) + " (" + entries.arraySize + ")", true);
+            if (!showSubtreeModes) return;
+            Help("subtreeModes.tip");
+            for (int i = 0; i < entries.arraySize; i++)
+            {
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    var entry = entries.GetArrayElementAtIndex(i);
+                    EditorGUILayout.PropertyField(entry.FindPropertyRelative("root"), InspectorLocalization.Content("subtreeRoot", language));
+                    var selected = entry.FindPropertyRelative("mode");
+                    selected.enumValueIndex = EditorGUILayout.Popup(InspectorLocalization.Text("mode", language), selected.enumValueIndex,
+                        new[] { InspectorLocalization.Text("conservative", language), InspectorLocalization.Text("aggressive", language) });
+                    if (GUILayout.Button(InspectorLocalization.Text("removeSubtreeMode", language)))
+                    { entries.DeleteArrayElementAtIndex(i); break; }
+                }
+            }
+            if (GUILayout.Button(InspectorLocalization.Text("addSubtreeMode", language)))
+            {
+                int index = entries.arraySize;
+                entries.InsertArrayElementAtIndex(index);
+                var added = entries.GetArrayElementAtIndex(index);
+                added.FindPropertyRelative("root").objectReferenceValue = null;
+                added.FindPropertyRelative("mode").enumValueIndex = Property("mode").enumValueIndex;
+            }
         }
     }
 }

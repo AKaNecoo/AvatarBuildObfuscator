@@ -32,7 +32,7 @@ namespace AvatarTools.Obfuscation.Editor
         }
 
         private bool ProtectedShape(SkinnedMeshRenderer renderer, string name) => settings.PreserveShapes.Contains(name) ||
-            settings.Mode == ProtectionMode.Conservative && CompatibilityShape(name) ||
+            settings.ModeFor(renderer) == ProtectionMode.Conservative && CompatibilityShape(name) ||
             fixedShapeNames.TryGetValue(renderer, out var fixedNames) && fixedNames.Contains(name) ||
             nativeShapes.TryGetValue(renderer, out var native) && native.Contains(name);
 

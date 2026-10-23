@@ -28,9 +28,14 @@ namespace AvatarTools.Obfuscation.Editor
 
         private void PlanSiblingOrder()
         {
-            if (unknownDriver && settings.Mode == ProtectionMode.Conservative)
+            if (unknownDriver && !settings.HasSubtreeOverrides && settings.Mode == ProtectionMode.Conservative)
             { report.Note("同级重排：保守模式保留未知驱动的对象顺序"); return; }
             var blocked = new HashSet<Transform>();
+            if (unknownDriver && settings.HasSubtreeOverrides)
+                foreach (var conservative in root.GetComponentsInChildren<Transform>(true)
+                    .Where(t => settings.ModeFor(t) == ProtectionMode.Conservative))
+                    for (var t = conservative; t != null && (t == root.transform || t.IsChildOf(root.transform)); t = t.parent)
+                        blocked.Add(t);
             Action<Transform> blockTree = t => {
                 if (t == null || !(t == root.transform || t.IsChildOf(root.transform))) return;
                 foreach (var descendant in t.GetComponentsInChildren<Transform>(true)) blocked.Add(descendant);

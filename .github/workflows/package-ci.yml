@@ -59,3 +59,34 @@ jobs:
           RELEASE_CHANNEL: ${{ github.ref_name }}
           RELEASE_COMMIT: ${{ github.sha }}
         run: python3 Tools/publish_release.py --channel "$RELEASE_CHANNEL" --commit "$RELEASE_COMMIT" --artifacts dist
+  publish-vpm:
+    if: github.event_name == 'push' && github.repository == 'AKaNecoo/AvatarBuildObfuscator' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta')
+    needs: publish-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: abo-vpm-pages
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build verified public VPM listing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python Tools/vpm_listing.py --output VpmSite --previous
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: VpmSite
+      - name: Publish ALCOM / VCC repository
+        id: deployment
+        uses: actions/deploy-pages@v4

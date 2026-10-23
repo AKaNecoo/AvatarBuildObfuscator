@@ -11,5 +11,6 @@
     <Compile Include="../../Packages/dev.avatar-tools.build-obfuscator/Editor/UsernameNameGenerator.cs" Link="UsernameNameGenerator.cs" />
     <Compile Include="../../Packages/dev.avatar-tools.build-obfuscator/Editor/OwnershipNotice.cs" Link="OwnershipNotice.cs" />
     <Compile Include="../../Packages/dev.avatar-tools.build-obfuscator/Editor/TextureBlockRotation.cs" Link="TextureBlockRotation.cs" />
+    <Compile Include="../../Packages/dev.avatar-tools.build-obfuscator/Editor/VpmInstallPolicy.cs" Link="VpmInstallPolicy.cs" />
   </ItemGroup>
 </Project>

@@ -57,5 +57,6 @@ internal static class Program
         int beforeBlocks = passed;
         TextureBlockChecks.Run(Check);
         Console.WriteLine("Compressed texture blocks: " + (passed - beforeBlocks) + " PASS");
+        Console.WriteLine("VPM installation policy: " + VpmChecks.Run() + " PASS");
     }
 }

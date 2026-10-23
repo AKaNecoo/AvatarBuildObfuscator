@@ -69,6 +69,18 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "GPL license text"):
             ci.validate(self.package)
 
+    def test_vpm_download_version_and_legacy_scope(self):
+        p = self.package / 'package.json'
+        original = json.loads(p.read_text())
+        for key, value in (('url', 'https://example.invalid/package.zip'), ('changelogUrl', 'https://example.invalid/log'),
+                           ('legacyFolders', {'Assets': ''})):
+            with self.subTest(key=key):
+                manifest = dict(original)
+                manifest[key] = value
+                p.write_text(json.dumps(manifest))
+                with self.assertRaises(ValueError):
+                    ci.validate(self.package)
+
 
 if __name__ == "__main__":
     unittest.main()

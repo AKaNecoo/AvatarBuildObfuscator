@@ -12,6 +12,13 @@ namespace AvatarTools.Obfuscation.Editor
         internal static readonly string[] LanguageNames = { "简体中文", "English", "日本語" };
         private static readonly Dictionary<string, string[]> Copy = new Dictionary<string, string[]>
         {
+            { "update.vpm", new[] { "此安装由 VPM 管理。请在 ALCOM／VCC 的工程包列表中更新，组件不会通过 Git 或安装包覆盖它。", "This installation is managed by VPM. Update in your project's ALCOM/VCC package list; the component will not replace it through Git or unitypackage.", "VPM 管理のインストールです。ALCOM／VCC のプロジェクトのパッケージ一覧で更新してください。このコンポーネントは Git・unitypackage で上書きしません。" } },
+            { "update.vpmGuide", new[] { "ALCOM／VCC 使用说明", "ALCOM / VCC guide", "ALCOM／VCC のガイド" } },
+            { "subtreeModes", new[] { "按子树设置模式", "Subtree mode overrides", "サブツリー別のモード" } },
+            { "subtreeModes.tip", new[] { "拖入本Avatar内的子树根对象。最近的配置祖先生效，同一对象重复时使用最后一项；共享资源和全局参数/控制器保守优先。优化器合并来源不明确时保留并报告。", "Choose subtree roots within this avatar. Nearest configured ancestor wins; the last duplicate wins. Shared resources and global parameters/controllers use conservative priority. Ambiguous optimizer merges are retained and reported.", "このAvatar内のサブツリーのルートを指定します。最も近い設定済み祖先を継承し、重複時は最後の設定を使用します。共有アセット・全体パラメータ・コントローラーは保守優先です。最適化による統合元が不明な場合は保持して報告します。" } },
+            { "subtreeRoot", new[] { "子树根对象", "Subtree root", "サブツリーのルート" } },
+            { "addSubtreeMode", new[] { "添加子树配置", "Add subtree override", "サブツリー設定を追加" } },
+            { "removeSubtreeMode", new[] { "移除此配置", "Remove override", "この設定を削除" } },
             { "compareBuild", new[] { "测试构建与对照检查", "Test build and comparison", "テストビルドと比較検査" } },
             { "preset", new[] { "处理设置预设", "Operation preset", "処理設定プリセット" } },
             { "savePreset", new[] { "保存开关与模式", "Save operations and mode", "処理とモードを保存" } },

@@ -1,17 +1,17 @@
 ## 中文
 
-- 实验贴图旋转新增部分 lilToon、Poiyomi、UnlitWF 配置支持。
-- 修复贴图内存膨胀及 Mip Streaming 警告；BC7 画质不达标时保留原材质。
-- 使用 ABO 短标题，补充模型下载大小提示。
+- 新增按子树选择保守／激进模式，并报告共享资源与合并来源回退。
+- 支持通过 ALCOM／VCC 仓库安装、更新和迁移。
+- 组件识别 VPM 安装，避免 Git／安装包更新器覆盖。
 
 ## English
 
-- Extend opt-in texture rotation to selected lilToon, Poiyomi and UnlitWF configurations.
-- Fix texture-memory growth and Mip Streaming warnings; retain BC7 materials when quality checks fail.
-- Use shorter ABO titles and clarify possible avatar download-size changes.
+- Choose Conservative or Aggressive per subtree, with reporting for shared resources and ambiguous merges.
+- Install, update and migrate through the ALCOM/VCC repository.
+- Detect VPM installs and route updates through ALCOM/VCC.
 
 ## 日本語
 
-- 実験的なテクスチャ回転を、一部の lilToon・Poiyomi・UnlitWF 構成に対応。
-- テクスチャメモリの増加と Mip Streaming 警告を修正。BC7 の画質検証に失敗した場合は元のマテリアルを保持。
-- ABO の短い表示名を採用し、ダウンロードサイズに関する注意を追加。
+- サブツリーごとに保守／激進を選択でき、共有リソースや統合元不明の保持を報告します。
+- ALCOM／VCC リポジトリから導入・更新・移行できます。
+- VPM 導入を識別し、更新を ALCOM／VCC に案内します。

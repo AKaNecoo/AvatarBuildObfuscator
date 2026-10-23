@@ -18,13 +18,17 @@ Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and
 
 Requires **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) through VCC first.
 
-Open **Window → Package Manager → ＋ → Add package from git URL…** and enter:
+**ALCOM / VCC:** Open the [package repository page](https://akanecoo.github.io/AvatarBuildObfuscator/), add the repository, then install **Avatar Build Obfuscator** in your project's package list. Enable prereleases for beta versions. The page also links the official NDMF repository.
+
+**Git:** Open **Window → Package Manager → ＋ → Add package from git URL…** and enter:
 
 ```text
 https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-tools.build-obfuscator#main
 ```
 
 Use `#beta` for test releases. Alternatively, import a `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases). Choose one installation method to avoid duplicate copies.
+
+To migrate to VPM, first remove a Git installation in Package Manager, then install through ALCOM/VCC. Published `.unitypackage` folders can be migrated by GUID. Keep your own model assets outside the plugin folder; retain the component settings on your avatar.
 
 ## Use
 
@@ -41,9 +45,11 @@ The component supports Simplified Chinese, English and Japanese. Options can be 
 | Conservative (default) | Prioritizes functionality and preserves dependencies it cannot verify. |
 | Aggressive | Processes a wider range, accepting unknown compatibility risks that may affect external integrations. |
 
+**Subtree mode overrides** let body, clothing and accessories use separate modes. The nearest configured ancestor wins. Shared resources and global parameters/controllers use conservative priority; ambiguous optimizer merge provenance falls back to conservative and is reported.
+
 ## Update
 
-Use the component's version/update panel to check or install updates. Git installations can also use Package Manager. Automatic checks default on; automatic installation defaults off. Package-based updates remove temporary downloads afterward.
+Update VPM installations in **ALCOM/VCC**. Git and `.unitypackage` installations use the component's version/update panel; Git also supports Package Manager. Automatic checks default on; automatic installation defaults off. Package-based updates remove temporary downloads afterward.
 
 ## Notes
 

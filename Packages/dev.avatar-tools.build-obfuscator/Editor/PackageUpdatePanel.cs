@@ -21,7 +21,7 @@ namespace AvatarTools.Obfuscation.Editor
             status.style.whiteSpace = WhiteSpace.Normal;
             var buttons = new VisualElement(); buttons.style.flexDirection = FlexDirection.Row;
             buttons.style.flexWrap = Wrap.Wrap;
-            check = new Button(() => PackageUpdates.Check(true));
+            check = new Button(() => { if (PackageUpdates.Vpm) Application.OpenURL(VpmInstallPolicy.GuideUrl); else PackageUpdates.Check(true); });
             update = new Button(() => PackageUpdates.Install(false));
             notes = new Button(() => Application.OpenURL("https://github.com/" + UpdatePolicy.Repository + "/blob/" +
                 (UpdatePolicy.IsCommit(PackageUpdates.Settings.latestCommit) ? PackageUpdates.Settings.latestCommit : "main") + "/CHANGELOG.md"));
@@ -45,17 +45,18 @@ namespace AvatarTools.Obfuscation.Editor
         private void Refresh()
         {
             var channel = PackageUpdates.Channel;
+            bool vpm = PackageUpdates.Vpm;
             details.text = Text("update.title") + "  " + PackageUpdates.CurrentVersion +
-                (channel == null ? "" : " · " + channel + (PackageUpdates.Legacy ? " · .unitypackage" : " · Git")) + (PackageUpdates.Available ? " → " + PackageUpdates.Settings.latestVersion : "");
-            Caption(status, Text(channel == null ? "update.unmanaged" : PackageUpdates.EditorBusy && !PackageUpdates.Working ?
+                (vpm ? " · VPM" : channel == null ? "" : " · " + channel + (PackageUpdates.Legacy ? " · .unitypackage" : " · Git")) + (PackageUpdates.Available ? " → " + PackageUpdates.Settings.latestVersion : "");
+            Caption(status, Text(vpm ? "update.vpm" : channel == null ? "update.unmanaged" : PackageUpdates.EditorBusy && !PackageUpdates.Working ?
                 "update.busy" : PackageUpdates.Available && !PackageUpdates.Working && PackageUpdates.Status != "update.failed" ? "update.available" : PackageUpdates.Status));
             status.tooltip = PackageUpdates.Error;
-            check.text = Text("update.check"); update.text = Text("update.install"); notes.text = Text("update.notes");
+            check.text = Text(vpm ? "update.vpmGuide" : "update.check"); update.text = Text("update.install"); notes.text = Text("update.notes");
             checks.label = Text("update.autoCheck"); install.label = Text("update.autoInstall");
-            install.tooltip = Text("update.autoInstall.tip");
+            install.tooltip = Text(vpm ? "update.vpm" : "update.autoInstall.tip");
             checks.SetValueWithoutNotify(PackageUpdates.Settings.automaticChecks);
             install.SetValueWithoutNotify(PackageUpdates.Settings.automaticInstall);
-            check.SetEnabled(channel != null && !PackageUpdates.Working && !PackageUpdates.EditorBusy);
+            check.SetEnabled((vpm || channel != null) && !PackageUpdates.Working && !PackageUpdates.EditorBusy);
             update.SetEnabled(PackageUpdates.Available && !PackageUpdates.Working && !PackageUpdates.EditorBusy);
             checks.SetEnabled(channel != null && !PackageUpdates.Working);
             install.SetEnabled(channel != null && checks.value && !PackageUpdates.Working);

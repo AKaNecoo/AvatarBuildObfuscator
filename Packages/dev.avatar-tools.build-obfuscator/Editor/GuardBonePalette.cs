@@ -13,11 +13,14 @@ namespace AvatarTools.Obfuscation.Editor
     {
         private void ReorderBonePalettes()
         {
-            if (unknownDriver && settings.Mode == ProtectionMode.Conservative)
+            if (unknownDriver && !settings.HasSubtreeOverrides && settings.Mode == ProtectionMode.Conservative)
             { report.Note("骨骼索引表：保守模式保留未知驱动"); return; }
             var renderers = root.GetComponentsInChildren<Renderer>(true);
             foreach (var group in renderers.OfType<SkinnedMeshRenderer>().Where(r => r.sharedMesh != null).GroupBy(r => r.sharedMesh))
             {
+                bool conservative = group.Any(r => settings.ModeFor(r) == ProtectionMode.Conservative);
+                if (unknownDriver && conservative)
+                { report.Note("骨骼索引表：未知驱动且共享网格包含保守子树，保留"); continue; }
                 var mesh = group.Key;
                 if (!owned.Contains(mesh) || !mesh.isReadable || mesh.bindposes.Length < 2) continue;
                 int count = mesh.bindposes.Length;
@@ -29,7 +32,7 @@ namespace AvatarTools.Obfuscation.Editor
                     (AssetDatabase.GetAssetPath(m.shader) == "Resources/unity_builtin_extra" || AssetDatabase.GetAssetPath(m.shader) == "Library/unity default resources") &&
                     (m.shader.name == "Standard" || m.shader.name == "Unlit/Texture" || m.shader.name == "Unlit/Color" ||
                      m.shader.name == "Unlit/Transparent" || m.shader.name == "Unlit/Transparent Cutout"));
-                if (settings.Mode == ProtectionMode.Conservative && !audited)
+                if (conservative && !audited)
                 { report.Note("骨骼索引表：保守模式保留未验证的自定义 Shader 索引依赖"); continue; }
                 byte[] perVertex;
                 BoneWeight1[] weights;
