@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 — 2026-10-24
+
+- Promote the tested 0.7.0-beta.2 product to stable after the user's online basic-function smoke test. Processing code, shader contracts and asset GUIDs are unchanged from beta.2.
+- Include opt-in texture rotation for reviewed lilToon, unlocked Poiyomi and UnlitWF configurations, with compressed-format preservation, BC7 quality-based retention and corrected Mip Streaming/priority. NonToon conversion remains pending.
+- Include shorter ABO release/report titles and the avatar download-size notices. Experimental transforms retain their documented compatibility limits.
+
 ## 0.7.0-beta.2 — 2026-10-23
 
 - Fix Mip Streaming and priority on newly rotated textures in both experimental routes; source textures and importers remain untouched.

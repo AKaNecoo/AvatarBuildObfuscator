@@ -1,6 +1,14 @@
 # Validation
 
-Latest Editor and packaging checks: 2026-10-23 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+Latest connected Editor checks: 2026-10-23 in the authorized Windows test Editor. Stable packaging/promotion checks: 2026-10-24. Editor/build/sample checks are separate from the user's online basic-function testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+
+## 0.7.0 stable promotion
+
+The user explicitly requests stable publication and reports having tested basic model functionality online without finding problems. For future stable requests, that instruction also conveys the user's completed online smoke test; it does not enumerate exhaustive menu, Animator, physics, networking or face-tracking coverage.
+
+Relative to the tested `0.7.0-beta.2` commit `57abe0d`, the stable product changes only `package.json` from `0.7.0-beta.2` to `0.7.0`. All 69 other package files, including C#, shader, assembly definitions, bundled documentation and GUID metadata, are identical. Earlier beta.2 Git-install, two-mode model, SDK Play and source-integrity results below remain evidence for that tested implementation; no new connected-Editor run is claimed for the version-only promotion.
+
+Stable preparation reruns the 60 update-policy, 28 naming and 166 compressed-block assertions, eight archive regressions, and exact readback of all 70 product files in UPM/TGZ, ZIP and unitypackage archives. The short Chinese/English/Japanese release notes cover changes since 0.6.0, retain the experimental compatibility limits, and do not claim content encryption or measured VRChat download-size reductions. The withdrawn 0.7.0-beta.1 Release remains a draft.
 
 ## 0.7.0-beta.2 texture storage and streaming
 
