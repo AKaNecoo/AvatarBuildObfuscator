@@ -45,7 +45,7 @@ def publish(channel, commit, artifacts):
         if not Path(path).is_file():
             raise ValueError("Missing release artifact: " + path)
     args = ["gh", "release", "create", tag, *paths, "--repo", REPO, "--target", commit,
-            "--title", "Avatar Build Obfuscator " + version, "--notes-file", str(ROOT / "RELEASE_NOTES.md")]
+            "--title", "ABO v" + version, "--notes-file", str(ROOT / "RELEASE_NOTES.md")]
     args += ["--prerelease"] if channel == "beta" else ["--latest"]
     run(*args)
     print("Published " + tag)

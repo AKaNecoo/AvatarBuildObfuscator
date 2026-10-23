@@ -1,4 +1,4 @@
-# Avatar Build Obfuscator
+# Avatar Build Obfuscator (ABO)
 
 [中文](README.md) · [日本語](README.ja.md)
 
@@ -12,7 +12,7 @@ Build-time obfuscation for VRChat avatars. Add the component and NDMF processes 
 - Randomize each build, prune zero-delta shapes and write a local residual-data audit.
 - Embed multilingual authorization notices and build fingerprints. Experimental UV/texture rotation and synchronized-shape merging default off.
 
-Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations; see the [compatibility matrix](ARCHITECTURE.md#exact-pruning-and-experimental-transforms). Decoding compressed textures may increase output size. NonToon texture conversion is not enabled yet.
+Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations; see the [compatibility matrix](ARCHITECTURE.md#exact-pruning-and-experimental-transforms). NonToon texture conversion is not enabled yet.
 
 ## Install
 
@@ -46,6 +46,8 @@ The component supports Simplified Chinese, English and Japanese. Options can be 
 Use the component's version/update panel to check or install updates. Git installations can also use Package Manager. Automatic checks default on; automatic installation defaults off. Package-based updates remove temporary downloads afterward.
 
 ## Notes
+
+Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
 Obfuscation does not prevent extraction: texture pixels, final geometry and required dynamic BlendShapes remain extractable. Check Aggressive mode in a test build first. Console messages prefixed with `[Avatar Build Obfuscator]` report processing counts and preservation reasons.
 

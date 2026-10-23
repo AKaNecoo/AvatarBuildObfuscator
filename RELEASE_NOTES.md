@@ -1,17 +1,17 @@
 ## 中文
 
-- 实验贴图旋转新增部分 lilToon、Poiyomi 和 UnlitWF 支持。
-- 支持部分不可读压缩贴图，新增转换用量统计及上限。
-- 不兼容项继续保留；NonToon 暂不转换，实验默认关闭。
+- 修复实验贴图旋转的 Mip Streaming 警告及优先级继承。
+- 保持贴图压缩格式；BC7 未通过画质检查时保留原材质。
+- 使用 ABO 短标题，并补充模型下载大小提示。
 
 ## English
 
-- Extend experimental texture rotation to selected lilToon, Poiyomi and UnlitWF configurations.
-- Support selected unreadable compressed textures; add conversion usage reporting and a payload limit.
-- Preserve incompatible inputs. NonToon conversion remains pending; experiments default off.
+- Fix Mip Streaming and priority on experimentally rotated textures.
+- Preserve texture compression; retain BC7 materials when quality checks fail.
+- Use shorter ABO titles and clarify possible avatar download-size changes.
 
 ## 日本語
 
-- 実験的なテクスチャ回転で lilToon・Poiyomi・UnlitWF の一部設定に対応。
-- 一部の読み取り不可圧縮テクスチャに対応し、使用量表示と上限を追加。
-- 未対応項目は保持。NonToon は未対応、実験機能は既定で無効。
+- 実験的なテクスチャ回転の Mip Streaming と優先度の引き継ぎを修正。
+- 圧縮形式を維持。BC7 の画質検証に失敗した場合は元のマテリアルを保持。
+- ABO の短い表示名を採用し、ダウンロードサイズに関する注意を追加。

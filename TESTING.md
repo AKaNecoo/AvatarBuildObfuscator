@@ -1,6 +1,16 @@
 # Validation
 
-Latest Editor and packaging checks: 2026-10-22 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+Latest Editor and packaging checks: 2026-10-23 in the authorized connected Windows test Editor. These are Editor/build/sample results, not actual VRChat client or device acceptance. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+
+## 0.7.0-beta.2 texture storage and streaming candidate
+
+On Unity 2022.3.22f1 / Windows D3D11 / Linear, **64 shader/texture checks**, **59 processing**, **30 enhancement** and **15 diagnostic** cases pass. The texture suite now checks original format/graphics format and every mip for unreadable RGBA32, ARGB32, BGRA32, RGB24, DXT1, DXT5, BC4, BC5 and BC7 in both storage color spaces. BC7 must either pass its per-channel 1/255 decoded quality limit or reject without changing the source. Both rotation routes check streaming enablement, priority and the single-mip exception; a compressed NPOT mip layout is retained, and format expansion is rejected.
+
+The actual Unity-independent block rotation source passes **166** assertions, including independent endpoint/selector decoding, partial tail mips, unchanged input bytes, unchanged compressed length, two-rotation byte restoration and malformed-layout rejection. Existing update/name checks remain **60/28**, archive regressions **8**, and three archive formats read back all **70** product files. These hosted-compatible checks do not run Unity.
+
+Fresh full-pipeline build copies of the same test avatar differ only in the experimental-UV checkbox. Both complete with AAO enabled, identical 16 skinned renderers, 33 material slots, 29 PhysBones, 178,304 sampled mesh vertices and 247 remaining BlendShapes. Texture2D dependency payload is **36,311,104 bytes (34.63 MiB) off** and **35,612,040 bytes (33.96 MiB) on**, compared with **73,185,820 bytes (69.80 MiB)** in the earlier 0.7.0-beta.1 diagnostic using the same avatar configuration. The revised output rotates six textures losslessly across two materials, retains incompatible/failed-quality materials, and produces no generated-texture Mip Streaming warning. The source-memory/dirty snapshot is unchanged immediately after these two builds. This metric is full-mip format payload across Texture2D dependencies, not driver overhead, live VRChat residency or compressed avatar-download size; no new VRCA upload/download test is claimed.
+
+Final Git-install build/Play acceptance, final source-integrity scan and publication verification are pending for this candidate. The withdrawn 0.7.0-beta.1 Release remains a draft; main promotion is a separate explicit user decision.
 
 ## 0.7.0-beta.1 shader-profile development
 

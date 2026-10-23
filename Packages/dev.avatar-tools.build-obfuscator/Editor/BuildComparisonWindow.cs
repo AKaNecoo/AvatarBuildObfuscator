@@ -22,7 +22,7 @@ namespace AvatarTools.Obfuscation.Editor
         public static void Open(GameObject source, InspectorLanguage language)
         {
             var window = GetWindow<BuildComparisonWindow>(); window.source = source; window.language = language;
-            window.titleContent = new GUIContent("Avatar Build Obfuscator · Compare"); window.minSize = new Vector2(650, 450);
+            window.titleContent = new GUIContent("ABO · Compare"); window.minSize = new Vector2(650, 450);
             window.CreateGUI(); window.Show();
         }
 

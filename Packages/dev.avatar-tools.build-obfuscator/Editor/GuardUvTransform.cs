@@ -124,9 +124,7 @@ namespace AvatarTools.Obfuscation.Editor
                     copy.SetPixelData(output, mip);
                 }
                 copy.Apply(false, false);
-                copy.name = settings.RenameAssets ? NewName() : source.name;
-                copy.filterMode = source.filterMode; copy.anisoLevel = source.anisoLevel; copy.mipMapBias = source.mipMapBias;
-                copy.wrapModeU = source.wrapModeU; copy.wrapModeV = source.wrapModeV; copy.wrapModeW = source.wrapModeW;
+                ConfigureRotatedTexture(source, copy);
                 return copy;
             }
             catch { Object.DestroyImmediate(copy); throw; }

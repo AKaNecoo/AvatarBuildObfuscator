@@ -54,5 +54,8 @@ internal static class Program
         int beforeNames = passed;
         NamingChecks.Run(Check);
         Console.WriteLine("Naming: " + (passed - beforeNames) + " PASS");
+        int beforeBlocks = passed;
+        TextureBlockChecks.Run(Check);
+        Console.WriteLine("Compressed texture blocks: " + (passed - beforeBlocks) + " PASS");
     }
 }

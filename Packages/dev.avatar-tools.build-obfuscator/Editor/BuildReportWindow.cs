@@ -31,7 +31,7 @@ namespace AvatarTools.Obfuscation.Editor
         public static void Open(InspectorLanguage language)
         {
             var window = GetWindow<BuildReportWindow>(); window.language = language;
-            window.titleContent = new GUIContent("Avatar Build Obfuscator"); window.minSize = new Vector2(540, 420);
+            window.titleContent = new GUIContent("ABO · Reports"); window.minSize = new Vector2(540, 420);
             window.CreateGUI(); window.Show();
         }
 
@@ -88,9 +88,13 @@ namespace AvatarTools.Obfuscation.Editor
                 "\n" + T("材质声明／指纹／总材质", "Material notices / fingerprints / total materials", "声明・識別子・全マテリアル") + ": " + report.NoticeMaterials + " / " + report.FingerprintMaterials + " / " + report.OutputMaterials);
             summary.text += "\n" + T("输出对象／网格／贴图", "Output objects / meshes / textures", "出力オブジェクト・メッシュ・テクスチャ") + ": " + report.OutputObjects + " / " + report.OutputMeshes + " / " + report.OutputTextures;
             if (report.TransformedUvMaterials > 0)
+            {
                 summary.text += "\n" + T("采样变换材质／贴图／GPU解码", "Sampling materials / textures / GPU decoded", "サンプリング変換マテリアル・テクスチャ・GPU読出し") + ": " +
                     report.TransformedUvMaterials + " / " + report.TransformedUvTextures + " / " + report.DecodedUvTextures +
                     "  (" + (report.UvTextureBytes / (1024d * 1024)).ToString("F1") + " MiB)";
+                summary.text += "\n" + T("无损压缩块旋转／BC7重压缩", "Lossless block rotation / BC7 re-encoded", "無損失ブロック回転・BC7再圧縮") + ": " +
+                    report.LosslessCompressedUvTextures + " / " + report.RecompressedUvTextures;
+            }
             summary.text += "\n" + T("已启用：顶点／骨骼表／UV／形变合并", "Enabled: vertex / palette / UV / shape merge", "有効: 頂点・ボーン表・UV・形状統合") + ": " + report.VertexPermutationEnabled + " / " + report.BonePaletteEnabled + " / " + report.UvEnabled + " / " + report.ShapeMergeEnabled;
             summary.style.whiteSpace = WhiteSpace.Normal; summary.style.marginTop = summary.style.marginBottom = 8; content.Add(summary);
             var notes = new Foldout { text = T("处理与保留说明", "Processing and preservation notes", "処理と保持の説明"), value = false };

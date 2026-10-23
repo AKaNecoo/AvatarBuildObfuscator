@@ -1,4 +1,4 @@
-# Avatar Build Obfuscator
+# Avatar Build Obfuscator (ABO)
 
 [English](README.en.md) · [日本語](README.ja.md)
 
@@ -12,7 +12,7 @@
 - 每次构建可重新随机化，移除无效果空形变，并生成本地残留审计报告。
 - 可嵌入三语授权声明和构建指纹；实验性的 UV/贴图旋转与同步形变合并默认关闭。
 
-实验贴图旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27 和 UnlitWF 2.14.0 配置，具体范围见[兼容说明](ARCHITECTURE.md#exact-pruning-and-experimental-transforms)。压缩贴图转换可能增加产物体积；NonToon 的贴图转换尚未启用。
+实验贴图旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27 和 UnlitWF 2.14.0 配置，具体范围见[兼容说明](ARCHITECTURE.md#exact-pruning-and-experimental-transforms)。NonToon 的贴图转换尚未启用。
 
 ## 安装
 
@@ -46,6 +46,8 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 在组件的 **版本与更新** 中检查或安装更新，Git 安装也可使用 Package Manager。自动检查默认开启，自动安装默认关闭；安装包方式更新后会删除临时下载文件。
 
 ## 注意
+
+混淆可能增加 Avatar 的下载大小，增幅因模型和选项而异；实验性贴图旋转可能进一步增大体积。上传前请查看 SDK 构建统计。
 
 混淆不能保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍可提取。激进模式请先在测试构建中确认功能；Console 的 `[Avatar Build Obfuscator]` 日志可查看处理数量和保留原因。
 

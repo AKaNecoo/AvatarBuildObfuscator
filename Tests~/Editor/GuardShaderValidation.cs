@@ -30,11 +30,12 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Poiyomi unreadable compressed material renders identically", () => ProfileRendering(".poiyomi/Poiyomi Toon", "_MainTex", true));
             Run("Poiyomi locked material retains texture coordinates", () => PoiyomiPreserved("_ShaderOptimizerEnabled"));
             Run("Poiyomi stochastic sampling retains texture coordinates", () => PoiyomiPreserved("_MainTexStochastic"));
-            foreach (var format in new[] { TextureFormat.RGBA32, TextureFormat.DXT1, TextureFormat.DXT5, TextureFormat.BC7 })
+            foreach (var format in new[] { TextureFormat.RGBA32, TextureFormat.ARGB32, TextureFormat.BGRA32, TextureFormat.RGB24,
+                TextureFormat.DXT1, TextureFormat.DXT5, TextureFormat.BC4, TextureFormat.BC5, TextureFormat.BC7 })
                 foreach (bool linear in new[] { false, true })
                 {
                     var captured = format; bool space = linear;
-                    Run("Unreadable per-mip GPU decode: " + format + " linear=" + linear, () => ProfileMips(captured, space));
+                    Run("Unreadable rotation preserves format/mips or safely retains BC7: " + format + " linear=" + linear, () => ProfileMips(captured, space));
                 }
             foreach (string reason in new[] { "excluded", "property-block", "animated", "sharing-excluded", "mirror-once", "scroll", "parallax", "emission-mask" })
             {
@@ -61,6 +62,14 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Scalar lighting property block remains intact", () => ProfileBlocks("scalar"));
             Run("Owned streaming build copy decodes without source importer changes", () => ProfileStreaming(true));
             Run("Unowned streaming texture is retained without residency changes", () => ProfileStreaming(false));
+            foreach (bool profile in new[] { false, true })
+                foreach (bool mips in new[] { false, true })
+                {
+                    bool adapter = profile, chain = mips;
+                    Run("Generated streaming/priority: profile=" + profile + " mips=" + mips, () => RotationStreaming(adapter, chain));
+                }
+            Run("Incompatible compressed mip blocks retain the complete material", ProfileCompressedLayout);
+            Run("Texture storage guard rejects expansion or changed dimensions", ProfileStorageGuard);
             Directory.CreateDirectory(Path.GetDirectoryName(output));
             File.WriteAllText(output, JsonUtility.ToJson(results, true));
             return JsonUtility.ToJson(results, true);
@@ -126,22 +135,35 @@ namespace AvatarTools.Obfuscation.Validation
 
         private static void ProfileMips(TextureFormat format, bool linear)
         {
-            var source = Track(new Texture2D(32, 16, TextureFormat.RGBA32, true, linear));
+            bool compressed = UnityEngine.Experimental.Rendering.GraphicsFormatUtility.IsCompressedFormat(format);
+            var source = Track(new Texture2D(32, 16, compressed ? TextureFormat.RGBA32 : format, true, linear));
             for (int mip = 0; mip < source.mipmapCount; mip++)
             {
                 int size = Math.Max(1, source.width >> mip) * Math.Max(1, source.height >> mip);
-                source.SetPixels32(Enumerable.Range(0, size).Select(i => new Color32((byte)(i * 17 + mip * 31),
-                    (byte)(i * 11 + 37), (byte)(i * 3 + mip * 41), (byte)(100 + i % 155))).ToArray(), mip);
+                int width = Math.Max(1, source.width >> mip);
+                for (int i = 0; i < size; i++) source.SetPixel(i % width, i / width, new Color32((byte)(i * 17 + mip * 31),
+                    (byte)(i * 11 + 37), (byte)(i * 3 + mip * 41), (byte)(100 + i % 155)), mip);
             }
             source.Apply(false, false);
-            if (format != TextureFormat.RGBA32) EditorUtility.CompressTexture(source, format, TextureCompressionQuality.Normal);
+            if (compressed) EditorUtility.CompressTexture(source, format, TextureCompressionQuality.Normal);
             source.Apply(false, true);
+            string sourceJson = EditorJsonUtility.ToJson(source);
             var expected = Enumerable.Range(0, source.mipmapCount).Select(mip => ReadProfileMip(source, mip)).ToArray();
             var root = Root(); var processor = new GuardProcessor(root, new GuardSettings(root.GetComponent<AvatarBuildObfuscator>()), x => Track(x));
             var method = typeof(GuardProcessor).GetMethod("RotateProfileTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var copy = Track((Texture2D)method.Invoke(processor, new object[] { source }));
-            Check(!source.isReadable && copy.mipmapCount == source.mipmapCount && copy.graphicsFormat ==
-                UnityEngine.Experimental.Rendering.GraphicsFormatUtility.GetGraphicsFormat(TextureFormat.RGBA32, !linear), "Decode format/mip/source changed");
+            Texture2D copy;
+            try { copy = Track((Texture2D)method.Invoke(processor, new object[] { source })); }
+            catch (System.Reflection.TargetInvocationException e) when (format == TextureFormat.BC7 &&
+                e.InnerException is InvalidOperationException && e.InnerException.Message.Contains("1/255 quality limit"))
+            {
+                Check(EditorJsonUtility.ToJson(source) == sourceJson, "Rejected BC7 changed source metadata");
+                for (int mip = 0; mip < source.mipmapCount; mip++)
+                    Check(PixelDifference(expected[mip], ReadProfileMip(source, mip)) == 0, "Rejected BC7 changed source pixels");
+                return;
+            }
+            Check(!source.isReadable && !copy.isReadable && copy.mipmapCount == source.mipmapCount &&
+                copy.format == source.format && copy.graphicsFormat == source.graphicsFormat, "Rotation changed format/mips/readability");
+            Check(copy.streamingMipmaps && EditorJsonUtility.ToJson(source) == sourceJson, "Generated streaming or source isolation failed");
             for (int mip = 0; mip < source.mipmapCount; mip++)
             {
                 var decoded = ReadProfileMip(copy, mip).Reverse().ToArray();
@@ -375,7 +397,7 @@ namespace AvatarTools.Obfuscation.Validation
             Check(report.TransformedUvMaterials == (ownedCopy ? 1 : 0), "Streaming ownership policy failed: " + string.Join("; ", report.Notes));
             if (ownedCopy)
             {
-                Check(output != source && output.mipmapCount == source.mipmapCount && !output.streamingMipmaps &&
+                    Check(output != source && output.mipmapCount == source.mipmapCount && output.streamingMipmaps && output.format == source.format &&
                     imported.requestedMipmapLevel == importedRequest, "Build mip chain/request was not preserved");
                 for (int mip = 0; mip < source.mipmapCount; mip++)
                     Check(PixelDifference(expected[mip], ReadProfileMip(output, mip).Reverse().ToArray()) <= 1, "Streaming decode changed mip " + mip);
@@ -383,6 +405,66 @@ namespace AvatarTools.Obfuscation.Validation
             Check(source.requestedMipmapLevel == request && source.streamingMipmaps && !source.isReadable &&
                 sourceBytes.SequenceEqual(File.ReadAllBytes(path)) && sourceMeta.SequenceEqual(File.ReadAllBytes(path + ".meta")),
                 "Source streaming request, pixels or importer changed");
+        }
+
+        private static void RotationStreaming(bool profile, bool mips)
+        {
+            var f = profile ? ProfileFixture("lilToon", "_MainTex") : UvFixture();
+            var texture = Track(new Texture2D(8, 8, TextureFormat.RGBA32, mips, false));
+            texture.SetPixels32(f.Item4.GetPixels32()); texture.Apply();
+            using (var so = new SerializedObject(texture))
+            {
+                so.FindProperty("m_StreamingMipmaps").boolValue = false;
+                so.FindProperty("m_StreamingMipmapsPriority").intValue = 5;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+            f.Item3.mainTexture = texture;
+            string before = EditorJsonUtility.ToJson(texture);
+            var report = Process(f.Item1); var output = f.Item2.sharedMaterial.mainTexture as Texture2D;
+            Check(output != null && output != texture && (profile ? report.TransformedUvMaterials : report.TransformedUvMeshes) > 0,
+                "Expected rotation did not run");
+            using (var so = new SerializedObject(output))
+                Check(output.streamingMipmaps == mips && so.FindProperty("m_StreamingMipmapsPriority").intValue == 5,
+                    "Generated streaming flag or priority was lost");
+            Check(EditorJsonUtility.ToJson(texture) == before, "Source streaming settings changed");
+        }
+
+        private static void ProfileCompressedLayout()
+        {
+            var f = ProfileFixture("lilToon", "_MainTex");
+            // Unity's compressor retains RGBA32 for unsupported NPOT inputs. Build
+            // actual BC3 blocks so the 6x4 second mip exercises palette crossing.
+            var texture = Track(new Texture2D(12, 8, TextureFormat.DXT5, true, false));
+            for (int mip = 0; mip < texture.mipmapCount; mip++)
+            {
+                int width = Math.Max(1, texture.width >> mip), height = Math.Max(1, texture.height >> mip);
+                texture.SetPixelData(new byte[((width + 3) / 4) * ((height + 3) / 4) * 16], mip);
+            }
+            texture.Apply(false, true);
+            Check(texture.format == TextureFormat.DXT5 && texture.mipmapCount > 1, "Compressed rejection fixture was not compressed");
+            f.Item3.mainTexture = texture; string before = EditorJsonUtility.ToJson(f.Item3);
+            var scale = f.Item3.mainTextureScale; var offset = f.Item3.mainTextureOffset;
+            Check(Process(f.Item1).TransformedUvMaterials == 0, "Incompatible block palettes were rotated");
+            Check(f.Item2.sharedMaterial.mainTexture == texture && f.Item2.sharedMaterial.mainTextureScale == scale &&
+                f.Item2.sharedMaterial.mainTextureOffset == offset && EditorJsonUtility.ToJson(f.Item3) == before,
+                "Retained material texture or sampling changed");
+        }
+
+        private static void ProfileStorageGuard()
+        {
+            var source = Track(new Texture2D(8, 8, TextureFormat.RGBA32, true));
+            source.Apply(); EditorUtility.CompressTexture(source, TextureFormat.DXT5, TextureCompressionQuality.Normal);
+            var expanded = Track(new Texture2D(8, 8, TextureFormat.RGBA32, true));
+            var cropped = Track(new Texture2D(8, 4, TextureFormat.DXT5, source.mipmapCount, false));
+            var root = Root(); var processor = new GuardProcessor(root, new GuardSettings(root.GetComponent<AvatarBuildObfuscator>()), x => Track(x));
+            var method = typeof(GuardProcessor).GetMethod("ConfigureRotatedTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            foreach (var output in new[] { expanded, cropped })
+            {
+                bool rejected = false;
+                try { method.Invoke(processor, new object[] { source, output }); }
+                catch (System.Reflection.TargetInvocationException e) when (e.InnerException is InvalidOperationException) { rejected = true; }
+                Check(rejected, "Format expansion or changed dimensions were accepted");
+            }
         }
     }
 }

@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.7.0-beta.1 — 2026-10-22
+## 0.7.0-beta.2 — 2026-10-23
+
+- Fix Mip Streaming and priority on newly rotated textures in both experimental routes; source textures and importers remain untouched.
+- Preserve compressed storage with lossless DXT1/DXT5/BC4/BC5 block rotation. BC7 uses the original format with a strict per-mip quality check or retains the entire original material. Reject output-format expansion and incompatible block layouts.
+- Shorten release/report/comparison titles to ABO and document possible avatar download-size changes in all README languages.
+
+## 0.7.0-beta.1 — 2026-10-22 (Release withdrawn)
 
 - Extend opt-in texture rotation to reviewed stock lilToon 2.4.1 variants, unlocked Poiyomi Toon 10.0.27 main textures, and UnlitWF 2.14.0 opaque second/back-face layers; NonToon remains explicitly preserved pending rendering validation.
 - Add build-only per-mip GPU decoding for supported unreadable/compressed LDR textures, shared-copy reuse, material-atomic preservation and a 256 MiB payload budget; report converted materials/textures and decoding size.

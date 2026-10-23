@@ -52,7 +52,7 @@ namespace AvatarTools.Obfuscation.Editor
                 if (textures.Any(t => !ProfileTextureSupported(t)) || plan.Any(s => !Finite(new Vector3(s.Scale.x, s.Scale.y, 0)) ||
                     !Finite(new Vector3(s.Offset.x, s.Offset.y, 0))))
                 { report.Note("实验 UV：" + family + "包含未支持格式、非自有或未完整加载的流送贴图、MirrorOnce或非有限坐标，保留"); continue; }
-                long additional = textures.Where(t => !rotated.ContainsKey(t)).Sum(DecodedTextureBytes);
+                long additional = textures.Where(t => !rotated.ContainsKey(t)).Sum(TexturePayloadBytes);
                 if (additional > budget - bytes)
                 { report.Note("实验 UV：构建新增纹理数据达到256 MiB上限，保留后续材质"); continue; }
                 var pending = new Dictionary<Texture2D, Texture2D>();
@@ -64,13 +64,17 @@ namespace AvatarTools.Obfuscation.Editor
                 catch (Exception error)
                 {
                     foreach (var copy in pending.Values) Object.DestroyImmediate(copy);
-                    report.Note("实验 UV：" + family + "逐Mip读取失败，完整保留该材质：" + error.GetType().Name); continue;
+                    string failureReason = error.Message.StartsWith("BC7 recompression exceeds", StringComparison.Ordinal)
+                        ? "BC7逐Mip画质阈值1/255未通过" : error.GetType().Name;
+                    report.Note("实验 UV：" + family + "逐Mip旋转、格式或画质检查失败，完整保留该材质：" + failureReason); continue;
                 }
                 foreach (var pair in pending)
                 {
                     Own(pair.Value); rotated[pair.Key] = pair.Value;
                     report.TransformedUvTextures++;
-                    if (!pair.Key.isReadable || BytesPerPixel(pair.Key.format) == 0) report.DecodedUvTextures++;
+                    if (TryBlockFormat(pair.Key.format, out var block)) report.LosslessCompressedUvTextures++;
+                    else if (!pair.Key.isReadable || BytesPerPixel(pair.Key.format) == 0) report.DecodedUvTextures++;
+                    if (pair.Key.format == TextureFormat.BC7) report.RecompressedUvTextures++;
                 }
                 bytes += additional;
                 foreach (var slot in plan)
