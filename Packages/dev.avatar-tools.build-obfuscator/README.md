@@ -20,7 +20,7 @@ VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖
 
 可每次构建随机化、裁剪空形变、生成本地审计、嵌入三语授权声明与指纹。声明中的权利人和联系地址会公开；声明不认证身份，也不保证 AI 会拒绝协助逆向本模型。UV/贴图旋转与同步形变合并为默认关闭的实验选项。
 
-实验旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27 和 UnlitWF 2.14.0 配置。NonToon 暂不转换，具体范围见仓库兼容说明。
+实验旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27、UnlitWF 2.14.0，以及已验证的 NonToon 0.3.0 默认单贴图配置。具体范围见仓库兼容说明。
 
 混淆可能增加 Avatar 的下载大小，增幅因模型和选项而异；实验性贴图旋转可能进一步增大体积。上传前请查看 SDK 构建统计。
 
@@ -44,7 +44,7 @@ Choose Conservative or Aggressive per subtree. Shared resources and global param
 
 Supports per-build randomization, zero-delta pruning, local audits, authorization notices and fingerprints. Declared holders/contacts are public; the notice does not authenticate ownership or guarantee that AI will refuse to assist in reverse-engineering the model. Experimental UV/texture rotation and synchronized-shape merging default off.
 
-Experimental rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations. NonToon conversion is pending; see the repository compatibility matrix.
+Experimental rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations, plus the reviewed NonToon 0.3.0 default single-texture setup; see the repository compatibility matrix.
 
 Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
@@ -68,7 +68,7 @@ VRChat アバターのビルド時難読化ツールです。NDMF がコピー�
 
 ビルドごとのランダム化・空形状の削除・ローカル監査・許諾声明と識別子に対応します。申告した権利者・連絡先は公開されます。声明は本人確認を行わず、AI が本モデルのリバースエンジニアリングへの協力を拒否することも保証しません。実験的な UV/テクスチャ回転・同期形状統合は既定で無効です。
 
-実験的な回転は lilToon 2.4.1・Poiyomi 10.0.27・UnlitWF 2.14.0 の一部設定に対応します。NonToon は未対応です。詳細はリポジトリの対応表をご確認ください。
+実験的な回転は lilToon 2.4.1・Poiyomi 10.0.27・UnlitWF 2.14.0 の一部設定と、検証済みの NonToon 0.3.0 標準・単一テクスチャ設定に対応します。詳細はリポジトリの対応表をご確認ください。
 
 難読化によりアバターのダウンロードサイズが増える場合があります。増加量はモデルや設定によって異なり、実験的なテクスチャ回転でさらに増える場合があります。アップロード前に SDK のビルド統計をご確認ください。
 

@@ -12,7 +12,7 @@
 - 每次构建可重新随机化，移除无效果空形变，并生成本地残留审计报告。
 - 可嵌入三语授权声明和构建指纹；实验性的 UV/贴图旋转与同步形变合并默认关闭。
 
-实验贴图旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27 和 UnlitWF 2.14.0 配置，具体范围见[兼容说明](ARCHITECTURE.md#exact-pruning-and-experimental-transforms)。NonToon 的贴图转换尚未启用。
+实验贴图旋转支持部分 lilToon 2.4.1、Poiyomi 10.0.27、UnlitWF 2.14.0，以及已验证的 NonToon 0.3.0 默认单贴图配置，具体范围见[兼容说明](ARCHITECTURE.md#exact-pruning-and-experimental-transforms)。
 
 ## 安装
 

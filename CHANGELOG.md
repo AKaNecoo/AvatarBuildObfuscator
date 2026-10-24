@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0-beta.2 — 2026-10-24
+
+- Add experimental UV/texture rotation for the reviewed NonToon 0.3.0 generated shader, limited to a default single-texture material on an independent mesh. Other variants and material settings retain their original sampling.
+- Validate uncompressed and DXT5 rendered output and keep the 256 MiB texture budget, format and source-isolation guards.
+
 ## 0.8.0-beta.1 — 2026-10-24
 
 - Add Conservative/Aggressive overrides per avatar subtree, with inherited scope resolution and conservative fallback for ambiguous upstream merges and shared resources.

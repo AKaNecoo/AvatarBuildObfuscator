@@ -12,7 +12,7 @@ Build-time obfuscation for VRChat avatars. Add the component and NDMF processes 
 - Randomize each build, prune zero-delta shapes and write a local residual-data audit.
 - Embed multilingual authorization notices and build fingerprints. Experimental UV/texture rotation and synchronized-shape merging default off.
 
-Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations; see the [compatibility matrix](ARCHITECTURE.md#exact-pruning-and-experimental-transforms). NonToon texture conversion is not enabled yet.
+Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF 2.14.0 configurations, plus the reviewed NonToon 0.3.0 default single-texture setup; see the [compatibility matrix](ARCHITECTURE.md#exact-pruning-and-experimental-transforms).
 
 ## Install
 

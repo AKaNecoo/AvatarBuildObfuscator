@@ -2,6 +2,12 @@
 
 Latest connected Editor checks: 2026-10-24 in the authorized Windows test Editor. Stable packaging/promotion checks: 2026-10-24. Editor/build/sample checks are separate from the user's online basic-function testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
 
+## 0.8.0-beta.2 NonToon narrow UV candidate
+
+The authorized Milfy-Test Editor loads NonToon 0.3.0 and ShaderCore 0.3.0. Its generated `NonToon.scshader` source subasset is SHA-256 `c61fb228fddd56184bfde30e810c91d0e0f2b194a61fbe1de4896ecd45f2f3d5`; the adapter requires this exact generated variant and otherwise retains the material. NonToon has no `_BaseTexture_ST` shader property and samples the base texture at raw UV0, so the tested route rotates the owned build mesh UV0 and every mip of the copied base texture together. Only an independent single-submesh, single-material mesh and a material whose other shader properties equal the generated shader defaults qualify. Extra textures, module settings, material/UV animation, property blocks, Cloth, particles, unknown drivers and shared material contracts preserve the original sampling.
+
+The local file-package fixture passes **66/66 Shader tests** on Unity 2022.3.22f1 / Windows D3D11 / Linear. The two new positive NonToon cases compare actual rendered output for RGBA32 and unreadable DXT5 textures against a visibly texture-sensitive white control, with a maximum permitted difference of three 8-bit channel steps. They check copied texture/mesh UV pairing and unchanged source material; the compressed case also passes with asset-name obfuscation enabled. The nondefault-detail material remains unconverted. The preview fixture's directional light was turned toward the sample triangle so the stock NonToon pass has nonblank pixels; all pre-existing Shader checks still pass. This is narrow generated-variant coverage, not support for all NonToon modules or a measured Milfy production-material conversion.
+
 ## 0.8.0-beta.1 subtree modes and VPM candidate
 
 In Unity 2022.3.22f1, the subtree suite passes 14 cases covering inherited/duplicate/invalid rules, reparenting and generated objects, ambiguous upstream merges, real shape processing, shared resources and preset isolation. The existing 59 processing, 30 enhancement, 15 diagnostic and 64 shader/texture cases also pass. The Inspector input/language fixture passes 51 checks. The Editor reports no C# compile errors after the new runtime and editor scripts are loaded.

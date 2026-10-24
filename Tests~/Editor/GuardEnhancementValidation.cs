@@ -335,6 +335,7 @@ namespace AvatarTools.Obfuscation.Validation
                 camera.orthographic = true; camera.orthographicSize = .65f; camera.transform.position = new Vector3(.5f, .5f, 2); camera.transform.LookAt(new Vector3(.5f, .5f, 0));
                 camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = Color.black; camera.targetTexture = rt;
                 var lightGo = new GameObject("Validation Light"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo, scene); lightGo.AddComponent<Light>().type = LightType.Directional;
+                lightGo.transform.rotation = Quaternion.Euler(0, 180, 0);
                 camera.Render(); RenderTexture.active = rt; cpu.ReadPixels(new Rect(0, 0, 128, 128), 0, 0); cpu.Apply(); return cpu.GetPixels32();
             }
             finally

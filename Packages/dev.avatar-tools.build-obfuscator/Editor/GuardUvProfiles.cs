@@ -45,7 +45,7 @@ namespace AvatarTools.Obfuscation.Editor
                 { report.Note("实验 UV：不兼容的Shader纹理类型，保留材质"); continue; }
                 if (family == null) continue;
                 if (plan == null)
-                { report.Note("实验 UV：" + family + "保留：" + reason); continue; }
+                { if (family != "NonToon") report.Note("实验 UV：" + family + "保留：" + reason); continue; }
                 if (users.Any(r => settings.ExcludeUv.Contains(r) || r is SkinnedMeshRenderer skin && settings.Exclusions.Contains(skin) || ProfilePropertyBlock(r, material) ||
                     r is ParticleSystemRenderer || r.GetComponent<Cloth>() != null || MaterialAnimated(r, material, family)))
                 { report.Note("实验 UV：" + family + "材质存在排除、属性块、Cloth、粒子或材质动画，保留所有共享使用者"); continue; }
@@ -157,7 +157,7 @@ namespace AvatarTools.Obfuscation.Editor
             else if (package.name == "jp.lilxyzw.nontoon")
             {
                 family = "NonToon";
-                reason = "基础贴图直接使用原始UV0；ShaderCore生成变体的渲染验收尚未完成";
+                reason = "基础贴图直接使用原始UV0；仅默认单贴图配置可经独立网格路线转换，其余保留";
                 return null;
             }
             else if (package.name == "jp.whiteflare.unlitwf")

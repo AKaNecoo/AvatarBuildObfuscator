@@ -24,7 +24,9 @@ namespace AvatarTools.Obfuscation.Validation
                 Run("lilToon sampling, masks and source isolation: " + name, () => ProfileRendering(shader, "_MainTex"));
             }
             Run("Poiyomi independent main sampling", () => ProfileRendering(".poiyomi/Poiyomi Toon", "_MainTex"));
-            Run("NonToon retains sampling until generated variants are validated", NonToonPreserved);
+            Run("NonToon default single texture preserves rendered sampling", () => NonToonSimpleRendering(false));
+            Run("NonToon compressed base texture preserves rendered sampling", () => NonToonSimpleRendering(true));
+            Run("NonToon non-default texture remains unchanged", NonToonPreserved);
             Run("UnlitWF independent second layer", () => ProfileRendering("UnlitWF/WF_UnToon_Opaque", "_TX2_MainTex"));
             Run("lilToon unreadable compressed material renders identically", () => ProfileRendering("lilToon", "_MainTex", true));
             Run("Poiyomi unreadable compressed material renders identically", () => ProfileRendering(".poiyomi/Poiyomi Toon", "_MainTex", true));
@@ -231,6 +233,28 @@ namespace AvatarTools.Obfuscation.Validation
             Check(Process(f.Item1).TransformedUvMaterials == 1 && f.Item2.sharedMaterial.shader != f.Item3.shader, "Copied shader profile lost");
         }
 
+        private static void NonToonSimpleRendering(bool compressed)
+        {
+            var f = UvFixture(); f.Item1.GetComponent<AvatarBuildObfuscator>().renameAssets = compressed;
+            var shader = Shader.Find("NonToon"); Check(shader != null && shader.isSupported && !ShaderUtil.ShaderHasError(shader), "NonToon shader unavailable");
+            var material = Track(new Material(shader)); material.SetTexture("_BaseTexture", f.Item4); f.Item2.sharedMaterial = material;
+            if (compressed) { EditorUtility.CompressTexture(f.Item4, TextureFormat.DXT5, TextureCompressionQuality.Normal); f.Item4.Apply(false, true); }
+            var beforeMaterial = EditorJsonUtility.ToJson(material);
+            var uv = f.Item2.sharedMesh.uv; var before = UvPixels(f.Item1);
+            material.SetTexture("_BaseTexture", Texture2D.whiteTexture);
+            var white = UvPixels(f.Item1); material.SetTexture("_BaseTexture", f.Item4);
+            Check(PixelDifference(before, white) > 10, "NonToon fixture did not sample base texture; diff=" + PixelDifference(before, white) +
+                " pixels=" + before.Count(c => c.r != 0 || c.g != 0 || c.b != 0) + " shaderError=" + ShaderUtil.ShaderHasError(shader));
+            var report = Process(f.Item1); var after = UvPixels(f.Item1);
+            Check(report.TransformedUvMeshes == 1 && report.TransformedUvMaterials == 1 && report.TransformedUvTextures == 1,
+                "NonToon default material was not converted: " + string.Join("; ", report.Notes));
+            Check(f.Item2.sharedMaterial.GetTexture("_BaseTexture") != f.Item4 &&
+                uv.Zip(f.Item2.sharedMesh.uv, (a, b) => Vector2.Distance(Vector2.one - a, b)).Max() < 1e-7f,
+                "NonToon texture/mesh UV pair was not isolated and rotated");
+            Check(EditorJsonUtility.ToJson(material) == beforeMaterial, "NonToon source material changed");
+            Check(PixelDifference(before, after) <= 3 && before.Any(c => c.r != before[0].r), "NonToon render changed or blank");
+        }
+
         private static void NonToonPreserved()
         {
             var f = UvFixture(); f.Item1.GetComponent<AvatarBuildObfuscator>().renameAssets = false;
@@ -240,7 +264,7 @@ namespace AvatarTools.Obfuscation.Validation
             var report = Process(f.Item1);
             Check(report.TransformedUvMaterials == 0 && report.TransformedUvMeshes == 0 && f.Item2.sharedMesh.uv.SequenceEqual(uv),
                 "Unvalidated NonToon adapter changed sampling");
-            Check(report.Notes.Any(n => n.Contains("NonToon") && n.Contains("尚未完成")), "Missing explicit NonToon preservation reason");
+            Check(report.Notes.Any(n => n.Contains("NonToon") && n.Contains("其他契约保留")), "Missing explicit NonToon preservation reason");
         }
 
         private static void PoiyomiPreserved(string property)
