@@ -28,7 +28,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 テスト版は末尾を `#beta` に変更します。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` も利用できます。重複を避けるため、導入方法は一つにしてください。
 
-VPM に移行する場合、Git 版は先に Package Manager で削除し、ALCOM／VCC から導入します。公開済み `.unitypackage` の旧フォルダーは GUID で移行できます。プラグインのフォルダー内に独自のモデルアセットを置かず、アバター上のコンポーネント設定は保持してください。
+VPM に移行する場合、Git 版は先に Package Manager で削除し、ALCOM／VCC から導入します。**0.8.0-beta.1** 以降は旧 `.unitypackage` フォルダーを GUID で移行できます。0.7.0 に移行設定はありません。プラグインのフォルダー内に独自のモデルアセットを置かず、アバター上のコンポーネント設定は保持してください。
 
 ## 使い方
 

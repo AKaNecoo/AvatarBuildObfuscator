@@ -28,7 +28,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 Use `#beta` for test releases. Alternatively, import a `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases). Choose one installation method to avoid duplicate copies.
 
-To migrate to VPM, first remove a Git installation in Package Manager, then install through ALCOM/VCC. Published `.unitypackage` folders can be migrated by GUID. Keep your own model assets outside the plugin folder; retain the component settings on your avatar.
+To migrate to VPM, first remove a Git installation in Package Manager, then install through ALCOM/VCC. From **0.8.0-beta.1**, VPM can migrate legacy `.unitypackage` folders by GUID; 0.7.0 has no migration field. Keep your own model assets outside the plugin folder; retain the component settings on your avatar.
 
 ## Use
 

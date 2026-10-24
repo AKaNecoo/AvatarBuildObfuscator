@@ -46,6 +46,7 @@ class VpmListingTests(unittest.TestCase):
         self.assertEqual(package['zipSHA256'], hashlib.sha256(data).hexdigest())
         self.assertEqual(listing['url'], VPM.INDEX_URL)
         self.assertIn('nadena.dev.ndmf', package['vpmDependencies'])
+        self.assertNotIn('legacyFolders', package)
 
     def test_prereleases_sort_ahead_without_removing_stable(self):
         a, ad = fixture(); b, bd = fixture('0.8.0-beta.1')
@@ -76,7 +77,8 @@ class VpmListingTests(unittest.TestCase):
                 with self.assertRaises(ValueError): VPM.build_listing([release], lambda _: data)
 
     def test_wrong_manifest_version_guid_or_dependency_is_rejected(self):
-        for changes in ({'version': '0.6.0'}, {'name': 'unrelated.package'}, {'license': 'MIT'}, {'vpmDependencies': {}}):
+        for changes in ({'version': '0.6.0'}, {'name': 'unrelated.package'}, {'license': 'MIT'}, {'vpmDependencies': {}},
+                        {'legacyFolders': {'Assets/Other': '0' * 32}}):
             release, data = fixture(manifest_changes=changes)
             with self.assertRaises(ValueError): VPM.build_listing([release], lambda _: data)
         release, data = fixture(component_guid=b'0' * 32)

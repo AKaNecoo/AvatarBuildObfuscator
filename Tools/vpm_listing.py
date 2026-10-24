@@ -18,6 +18,7 @@ import zipfile
 
 REPOSITORY = 'AKaNecoo/AvatarBuildObfuscator'
 PACKAGE = 'dev.avatar-tools.build-obfuscator'
+LEGACY_FOLDERS = {'Assets/AvatarBuildObfuscator': hashlib.sha256(PACKAGE.encode()).hexdigest()[:32]}
 SITE = 'https://akanecoo.github.io/AvatarBuildObfuscator/'
 INDEX_URL = SITE + 'index.json'
 NDMF_REPO = 'https://vpm.nadena.dev/vpm.json'
@@ -96,6 +97,8 @@ def package_manifest(data, version):
             raise ValueError('Missing VPM dependencies')
         if not manifest.get('author', {}).get('name'):
             raise ValueError('Missing package author')
+        if manifest.get('legacyFolders') not in (None, LEGACY_FOLDERS):
+            raise ValueError('Unexpected legacy migration scope')
         return manifest
 
 

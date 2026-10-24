@@ -28,7 +28,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 测试版将末尾改为 `#beta`。也可从 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) 下载 `.unitypackage`；安装方式只选一种，避免重复安装。
 
-转用 VPM 时，Git 版先在 Package Manager 中移除本包，再从 ALCOM／VCC 安装；已发布的 `.unitypackage` 旧目录可按 GUID 自动迁移。插件目录内不要存放自己的模型资产，场景上的组件设置无需删除。
+转用 VPM 时，Git 版先在 Package Manager 中移除本包，再从 ALCOM／VCC 安装。从 **0.8.0-beta.1** 起，VPM 可按 GUID 自动迁移旧 `.unitypackage` 目录；0.7.0 无此迁移字段。插件目录内不要存放自己的模型资产，场景上的组件设置无需删除。
 
 ## 使用
 
