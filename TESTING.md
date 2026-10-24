@@ -14,7 +14,11 @@ A temporary scene copy with global Aggressive plus a Conservative Body subtree r
 
 A complete protected-file scan found one changed file out of 26,903: `ProjectSettings.asset`. The changed byte was an SDK-written `m_Automatic` value under `WindowsStandaloneSupport`. Flipping only that byte produced the unique full-file SHA-256 match to the fresh pre-test baseline; the exact original bytes were restored. All protected scene/model/texture/material/animation files and metas matched. The final scan must be repeated after installation transitions.
 
-Real-project Git/VPM installation transitions, beta CI/release and public Pages index checks remain promotion gates for this candidate.
+The temporary Git validation branch loads the exact candidate in Milfy as a Git package. Unity compiles without console errors, and all 74 installed package files match the commit (19 byte-identical, 55 differing only by Windows line endings). The Git-installed Aggressive comparison passes 16 renderer pairs, 35 samples, 33 material slots, 2,108 dependencies, zero missing bindings, and source memory/file checks. Entering and exiting SDK Play succeeds without a preprocess-failure dialog. Play updates Unity's saved blend-shape clamp setting; a one-byte restoration matched the fresh whole-file pre-test SHA-256 exactly. This is an Editor/SDK smoke check, not the user's VRChat client acceptance.
+
+The isolated VPM client installs the candidate into Milfy without changing any existing locked SDK/NDMF/other package version or the saved avatar scene. Unity needs an explicit package resolution after this external install; it then recognizes the package as Embedded, compiles without errors, rebinds the existing avatar component and its username, and identifies VPM ownership while disabling the Git/unitypackage update channel. The VPM-installed Conservative build comparison passes 16 renderer pairs, 35 samples, 33 material slots, 2,108 dependencies, zero missing bindings, and source memory/file checks. A first local-fixture attempt reused an older ZIP cached under the same development version and was discarded after content verification found two changed files; a fresh isolated cache installed all 74 current candidate files byte-for-byte. Published release versions remain immutable through the release workflow.
+
+Return-to-Git, beta CI/release and public Pages index checks remain promotion gates for this candidate.
 
 ## 0.7.0 stable promotion
 
