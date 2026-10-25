@@ -1,11 +1,14 @@
 ## 中文
 
-- 顶点重排改为分块打乱，减少构建产物的体积增幅；顶点关联数据保持同步。
+- 修复 MMD 世界表情失效：两档模式默认保留相关形变和对象路径。
+- 不需要 MMD 表情时，可主动开启“允许混淆 MMD 表情”。
 
 ## English
 
-- Vertex permutation now shuffles in blocks to reduce build-size overhead while preserving linked vertex data.
+- Fix MMD-world expressions by preserving their shapes and object paths in both modes by default.
+- Avatars that do not need MMD expressions can explicitly enable **Obfuscate MMD expressions**.
 
 ## 日本語
 
-- 頂点順をブロック単位で変更し、ビルド容量の増加を抑えました。頂点に紐づくデータも合わせて更新します。
+- MMD ワールドの表情が動かなくなる問題を修正し、両モードで対象の形状とオブジェクトパスを既定で保持します。
+- MMD 表情が不要な場合は「MMD 表情を難読化」を明示的に有効化できます。

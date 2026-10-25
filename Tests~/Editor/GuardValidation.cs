@@ -82,8 +82,9 @@ namespace AvatarTools.Obfuscation.Validation
                 float captured = weight;
                 Run("Static bake geometry and dynamic curve at " + weight, () => BakeGeometry(captured));
             }
-            Run("Conservative retains world-driven MMD names", () => ModeTest(ProtectionMode.Conservative));
-            Run("Aggressive processes unreferenced MMD and keeps animated MMD", () => ModeTest(ProtectionMode.Aggressive));
+            Run("Conservative retains MMD face names, order and Body path", () => ModeTest(ProtectionMode.Conservative));
+            Run("Aggressive retains MMD face names, order and Body path by default", () => ModeTest(ProtectionMode.Aggressive));
+            Run("Explicit MMD opt-in restores aggressive shape processing", MmdOptOut);
             Run("Native visemes survive rename", NativeVisemes);
             Run("Eyelid indices remap after static shape removal", EyelidIndices);
             Run("Nested animator relative bindings", NestedAnimator);
@@ -231,11 +232,31 @@ namespace AvatarTools.Obfuscation.Validation
         }
         private static void ModeTest(ProtectionMode mode)
         {
-            var root = Root(); var r = Renderer(root, "Body", Mesh("あ", "笑い"));
+            var root = Root(); var source = Mesh("あ", "笑い", "OtherFace");
+            var r = Renderer(root, "Body", source);
+            var accessory = Renderer(root, "Accessory", Mesh("Unused"));
             Controller(root, Clip("Body", "笑い")); var report = Process(root, mode);
-            if (mode == ProtectionMode.Conservative)
-                Check(r.sharedMesh.blendShapeCount == 2 && r.sharedMesh.GetBlendShapeName(0) == "あ" && report.RenamedShapes == 0, report.Summary);
-            else Check(r.sharedMesh.blendShapeCount == 1 && report.FrozenShapes == 1 && report.RenamedShapes == 1, report.Summary);
+            Check(report.PreservedMmdRenderers == 1 && r.sharedMesh.blendShapeCount == 3 &&
+                Enumerable.Range(0, 3).Select(r.sharedMesh.GetBlendShapeName).SequenceEqual(new[] { "あ", "笑い", "OtherFace" }),
+                "MMD face table was changed: " + report.Summary);
+            Check(r.name == "Body" && r.transform.GetSiblingIndex() == 0, "MMD Body path/order changed");
+            Check(source.blendShapeCount == 3 && source.GetBlendShapeName(0) == "あ", "Source MMD mesh changed");
+            Check(accessory.sharedMesh.blendShapeCount == 0 && report.FrozenShapes == 1,
+                "Unrelated mesh stopped being processed: " + report.Summary);
+            var output = root.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single();
+            Check(AnimationUtility.GetCurveBindings(output).Single().propertyName == "blendShape.笑い" &&
+                AnimationUtility.GetCurveBindings(output).Single().path == "Body", "MMD animation path changed");
+        }
+
+        private static void MmdOptOut()
+        {
+            var root = Root(); root.GetComponent<AvatarBuildObfuscator>().allowMmdObfuscation = true;
+            var r = Renderer(root, "Body", Mesh("あ", "笑い"));
+            Controller(root, Clip("Body", "笑い")); var report = Process(root, ProtectionMode.Aggressive);
+            Check(report.PreservedMmdRenderers == 0 && r.sharedMesh.blendShapeCount == 1 &&
+                report.FrozenShapes == 1 && report.RenamedShapes == 1 &&
+                UsernameNameGenerator.IsGeneratedName(r.sharedMesh.GetBlendShapeName(0)),
+                "Explicit MMD opt-in did not process shapes: " + report.Summary);
         }
         private static void ShapeOrder()
         {

@@ -43,6 +43,8 @@ namespace AvatarTools.Obfuscation
         public bool renameAssets = true;
         public bool freezeUnusedBlendShapes = true;
         public bool renameDynamicBlendShapes = true;
+        [Tooltip("默认保留 MMD 世界需要的面部形变、顺序和对象路径。仅在不需要 MMD 表情时启用此项。")]
+        public bool allowMmdObfuscation;
         [Tooltip("打乱保留形变的索引顺序，同步权重和 SDK 眼皮索引。独立于名称混淆。")]
         public bool shuffleBlendShapeOrder = true;
         [Tooltip("混淆构建副本对象名，同时重写动画与 AvatarMask 路径；保守模式保留尚无法验证的依赖。")]

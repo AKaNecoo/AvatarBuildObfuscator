@@ -1,6 +1,12 @@
 # Validation
 
-Latest connected Editor checks: 2026-10-24 in the authorized Windows test Editor. Stable packaging/promotion checks: 2026-10-24. Editor/build/sample checks are separate from the user's online basic-function testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+Latest connected Editor checks: 2026-10-26 in the authorized Windows test Editor. Editor/build/sample checks are separate from the user's VRChat client testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+
+## 0.8.1-beta.1 MMD expression compatibility
+
+The local file-package candidate compiles with zero Console errors. Its 61 synthetic processing cases pass, including unchanged MMD shape names, order and `Body` path in both modes, explicit opt-in to the older aggressive behavior, and continued processing of an unrelated mesh. In a real Milfy Aggressive build-copy comparison, the baseline and protected `Body` renderer each have the same 278 post-optimizer BlendShape names in the same order and the same `Body` path. The comparison passes 16 renderer pairs, 35 geometry/pose/shape samples, 33 material slots, 2,108 checked source dependencies, zero missing bindings and zero problems; source memory and dependency files remain unchanged within the run. A separate full scan of 26,948 protected project files finds no changed, missing or added files. These checks establish the build-time MMD targets and source isolation, not the behavior of a particular VRChat MMD world; the user performs that final client test.
+
+The Unity-independent checks pass 60 update-policy, 28 naming, 166 compressed-texture-block and 25 VPM-policy assertions. The 20 Python packaging/listing tests pass, and all three archives read back 74 product files. The Git-install, SDK Play, CI and release checks are recorded separately after publication.
 
 ## 0.8.0-beta.2 NonToon narrow UV candidate
 

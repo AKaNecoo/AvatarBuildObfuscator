@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1-beta.1 — 2026-10-26
+
+- Preserve the complete BlendShape name/data/index table and GameObject path of detected MMD expression renderers in both modes by default, so external world animations can target them.
+- Add an explicit **Obfuscate MMD expressions** option for avatars that do not require MMD-world compatibility. Other renderers continue using the selected obfuscation mode.
+
 ## 0.8.0-beta.3 — 2026-10-25
 
 - Reorder vertices in shuffled 128-vertex blocks to retain more mesh compression locality while still changing vertex indices; keep all vertex channels, skin weights, triangles and dynamic BlendShape frames linked.

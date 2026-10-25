@@ -19,6 +19,7 @@ namespace AvatarTools.Obfuscation.Editor
         public string UserName;
         public bool RenameAssets, FreezeShapes, RenameShapes, RenameHierarchy, RenameParameters, RenameAnimatorInternals, RenameBones, ReorderVertices;
         public bool ShuffleShapes, ShuffleHierarchy;
+        public bool PreserveMmdCompatibility;
         public bool RandomizeEachBuild, AuditBuild, PruneEmptyShapes, EmbedNotice, EmbedFingerprint, TransformUv, MergeShapes;
         public string RightsHolder, RightsContact, UsageRestrictions;
         public string[] PreserveParameters;
@@ -36,6 +37,7 @@ namespace AvatarTools.Obfuscation.Editor
             RenameAssets = component.renameAssets;
             FreezeShapes = component.freezeUnusedBlendShapes;
             RenameShapes = component.renameDynamicBlendShapes;
+            PreserveMmdCompatibility = !component.allowMmdObfuscation;
             ShuffleShapes = component.shuffleBlendShapeOrder;
             ShuffleHierarchy = component.shuffleGameObjectOrder;
             RandomizeEachBuild = component.randomizeEachBuild;
@@ -74,6 +76,7 @@ namespace AvatarTools.Obfuscation.Editor
         public int RenamedParameters, RenamedAnimatorNames, RebuiltAvatars, ReorderedMeshes, ImportedTextureCopies;
         public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
         public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
+        public int PreservedMmdRenderers;
         public int TransformedUvMaterials, TransformedUvTextures, DecodedUvTextures;
         public int LosslessCompressedUvTextures, RecompressedUvTextures;
         public int SubtreeOverrides, ConservativeScopeRenderers, AggressiveScopeRenderers, ScopeFallbackRenderers;
@@ -94,6 +97,7 @@ namespace AvatarTools.Obfuscation.Editor
             "，参数改名 " + RenamedParameters + "，动画内部改名 " + RenamedAnimatorNames +
             "，Avatar 重建 " + RebuiltAvatars + "，顶点重排 " + ReorderedMeshes +
             "，形变重排网格 " + ShuffledShapeMeshes + "，同级重排组 " + ShuffledSiblingGroups +
+            "，MMD 兼容网格 " + PreservedMmdRenderers +
             "，顺序变化对象 " + ReorderedGameObjects + "，复制对象 " + CopiedObjects +
             "，空形变移除 " + PrunedEmptyShapes + "，同步形变合并 " + MergedShapePairs + "，UV 变换网格 " + TransformedUvMeshes + "，骨骼索引表重排 " + ReorderedBonePalettes;
         public void Note(string text) { if (!Notes.Contains(text)) Notes.Add(text); }
@@ -125,6 +129,7 @@ namespace AvatarTools.Obfuscation.Editor
             new Dictionary<SkinnedMeshRenderer, HashSet<string>>();
         private readonly Dictionary<SkinnedMeshRenderer, HashSet<string>> nativeShapes =
             new Dictionary<SkinnedMeshRenderer, HashSet<string>>();
+        private readonly HashSet<SkinnedMeshRenderer> mmdRenderers = new HashSet<SkinnedMeshRenderer>();
         private bool unknownDriver;
         private readonly Dictionary<Transform, string> objectNames = new Dictionary<Transform, string>();
         private readonly Dictionary<Transform, Dictionary<string, string>> hierarchyPaths =
@@ -167,6 +172,7 @@ namespace AvatarTools.Obfuscation.Editor
             if (PrefabUtility.IsPartOfPrefabAsset(root))
                 throw new InvalidOperationException("Avatar Guard accepts a build copy, not a prefab asset.");
             CollectUsage();
+            CollectMmdRenderers();
             CollectFixedShapeNames();
             PlanParameterNames();
             if (settings.ShuffleHierarchy) PlanSiblingOrder();
@@ -212,6 +218,9 @@ namespace AvatarTools.Obfuscation.Editor
                 report.Note("未知运行驱动或 Legacy Animation：保留对象层级名称"); return;
             }
             foreach (var t in settings.PreserveObjects) protectTree(t);
+            // MMD worlds can bind external clips to the original face path (often Body).
+            // Internal clip rewriting cannot update those world-owned paths.
+            foreach (var renderer in mmdRenderers) protectPath(renderer.transform);
             if (unknownDriver && settings.HasSubtreeOverrides)
                 foreach (var t in all.Where(t => settings.ModeFor(t) == ProtectionMode.Conservative))
                 { blocked.Add(t); protectPath(t); }
@@ -448,6 +457,17 @@ namespace AvatarTools.Obfuscation.Editor
             }
         }
 
+        private void CollectMmdRenderers()
+        {
+            if (!settings.PreserveMmdCompatibility) return;
+            foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                var mesh = renderer.sharedMesh;
+                if (mesh != null && Enumerable.Range(0, mesh.blendShapeCount)
+                    .Any(index => CompatibilityShape(mesh.GetBlendShapeName(index)))) mmdRenderers.Add(renderer);
+            }
+        }
+
         private void ProcessShapes()
         {
             foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
@@ -456,6 +476,15 @@ namespace AvatarTools.Obfuscation.Editor
                 if (source == null) continue;
                 report.ShapesBefore += source.blendShapeCount;
                 if (source.blendShapeCount == 0) continue;
+                if (mmdRenderers.Contains(renderer))
+                {
+                    // Preserve the complete index table and names. External MMD clips
+                    // are not available to rewrite during an avatar build.
+                    report.ShapesAfter += source.blendShapeCount;
+                    report.PreservedMmdRenderers++;
+                    report.Note(renderer.name + "：保留 MMD 世界可能直接驱动的形变名称、数据与索引");
+                    continue;
+                }
                 if (unknownDriver && settings.ModeFor(renderer) == ProtectionMode.Conservative || settings.Exclusions.Contains(renderer) || meshSwaps.Contains(renderer) ||
                     ResolveRenderers(root.transform, AnimationUtility.CalculateTransformPath(renderer.transform, root.transform)).Count() != 1)
                 {

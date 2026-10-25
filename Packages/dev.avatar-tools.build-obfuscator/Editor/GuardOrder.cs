@@ -48,6 +48,10 @@ namespace AvatarTools.Obfuscation.Editor
                 for (var t = manual; t != null && t != root.transform && t.IsChildOf(root.transform); t = t.parent)
                     if (t.parent != null) blocked.Add(t.parent);
             }
+            // Keep the external MMD target's sibling index and its ancestor path.
+            foreach (var renderer in mmdRenderers)
+                for (var t = renderer.transform; t != null && t != root.transform && t.IsChildOf(root.transform); t = t.parent)
+                    if (t.parent != null) blocked.Add(t.parent);
             foreach (var animator in root.GetComponentsInChildren<Animator>(true))
                 if (animator.avatar != null && (!animator.avatar.isValid || !animator.avatar.isHuman))
                 { blockTree(animator.transform); report.Note("同级重排：Generic/无效 Avatar 层级保持顺序"); }

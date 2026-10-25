@@ -24,6 +24,8 @@ VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖
 
 混淆可能增加 Avatar 的下载大小，增幅因模型和选项而异；实验性贴图旋转可能进一步增大体积。上传前请查看 SDK 构建统计。
 
+两档模式默认保留检测到 MMD 表情的网格形变名称、顺序及对象路径；不需要 MMD 表情时才开启“允许混淆 MMD 表情”。
+
 Git／安装包可在组件内检查和安装更新；VPM 安装请在 ALCOM／VCC 中更新。自动安装默认关闭。混淆不保证防提取，贴图、最终几何和必要动态形变仍可提取。
 
 ## English
@@ -48,6 +50,8 @@ Experimental rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF
 
 Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
+Both modes preserve MMD expression names, order and object paths by default. Enable **Obfuscate MMD expressions** only when MMD-world expressions are not needed.
+
 Choose the display language in the component. Git/unitypackage installs can check and install updates there; update VPM installs in ALCOM/VCC. Automatic installation defaults off. Textures, final geometry and required dynamic shapes remain extractable.
 
 ## 日本語
@@ -71,6 +75,8 @@ VRChat アバターのビルド時難読化ツールです。NDMF がコピー�
 実験的な回転は lilToon 2.4.1・Poiyomi 10.0.27・UnlitWF 2.14.0 の一部設定と、検証済みの NonToon 0.3.0 標準・単一テクスチャ設定に対応します。詳細はリポジトリの対応表をご確認ください。
 
 難読化によりアバターのダウンロードサイズが増える場合があります。増加量はモデルや設定によって異なり、実験的なテクスチャ回転でさらに増える場合があります。アップロード前に SDK のビルド統計をご確認ください。
+
+MMD 表情を持つメッシュの形状名・順序とオブジェクトパスは両モードで既定のまま保持します。MMD 表情が不要な場合に限り「MMD 表情を難読化」を有効にしてください。
 
 コンポーネントで言語を選べます。Git／unitypackage の更新はコンポーネントから、VPM の更新は ALCOM／VCC から行います。自動インストールは初期状態でオフです。テクスチャ、最終形状、必要な動的形状は抽出可能です。
 
