@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 — 2026-10-25
+
+- Promote the beta.3 implementation after the user's online basic-function smoke test; processing code, shaders and asset GUIDs are unchanged from beta.3.
+- Include per-subtree Conservative/Aggressive modes, ALCOM/VCC distribution and GUID-checked legacy package migration.
+- Include narrowly reviewed NonToon texture rotation and block-based vertex permutation with lower measured build-size overhead on the local test avatar.
+
 ## 0.8.0-beta.3 — 2026-10-25
 
 - Reorder vertices in shuffled 128-vertex blocks to retain more mesh compression locality while still changing vertex indices; keep all vertex channels, skin weights, triangles and dynamic BlendShape frames linked.

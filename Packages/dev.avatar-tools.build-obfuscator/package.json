@@ -1,6 +1,6 @@
 {
   "name": "dev.avatar-tools.build-obfuscator",
-  "version": "0.8.0-beta.3",
+  "version": "0.8.0",
   "displayName": "Avatar Build Obfuscator",
   "description": "Build-copy avatar obfuscation, per-build randomization, shape pruning, local audits and optional authorization notices/fingerprints. Experimental UV rotation and synchronized-shape merging. No runtime decoder; source assets are preserved.",
   "unity": "2022.3",
@@ -9,8 +9,8 @@
     "email": "kiinemaki@qq.com"
   },
   "license": "GPL-3.0-only",
-  "url": "https://github.com/AKaNecoo/AvatarBuildObfuscator/releases/download/v0.8.0-beta.3/dev.avatar-tools.build-obfuscator-0.8.0-beta.3.zip",
-  "changelogUrl": "https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/v0.8.0-beta.3/CHANGELOG.md",
+  "url": "https://github.com/AKaNecoo/AvatarBuildObfuscator/releases/download/v0.8.0/dev.avatar-tools.build-obfuscator-0.8.0.zip",
+  "changelogUrl": "https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/v0.8.0/CHANGELOG.md",
   "legacyFolders": {
     "Assets/AvatarBuildObfuscator": "cea54665c170c125ea9e2df77eea0d14"
   },

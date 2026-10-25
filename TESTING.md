@@ -1,6 +1,12 @@
 # Validation
 
-Latest connected Editor checks: 2026-10-24 in the authorized Windows test Editor. Stable packaging/promotion checks: 2026-10-24. Editor/build/sample checks are separate from the user's online basic-function testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+Latest connected Editor checks: 2026-10-25 in the authorized Windows test Editor. Stable packaging/promotion checks: 2026-10-25. Editor/build/sample checks are separate from the user's online basic-function testing. Private avatar data, raw reports and name mappings are not in this repository. Older sections below retain their stated version boundaries.
+
+## 0.8.0 stable promotion
+
+The user explicitly requested promotion to main. Under the standing release instruction, this also records their online basic-function smoke test without reported problems; it does not establish complete client, menu, physics, network or face-tracking coverage. The actual Git-installed beta.3 passed an Aggressive build-copy comparison with 2,108 checked source dependencies, unchanged source memory/files, and no reported problems. Its SDK Play observation completed with 392 obfuscated objects, 53 Humanoid bones, no residual marker and no observed errors. The saved source scene and project settings matched their initial whole-file hashes after SDK-written settings were restored by exact hash. The stable package changes only the manifest version and release URLs relative to beta.3; its other 73 product files are byte-identical. No new Editor run is claimed for the version-only promotion.
+
+Stable preparation reruns 60 update-policy, 28 naming, 166 compressed-block and 25 VPM-policy assertions, 20 archive/listing tests, and exact readback of all 74 product files from TGZ, ZIP and unitypackage archives. The release notes summarize changes since 0.7.0 in three languages without claiming encryption or universal size reductions.
 
 ## 0.8.0-beta.2 NonToon narrow UV candidate
 
