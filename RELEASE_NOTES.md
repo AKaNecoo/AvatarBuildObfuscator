@@ -1,11 +1,11 @@
 ## 中文
 
-- 实验贴图旋转新增对已验证 NonToon 0.3.0 默认单贴图材质的支持；其他配置保留原样。
+- 顶点重排改为分块打乱，减少构建产物的体积增幅；顶点关联数据保持同步。
 
 ## English
 
-- Experimental texture rotation now supports the reviewed NonToon 0.3.0 default single-texture material; other configurations are retained.
+- Vertex permutation now shuffles in blocks to reduce build-size overhead while preserving linked vertex data.
 
 ## 日本語
 
-- 実験的なテクスチャ回転で、検証済みの NonToon 0.3.0 の標準・単一テクスチャ設定に対応しました。その他の設定は変更しません。
+- 頂点順をブロック単位で変更し、ビルド容量の増加を抑えました。頂点に紐づくデータも合わせて更新します。

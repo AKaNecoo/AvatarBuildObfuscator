@@ -52,7 +52,7 @@ A username-derived Fisher–Yates permutation changes sibling indices, not paren
 
 ## Vertex streams, textures and shaders
 
-Vertex permutation moves every raw vertex stream and its exact format, remaps submesh indices and variable-length bone weights, and permutes all retained morph frames consistently. It does not change triangle order, material slots, bounds, or intended geometry. Cloth, extra vertex streams and unreadable meshes retain order. Conservative limits permutation to audited built-in shaders; Aggressive permits custom shaders that may use vertex IDs.
+Vertex permutation shuffles 128-vertex source blocks, then shuffles the vertices within each block. This preserves some short-range locality for bundle compression while changing vertex indices; it is not a claim that the original order cannot be reconstructed. Every raw vertex stream retains its exact format; submesh indices, variable-length bone weights and all retained morph frames are remapped consistently. Triangle order, material slots, bounds and intended geometry stay the same. Cloth, extra vertex streams and unreadable meshes retain order. Conservative limits permutation to audited built-in shaders; Aggressive permits custom shaders that may use vertex IDs.
 
 Readable shader source can be copied/recompiled under a generated name with relative includes resolved. Property, keyword and pass contracts remain. Built-in/mobile-whitelisted/container shaders and NadeVision's fixed shader identity are preserved. NadeVision actually searches by shader name; bypassing its validation would conceal a functional break. Shader compilation can take time; creation has progress and timing diagnostics. Native compilation is not guaranteed to respond to cancellation immediately.
 

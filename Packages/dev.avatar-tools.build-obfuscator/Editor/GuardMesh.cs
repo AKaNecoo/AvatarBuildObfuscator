@@ -52,9 +52,23 @@ namespace AvatarTools.Obfuscation.Editor
         {
             int count = mesh.vertexCount;
             var random = new System.Random(names.NextSeed());
-            var order = Enumerable.Range(0, count).ToArray();
-            for (int i = count - 1; i > 0; i--)
-            { int j = random.Next(i + 1); int old = order[i]; order[i] = order[j]; order[j] = old; }
+            // Preserve short runs of source vertices for bundle compression while
+            // randomizing both the runs and every vertex within each run.
+            const int blockSize = 128;
+            var blocks = Enumerable.Range(0, (count + blockSize - 1) / blockSize).ToArray();
+            for (int i = blocks.Length - 1; i > 0; i--)
+            { int j = random.Next(i + 1); int old = blocks[i]; blocks[i] = blocks[j]; blocks[j] = old; }
+            var order = new int[count];
+            int outputVertex = 0;
+            foreach (int block in blocks)
+            {
+                int start = block * blockSize;
+                var local = Enumerable.Range(start, Math.Min(blockSize, count - start)).ToArray();
+                for (int i = local.Length - 1; i > 0; i--)
+                { int j = random.Next(i + 1); int old = local[i]; local[i] = local[j]; local[j] = old; }
+                Array.Copy(local, 0, order, outputVertex, local.Length);
+                outputVertex += local.Length;
+            }
             var inverse = new int[count];
             for (int i = 0; i < count; i++) inverse[order[i]] = i;
             var perVertex = mesh.GetBonesPerVertex().ToArray();

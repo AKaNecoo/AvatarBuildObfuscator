@@ -109,6 +109,7 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Conservative hierarchy also rewrites all known bindings", () => HierarchyBindings(ProtectionMode.Conservative));
             Run("Parameters, menu, driver, Animator fields and PhysBone suffixes stay linked", ParameterGraph);
             Run("Vertex permutation preserves topology, channels, skinning and dynamic shapes", MeshPermutation);
+            Run("Block vertex permutation preserves associations across block boundaries", MeshPermutationBlocks);
             Run("Imported unreadable texture clones retain pixels and importer bytes", () => ImportedTexture(false));
             Run("Imported Crunch texture clones retain pixels and importer bytes", () => ImportedTexture(true));
             Run("NDMF default package output supports unreadable texture copies", () => ImportedTexture(false, true));
@@ -673,6 +674,58 @@ namespace AvatarTools.Obfuscation.Validation
             for (int i = 0; i < originalTriangles.Length; i++)
                 Check(originalVertices[originalTriangles[i]] == output.vertices[output.triangles[i]], "Topology changed");
             Check(mesh.vertices.SequenceEqual(originalVertices) && mesh.triangles.SequenceEqual(originalTriangles), "Source mesh changed");
+        }
+
+        private static void MeshPermutationBlocks()
+        {
+            const int count = 259;
+            var root = Root(); var mesh = Track(new Mesh { name = "MultiBlockMesh" });
+            mesh.vertices = Enumerable.Range(0, count).Select(i => new Vector3(i, i % 7, i % 11)).ToArray();
+            mesh.SetUVs(7, Enumerable.Range(0, count).Select(i => new Vector4(i, i + 1, i + 2, i + 3)).ToList());
+            mesh.triangles = Enumerable.Range(0, 255).Where(i => i % 3 == 0).SelectMany(i => new[] { i, i + 1, i + 2 }).ToArray();
+            var deltas = Enumerable.Range(0, count).Select(i => new Vector3(i * .001f, 0, 0)).ToArray();
+            mesh.AddBlendShapeFrame("Dynamic", 100, deltas, new Vector3[count], new Vector3[count]);
+            var renderer = Renderer(root, "Body", mesh);
+            renderer.sharedMaterial = Track(new Material(Shader.Find("Unlit/Texture")));
+            var bone = new GameObject("Bone0"); bone.transform.SetParent(root.transform);
+            var secondBone = new GameObject("Bone1"); secondBone.transform.SetParent(root.transform);
+            renderer.bones = new[] { bone.transform, secondBone.transform }; renderer.rootBone = bone.transform;
+            mesh.bindposes = new[] { Matrix4x4.identity, Matrix4x4.identity };
+            mesh.boneWeights = Enumerable.Range(0, count)
+                .Select(i => new BoneWeight { boneIndex0 = i % 2, weight0 = 1 }).ToArray();
+            Controller(root, Clip("Body", "Dynamic")); renderer.SetBlendShapeWeight(0, 35);
+            var marker = root.GetComponent<AvatarBuildObfuscator>(); marker.reorderMeshVertices = true; marker.reorderBonePalette = false;
+            var report = Process(root, ProtectionMode.Aggressive);
+            var output = renderer.sharedMesh; var uv8 = new List<Vector4>(); output.GetUVs(7, uv8);
+            Check(report.ReorderedMeshes == 1 && output.vertexCount == count, report.Summary);
+            Check(!output.vertices.SequenceEqual(mesh.vertices), "Vertex order was not changed");
+            var outputDeltas = new Vector3[count];
+            output.GetBlendShapeFrameVertices(0, 0, outputDeltas, new Vector3[count], new Vector3[count]);
+            for (int i = 0; i < count; i++)
+            {
+                int old = (int)output.vertices[i].x;
+                Check(old >= 0 && old < count && output.vertices[i] == mesh.vertices[old], "Vertex association changed");
+                Check(uv8[i] == new Vector4(old, old + 1, old + 2, old + 3), "UV8 association changed");
+                Check(outputDeltas[i] == deltas[old], "BlendShape association changed");
+                Check(output.boneWeights[i].boneIndex0 == old % 2 && output.boneWeights[i].weight0 == 1, "Skin weight association changed");
+            }
+            var seenBlocks = new HashSet<int>(); int previousBlock = -1; int runLength = 0;
+            foreach (var vertex in output.vertices)
+            {
+                int block = (int)vertex.x / 128;
+                if (block != previousBlock)
+                {
+                    if (previousBlock >= 0) Check(runLength == (previousBlock == 2 ? 3 : 128), "Source block split across output");
+                    Check(seenBlocks.Add(block), "Source block appeared in multiple output runs");
+                    previousBlock = block; runLength = 0;
+                }
+                runLength++;
+            }
+            Check(seenBlocks.Count == 3 && runLength == (previousBlock == 2 ? 3 : 128), "Block permutation is incomplete");
+            var originalTriangles = mesh.triangles; var outputTriangles = output.triangles;
+            for (int i = 0; i < originalTriangles.Length; i++)
+                Check(output.vertices[outputTriangles[i]] == mesh.vertices[originalTriangles[i]], "Triangle association changed");
+            Check(mesh.vertexCount == count && mesh.triangles.SequenceEqual(originalTriangles), "Source mesh changed");
         }
 
         private static void GeneratedFolderGuard()

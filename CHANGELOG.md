@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0-beta.3 — 2026-10-25
+
+- Reorder vertices in shuffled 128-vertex blocks to retain more mesh compression locality while still changing vertex indices; keep all vertex channels, skin weights, triangles and dynamic BlendShape frames linked.
+
 ## 0.8.0-beta.2 — 2026-10-24
 
 - Add experimental UV/texture rotation for the reviewed NonToon 0.3.0 generated shader, limited to a default single-texture material on an independent mesh. Other variants and material settings retain their original sampling.
