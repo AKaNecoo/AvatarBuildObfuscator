@@ -232,14 +232,18 @@ namespace AvatarTools.Obfuscation.Validation
         }
         private static void ModeTest(ProtectionMode mode)
         {
-            var root = Root(); var source = Mesh("あ", "笑い", "OtherFace");
+            var root = Root(); root.GetComponent<AvatarBuildObfuscator>().shuffleGameObjectOrder = true;
+            var source = Mesh("あ", "笑い", "OtherFace");
             var r = Renderer(root, "Body", source);
             var accessory = Renderer(root, "Accessory", Mesh("Unused"));
+            var decor = new GameObject("Decor"); decor.transform.SetParent(root.transform, false);
             Controller(root, Clip("Body", "笑い")); var report = Process(root, mode);
             Check(report.PreservedMmdRenderers == 1 && r.sharedMesh.blendShapeCount == 3 &&
                 Enumerable.Range(0, 3).Select(r.sharedMesh.GetBlendShapeName).SequenceEqual(new[] { "あ", "笑い", "OtherFace" }),
                 "MMD face table was changed: " + report.Summary);
-            Check(r.name == "Body" && r.transform.GetSiblingIndex() == 0, "MMD Body path/order changed");
+            Check(r.name == "Body" && r.transform.GetSiblingIndex() == 0 &&
+                accessory.transform.GetSiblingIndex() == 1 && decor.transform.GetSiblingIndex() == 2,
+                "MMD Body path/order changed");
             Check(source.blendShapeCount == 3 && source.GetBlendShapeName(0) == "あ", "Source MMD mesh changed");
             Check(accessory.sharedMesh.blendShapeCount == 0 && report.FrozenShapes == 1,
                 "Unrelated mesh stopped being processed: " + report.Summary);
