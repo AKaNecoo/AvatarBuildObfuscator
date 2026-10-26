@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1-beta.1 — 2026-10-26
+
+- Preserve the complete BlendShape name/data/index table and GameObject path of detected MMD expression renderers in both modes by default, so external world animations can target them.
+- Add an explicit **Obfuscate MMD expressions** option for avatars that do not require MMD-world compatibility. Other renderers continue using the selected obfuscation mode.
+
 ## 0.8.0 — 2026-10-25
 
 - Promote the beta.3 implementation after the user's online basic-function smoke test; processing code, shaders and asset GUIDs are unchanged from beta.3.

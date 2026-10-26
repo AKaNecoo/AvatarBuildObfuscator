@@ -1,17 +1,14 @@
 ## 中文
 
-- 模型子树可分别选择保守／激进模式。
-- 实验贴图旋转增加限定条件的 NonToon 支持；顶点分块打乱降低构建体积增幅。
-- 支持通过 ALCOM／VCC 安装，并按 GUID 迁移旧安装包。
+- 修复 MMD 世界表情失效：两档模式默认保留相关形变和对象路径。
+- 不需要 MMD 表情时，可主动开启“允许混淆 MMD 表情”。
 
 ## English
 
-- Choose Conservative or Aggressive mode for individual avatar subtrees.
-- Add narrow NonToon texture rotation and reduce build-size overhead with block-based vertex shuffling.
-- Install through ALCOM/VCC, with GUID-checked migration from legacy packages.
+- Fix MMD-world expressions by preserving their shapes and object paths in both modes by default.
+- Avatars that do not need MMD expressions can explicitly enable **Obfuscate MMD expressions**.
 
 ## 日本語
 
-- アバターの子階層ごとに保守／積極モードを選べます。
-- 条件を限定して NonToon のテクスチャ回転に対応し、頂点のブロック並べ替えでビルド容量の増加を抑えます。
-- ALCOM／VCC から導入でき、旧パッケージを GUID で移行できます。
+- MMD ワールドの表情が動かなくなる問題を修正し、両モードで対象の形状とオブジェクトパスを既定で保持します。
+- MMD 表情が不要な場合は「MMD 表情を難読化」を明示的に有効化できます。

@@ -55,6 +55,8 @@ Update VPM installations in **ALCOM/VCC**. Git and `.unitypackage` installations
 
 Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
+Both modes preserve shape names, order and object paths on meshes with MMD expressions by default for MMD-world compatibility. Enable **Obfuscate MMD expressions** only if you do not need those expressions.
+
 Obfuscation does not prevent extraction: texture pixels, final geometry and required dynamic BlendShapes remain extractable. Check Aggressive mode in a test build first. Console messages prefixed with `[Avatar Build Obfuscator]` report processing counts and preservation reasons.
 
 ## More

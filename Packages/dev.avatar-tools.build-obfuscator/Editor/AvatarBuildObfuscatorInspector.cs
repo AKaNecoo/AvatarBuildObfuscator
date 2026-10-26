@@ -138,6 +138,7 @@ namespace AvatarTools.Obfuscation.Editor
             Field("freezeUnusedBlendShapes");
             Field("pruneEmptyBlendShapes");
             Field("renameDynamicBlendShapes");
+            Field("allowMmdObfuscation");
             Field("shuffleBlendShapeOrder");
             Field("renameGameObjects");
             Field("shuffleGameObjectOrder");

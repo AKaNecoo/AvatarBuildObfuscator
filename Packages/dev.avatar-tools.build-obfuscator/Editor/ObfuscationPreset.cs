@@ -17,7 +17,7 @@ namespace AvatarTools.Obfuscation.Editor
         {
             "randomizeEachBuild", "auditBuild", "pruneEmptyBlendShapes", "embedOwnershipNotice", "embedBuildFingerprint",
             "experimentalUvTransform", "mergeSynchronizedBlendShapes", "renameAssets", "freezeUnusedBlendShapes",
-            "renameDynamicBlendShapes", "shuffleBlendShapeOrder", "renameGameObjects", "shuffleGameObjectOrder",
+            "renameDynamicBlendShapes", "allowMmdObfuscation", "shuffleBlendShapeOrder", "renameGameObjects", "shuffleGameObjectOrder",
             "renameParameters", "renameAnimatorInternals", "renameBones", "reorderMeshVertices", "reorderBonePalette"
         };
 
