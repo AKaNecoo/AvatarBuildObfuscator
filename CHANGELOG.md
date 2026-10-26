@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.2-beta.1 — 2026-10-26
+
+- Refuse to overwrite existing Assets test installations, folder metadata or linked project directories when using the development sync helper; add installation safety regressions.
+- Clarify independent Git update channels, visible username/Avatar ID prefixes and whole-mesh MMD preservation in all three languages and editor tooltips. Use 「積極」 for the Japanese Aggressive mode label.
+- Remove direct links to detailed historical test logs from the current validation guide. Avatar processing rules and asset GUIDs are unchanged from 0.8.1.
+
 ## 0.8.1 — 2026-10-26
 
 - Promote the MMD expression compatibility change after the avatar owner reported working expressions in a VRChat MMD world with MMD expression obfuscation disabled. Processing code and asset GUIDs are unchanged from beta.1.

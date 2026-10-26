@@ -1,6 +1,6 @@
 # Testing and validation
 
-This page summarizes the checks relevant to **0.8.1**. Test results apply to the stated versions and environments, rather than every avatar or VRChat world.
+This page summarizes validation for **0.8.2-beta.1**. Unity and VRChat results below were obtained for **0.8.1-beta.1 / 0.8.1**. This maintenance release changes editor text, documentation and a test-install helper; avatar processing rules and asset GUIDs are unchanged. Test results apply to the stated versions and environments, rather than every avatar or VRChat world.
 
 ## Current results
 
@@ -10,7 +10,7 @@ This page summarizes the checks relevant to **0.8.1**. Test results apply to the
 | Unity processing | In Unity 2022.3.22f1, 61 synthetic processing cases pass with no Console errors. With object-order shuffling enabled in both modes, detected MMD renderers retain their BlendShape name/data/index table, `Body` path and relevant sibling positions. An unrelated mesh continues to be processed. |
 | Full avatar build comparison | The Git-installed beta build passes 16 renderer pairs, 35 geometry/pose/shape samples, 33 material slots and 2,108 source dependency checks, with zero missing bindings. The baseline and obfuscated `Body` each retain the same 278 post-optimizer BlendShape names and order and the same object path. |
 | Source files | A post-build scan found no changed, missing or added files among 26,948 protected project files. The source scene was not saved during these checks. |
-| Stable package | The 0.8.1 processing code and asset GUIDs are the same as the tested beta; the package manifest changes its version and release URLs. Local .NET checks pass 60 update-policy, 28 naming, 166 texture-block and 25 VPM-policy assertions. All 20 Python tests pass. TGZ, ZIP and unitypackage archives each read back all 74 product files. |
+| Current maintenance package | Local .NET checks pass 60 update-policy, 28 naming, 166 texture-block and 25 VPM-policy assertions. All 31 Python tests pass, including 11 test-install safety cases. TGZ, ZIP and unitypackage archives each read back all 74 product files. Unity and VRChat tests were not repeated for these text and development-tool changes. |
 
 The [package CI workflow](https://github.com/AKaNecoo/AvatarBuildObfuscator/actions/workflows/package-ci.yml) reruns the Unity-independent checks and publishes archives only after they pass. It does not run the Unity Editor or a VRChat client in CI.
 

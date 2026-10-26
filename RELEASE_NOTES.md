@@ -1,14 +1,14 @@
 ## 中文
 
-- 修复 MMD 世界表情失效：两档模式默认保留相关形变和对象路径。
-- 不需要 MMD 表情时，可主动开启“允许混淆 MMD 表情”。
+- 修复测试同步脚本可能覆盖已有文件的问题。
+- 补充 Git 渠道、可见用户名和 MMD 保留说明，润色日语。混淆处理规则不变。
 
 ## English
 
-- Fix MMD-world expressions by preserving their shapes and object paths in both modes by default.
-- Avatars that do not need MMD expressions can explicitly enable **Obfuscate MMD expressions**.
+- Prevent the test-install helper from overwriting existing files.
+- Clarify Git channels, visible usernames and MMD preservation; refine Japanese text. Obfuscation rules are unchanged.
 
 ## 日本語
 
-- MMD ワールドの表情が動かなくなる問題を修正し、両モードで対象の形状とオブジェクトパスを既定で保持します。
-- MMD 表情が不要な場合は「MMD 表情を難読化」を明示的に有効化できます。
+- テスト導入スクリプトによる既存ファイルの上書きを防止。
+- Git チャンネル・表示されるユーザー名・MMD 保持範囲の説明と日本語表現を改善。難読化ルールは変更なし。
