@@ -24,7 +24,7 @@ VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖
 
 混淆可能增加 Avatar 的下载大小，增幅因模型和选项而异；实验性贴图旋转可能进一步增大体积。上传前请查看 SDK 构建统计。
 
-任一形变名符合 MMD 兼容规则时，两档模式默认保留该网格全部形变的名称、数据、顺序及对象路径。规则也覆盖日文／汉字和 `Blink`、`a` 等常见名称，部分非 MMD 网格也可能被保留；不需要 MMD 表情时才开启“允许混淆 MMD 表情”。
+MMD 兼容保护默认开启：保守保留整网格形变；激进保留兼容名称、全部形变数据和索引，同时混淆其余名称。两档均保留对象路径。规则含日文／汉字、`Blink`、`a` 等；非标准世界可能依赖额外名称，需实测。不需要 MMD 表情时才开启“允许混淆 MMD 表情”以取消保护。
 
 Git／安装包可在组件内检查和安装更新；VPM 安装请在 ALCOM／VCC 中更新。自动安装默认关闭。混淆不保证防提取，贴图、最终几何和必要动态形变仍可提取。
 
@@ -52,7 +52,7 @@ Experimental rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF
 
 Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
-One matching MMD-compatible shape name makes both modes preserve the mesh's complete shape names, data, order and object path by default. Japanese/Chinese characters and common names such as `Blink` and `a` also match, so some non-MMD meshes may be retained. Enable **Obfuscate MMD expressions** only when MMD-world expressions are not needed.
+MMD protection defaults on: Conservative retains all shapes on matching meshes; Aggressive keeps matching names, all frame data and indices while renaming other shapes. Both keep object paths. Rules include Japanese/Chinese characters, `Blink` and `a`; nonstandard worlds may require extra names, so test in your worlds. Enable **Obfuscate MMD expressions** to remove this protection only when MMD expressions are not needed.
 
 Choose the display language in the component. Git/unitypackage installs can check and install updates there; update VPM installs in ALCOM/VCC. Automatic installation defaults off. Textures, final geometry and required dynamic shapes remain extractable.
 
@@ -80,7 +80,7 @@ VRChat アバターのビルド時難読化ツールです。NDMF がコピー�
 
 難読化によりアバターのダウンロードサイズが増える場合があります。増加量はモデルや設定によって異なり、実験的なテクスチャ回転でさらに増える場合があります。アップロード前に SDK のビルド統計をご確認ください。
 
-形状名が一つでも MMD 互換ルールに一致すると、両モードでそのメッシュの全形状名・データ・順序とオブジェクトパスを既定で保持します。日本語・漢字を含む名前や `Blink`・`a` なども対象のため、MMD 用ではないメッシュも保持される場合があります。MMD 表情が不要な場合に限り「MMD 表情を難読化」を有効にしてください。
+MMD 保護は既定で有効です。保守は対象メッシュの全形状を保持し、積極は一致する名前と全データ・インデックスを保持しながら他の形状を改名します。両モードともパスを保持します。日本語・漢字や `Blink`・`a` などが対象で、独自ワールドの追加名は実測が必要です。MMD 表情が不要な場合に限り「MMD 表情を難読化」で保護を解除できます。
 
 コンポーネントで言語を選べます。Git／unitypackage の更新はコンポーネントから、VPM の更新は ALCOM／VCC から行います。自動インストールは初期状態でオフです。テクスチャ、最終形状、必要な動的形状は抽出可能です。
 

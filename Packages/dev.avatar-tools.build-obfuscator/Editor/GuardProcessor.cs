@@ -76,7 +76,7 @@ namespace AvatarTools.Obfuscation.Editor
         public int RenamedParameters, RenamedAnimatorNames, RebuiltAvatars, ReorderedMeshes, ImportedTextureCopies;
         public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
         public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
-        public int PreservedMmdRenderers;
+        public int PreservedMmdRenderers, PreservedMmdShapeNames, RenamedMmdShapeNames;
         public int TransformedUvMaterials, TransformedUvTextures, DecodedUvTextures;
         public int LosslessCompressedUvTextures, RecompressedUvTextures;
         public int SubtreeOverrides, ConservativeScopeRenderers, AggressiveScopeRenderers, ScopeFallbackRenderers;
@@ -98,6 +98,7 @@ namespace AvatarTools.Obfuscation.Editor
             "，Avatar 重建 " + RebuiltAvatars + "，顶点重排 " + ReorderedMeshes +
             "，形变重排网格 " + ShuffledShapeMeshes + "，同级重排组 " + ShuffledSiblingGroups +
             "，MMD 兼容网格 " + PreservedMmdRenderers +
+            (PreservedMmdShapeNames + RenamedMmdShapeNames > 0 ? "（形变名保留 " + PreservedMmdShapeNames + " / 改名 " + RenamedMmdShapeNames + "）" : "") +
             "，顺序变化对象 " + ReorderedGameObjects + "，复制对象 " + CopiedObjects +
             "，空形变移除 " + PrunedEmptyShapes + "，同步形变合并 " + MergedShapePairs + "，UV 变换网格 " + TransformedUvMeshes + "，骨骼索引表重排 " + ReorderedBonePalettes;
         public void Note(string text) { if (!Notes.Contains(text)) Notes.Add(text); }
@@ -478,17 +479,21 @@ namespace AvatarTools.Obfuscation.Editor
                 if (source.blendShapeCount == 0) continue;
                 if (mmdRenderers.Contains(renderer))
                 {
-                    // Preserve the complete index table and names. External MMD clips
-                    // are not available to rewrite during an avatar build.
-                    report.ShapesAfter += source.blendShapeCount;
                     report.PreservedMmdRenderers++;
-                    report.Note(renderer.name + "：保留 MMD 世界可能直接驱动的形变名称、数据与索引");
-                    continue;
+                    if (settings.ModeFor(renderer) == ProtectionMode.Conservative)
+                    {
+                        report.ShapesAfter += source.blendShapeCount;
+                        report.PreservedMmdShapeNames += source.blendShapeCount;
+                        report.Note(renderer.name + "：保守模式保留 MMD 网格全部形变名称、数据与索引");
+                        continue;
+                    }
+                    report.Note(renderer.name + "：保留 MMD 兼容形变名称及全表数据、索引，仅混淆其他形变名称");
                 }
                 if (unknownDriver && settings.ModeFor(renderer) == ProtectionMode.Conservative || settings.Exclusions.Contains(renderer) || meshSwaps.Contains(renderer) ||
                     ResolveRenderers(root.transform, AnimationUtility.CalculateTransformPath(renderer.transform, root.transform)).Count() != 1)
                 {
                     report.ShapesAfter += source.blendShapeCount;
+                    if (mmdRenderers.Contains(renderer)) report.PreservedMmdShapeNames += source.blendShapeCount;
                     report.Note(renderer.name + "：未知驱动、手动排除、网格替换或重复路径，形变保留");
                     continue;
                 }
@@ -506,7 +511,13 @@ namespace AvatarTools.Obfuscation.Editor
                 if (names.Distinct(StringComparer.Ordinal).Count() != names.Length)
                     throw new InvalidOperationException("重复形变名称");
                 var weights = Enumerable.Range(0, count).Select(renderer.GetBlendShapeWeight).ToArray();
-                PlanShapeReductions(renderer, source, names, weights, out var empty, out var merges);
+                // Keep every frame and slot for external MMD/index consumers. In
+                // Aggressive, unrelated names can still change with internal curves.
+                bool keepMmdTable = mmdRenderers.Contains(renderer);
+                bool[] empty;
+                Dictionary<int, int> merges;
+                if (keepMmdTable) { empty = new bool[count]; merges = new Dictionary<int, int>(); }
+                else PlanShapeReductions(renderer, source, names, weights, out empty, out merges);
                 var mergedAway = new HashSet<int>(merges.Values);
                 var freeze = new bool[count];
                 var outputNames = (string[])names.Clone();
@@ -516,6 +527,7 @@ namespace AvatarTools.Obfuscation.Editor
                     var name = names[i];
                     bool preserve = settings.PreserveShapes.Contains(name) ||
                         fixedShapeNames.TryGetValue(renderer, out var fixedNames) && fixedNames.Contains(name) ||
+                        keepMmdTable && CompatibilityShape(name) ||
                         settings.ModeFor(renderer) == ProtectionMode.Conservative && CompatibilityShape(name);
                     bool driven = animated.TryGetValue(renderer, out var used) && used.Contains(name) ||
                         nativeShapes.TryGetValue(renderer, out var native) && native.Contains(name);
@@ -523,7 +535,7 @@ namespace AvatarTools.Obfuscation.Editor
                     bool ordinary = source.GetBlendShapeFrameCount(i) == 1 &&
                         Mathf.Approximately(source.GetBlendShapeFrameWeight(i, 0), 100f) &&
                         weights[i] >= 0f && weights[i] <= 100f && !float.IsNaN(weights[i]);
-                    freeze[i] = settings.FreezeShapes && !preserve && !driven && ordinary && !empty[i] && !mergedAway.Contains(i);
+                    freeze[i] = !keepMmdTable && settings.FreezeShapes && !preserve && !driven && ordinary && !empty[i] && !mergedAway.Contains(i);
                     if (!driven && !preserve && !ordinary)
                         report.Note(renderer.name + "/" + name + "：特殊帧或权重，形变数据保留");
                     if (!freeze[i] && !empty[i] && !mergedAway.Contains(i) && !preserve && settings.RenameShapes)
@@ -533,11 +545,11 @@ namespace AvatarTools.Obfuscation.Editor
                     }
                 }
                 var retained = Enumerable.Range(0, count).Where(i => !freeze[i] && !empty[i] && !mergedAway.Contains(i)).ToArray();
-                if (settings.ShuffleShapes && retained.Length > 1)
+                if (!keepMmdTable && settings.ShuffleShapes && retained.Length > 1)
                     retained = ShuffledIndices(retained.Length).Select(i => retained[i]).ToArray();
                 bool shuffled = !retained.SequenceEqual(Enumerable.Range(0, count).Where(i => !freeze[i] && !empty[i] && !mergedAway.Contains(i)));
                 if (!freeze.Any(x => x) && !empty.Any(x => x) && merges.Count == 0 && renameMap.Count == 0 && !shuffled)
-                { report.ShapesAfter += count; return; }
+                { report.ShapesAfter += count; if (keepMmdTable) report.PreservedMmdShapeNames += count; return; }
                 copy = Object.Instantiate(source);
                 copy.name = settings.RenameAssets ? NewName() : source.name;
                 var vertices = source.vertices;
@@ -607,6 +619,11 @@ namespace AvatarTools.Obfuscation.Editor
                 report.PrunedEmptyShapes += empty.Count(x => x);
                 report.MergedShapePairs += merges.Count;
                 report.RenamedShapes += renameMap.Count;
+                if (keepMmdTable)
+                {
+                    report.PreservedMmdShapeNames += count - renameMap.Count;
+                    report.RenamedMmdShapeNames += renameMap.Count;
+                }
                 report.ShapesAfter += retained.Length;
                 if (shuffled) report.ShuffledShapeMeshes++;
             }
@@ -616,6 +633,7 @@ namespace AvatarTools.Obfuscation.Editor
                 if (copy != null && !owned.Contains(copy)) Object.DestroyImmediate(copy);
                 if (renderer.sharedMesh != source) throw;
                 report.ShapesAfter += source.blendShapeCount;
+                if (mmdRenderers.Contains(renderer)) report.PreservedMmdShapeNames += source.blendShapeCount;
                 report.Note(renderer.name + "：" + exception.GetType().Name + "，保留原形变（" + exception.Message + "）");
             }
         }

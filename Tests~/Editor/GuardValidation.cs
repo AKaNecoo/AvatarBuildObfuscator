@@ -83,7 +83,8 @@ namespace AvatarTools.Obfuscation.Validation
                 Run("Static bake geometry and dynamic curve at " + weight, () => BakeGeometry(captured));
             }
             Run("Conservative retains MMD face names, order and Body path", () => ModeTest(ProtectionMode.Conservative));
-            Run("Aggressive retains MMD face names, order and Body path by default", () => ModeTest(ProtectionMode.Aggressive));
+            Run("Aggressive retains MMD targets while renaming unrelated face shapes", () => ModeTest(ProtectionMode.Aggressive));
+            Run("MMD name-only processing retains every frame, weight and index", MmdNamesOnly);
             Run("Explicit MMD opt-in restores aggressive shape processing", MmdOptOut);
             Run("Native visemes survive rename", NativeVisemes);
             Run("Eyelid indices remap after static shape removal", EyelidIndices);
@@ -239,8 +240,12 @@ namespace AvatarTools.Obfuscation.Validation
             var decor = new GameObject("Decor"); decor.transform.SetParent(root.transform, false);
             Controller(root, Clip("Body", "笑い")); var report = Process(root, mode);
             Check(report.PreservedMmdRenderers == 1 && r.sharedMesh.blendShapeCount == 3 &&
-                Enumerable.Range(0, 3).Select(r.sharedMesh.GetBlendShapeName).SequenceEqual(new[] { "あ", "笑い", "OtherFace" }),
-                "MMD face table was changed: " + report.Summary);
+                report.PreservedMmdShapeNames == (mode == ProtectionMode.Conservative ? 3 : 2) &&
+                report.RenamedMmdShapeNames == (mode == ProtectionMode.Conservative ? 0 : 1) &&
+                r.sharedMesh.GetBlendShapeName(0) == "あ" && r.sharedMesh.GetBlendShapeName(1) == "笑い" &&
+                (mode == ProtectionMode.Conservative ? r.sharedMesh.GetBlendShapeName(2) == "OtherFace" :
+                    UsernameNameGenerator.IsGeneratedName(r.sharedMesh.GetBlendShapeName(2))),
+                "MMD face-name policy failed: " + report.Summary);
             Check(r.name == "Body" && r.transform.GetSiblingIndex() == 0 &&
                 accessory.transform.GetSiblingIndex() == 1 && decor.transform.GetSiblingIndex() == 2,
                 "MMD Body path/order changed");
@@ -250,6 +255,52 @@ namespace AvatarTools.Obfuscation.Validation
             var output = root.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single();
             Check(AnimationUtility.GetCurveBindings(output).Single().propertyName == "blendShape.笑い" &&
                 AnimationUtility.GetCurveBindings(output).Single().path == "Body", "MMD animation path changed");
+        }
+
+        private static void MmdNamesOnly()
+        {
+            var root = Root(); var marker = root.GetComponent<AvatarBuildObfuscator>();
+            marker.pruneEmptyBlendShapes = true; marker.mergeSynchronizedBlendShapes = true;
+            marker.shuffleBlendShapeOrder = true; marker.preserveBlendShapes = new[] { "ManualFace" };
+            var source = Mesh("あ", "CustomFace", "ManualFace");
+            source.AddBlendShapeFrame("EmptyFace", 100, new Vector3[3], new Vector3[3], new Vector3[3]);
+            source.AddBlendShapeFrame("MultiFace", 40, Enumerable.Repeat(Vector3.up * .02f, 3).ToArray(), new Vector3[3], new Vector3[3]);
+            source.AddBlendShapeFrame("MultiFace", 100, Enumerable.Repeat(Vector3.up * .08f, 3).ToArray(), new Vector3[3], new Vector3[3]);
+            var renderer = Renderer(root, "Body", source);
+            for (int i = 0; i < source.blendShapeCount; i++) renderer.SetBlendShapeWeight(i, i * 17 + 2);
+            var descriptor = root.AddComponent<VRCAvatarDescriptor>();
+            descriptor.VisemeSkinnedMesh = renderer; descriptor.VisemeBlendShapes = new[] { "CustomFace" };
+            var eyes = descriptor.customEyeLookSettings; eyes.eyelidsSkinnedMesh = renderer;
+            eyes.eyelidsBlendshapes = new[] { 1, 3, 4 }; descriptor.customEyeLookSettings = eyes;
+            var clip = Clip("Body", "CustomFace"); Controller(root, clip);
+            var before = Baked(renderer);
+            var report = Process(root, ProtectionMode.Aggressive); var result = renderer.sharedMesh;
+            Check(result != source && result.blendShapeCount == source.blendShapeCount &&
+                result.GetBlendShapeName(0) == "あ" && result.GetBlendShapeName(2) == "ManualFace" &&
+                report.RenamedShapes == 3 && report.PreservedMmdShapeNames == 2 && report.RenamedMmdShapeNames == 3 &&
+                report.FrozenShapes == 0 && report.PrunedEmptyShapes == 0 &&
+                report.MergedShapePairs == 0 && report.ShuffledShapeMeshes == 0, report.Summary);
+            Check(Difference(before.vertices, Baked(renderer).vertices) < .00001f, "MMD geometry changed");
+            for (int i = 0; i < source.blendShapeCount; i++)
+            {
+                Check(renderer.GetBlendShapeWeight(i) == i * 17 + 2 &&
+                    result.GetBlendShapeFrameCount(i) == source.GetBlendShapeFrameCount(i), "MMD index/weight changed");
+                for (int f = 0; f < source.GetBlendShapeFrameCount(i); f++)
+                {
+                    var a = new Vector3[3]; var an = new Vector3[3]; var at = new Vector3[3];
+                    var b = new Vector3[3]; var bn = new Vector3[3]; var bt = new Vector3[3];
+                    source.GetBlendShapeFrameVertices(i, f, a, an, at); result.GetBlendShapeFrameVertices(i, f, b, bn, bt);
+                    Check(a.SequenceEqual(b) && an.SequenceEqual(bn) && at.SequenceEqual(bt) &&
+                        source.GetBlendShapeFrameWeight(i, f) == result.GetBlendShapeFrameWeight(i, f), "MMD frame data changed");
+                }
+            }
+            var output = root.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single();
+            Check(AnimationUtility.GetCurveBindings(output).Single().propertyName == "blendShape." + result.GetBlendShapeName(1) &&
+                AnimationUtility.GetCurveBindings(output).Single().path == "Body", "Unrelated face curve did not follow its new name");
+            Check(source.GetBlendShapeName(1) == "CustomFace" &&
+                AnimationUtility.GetCurveBindings(clip).Single().propertyName == "blendShape.CustomFace", "Source face data changed");
+            Check(descriptor.VisemeBlendShapes[0] == result.GetBlendShapeName(1) &&
+                descriptor.customEyeLookSettings.eyelidsBlendshapes.SequenceEqual(new[] { 1, 3, 4 }), "MMD viseme or eyelid reference changed");
         }
 
         private static void MmdOptOut()
