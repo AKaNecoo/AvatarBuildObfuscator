@@ -13,7 +13,7 @@ namespace AvatarTools.Obfuscation.Validation
 {
     public static partial class GuardValidation
     {
-        private static GameObject HumanoidFixture()
+        private static GameObject HumanoidFixture(bool includeMmdObjects = false)
         {
             var root = Root();
             var bones = new Dictionary<HumanBodyBones, Transform>();
@@ -44,6 +44,11 @@ namespace AvatarTools.Obfuscation.Validation
                 add(knee, leg, Vector3.down * .4f);
                 add(foot, knee, new Vector3(0, -.4f, .06f));
             }
+            if (includeMmdObjects)
+            {
+                Renderer(root, "Body", Mesh("あ"));
+                Renderer(root, "Body_b", Mesh("笑い"));
+            }
             var parentField = typeof(SkeletonBone).GetField("parentName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             var skeleton = root.GetComponentsInChildren<Transform>(true).Select(t =>
             {
@@ -68,6 +73,7 @@ namespace AvatarTools.Obfuscation.Validation
         private static bool InvokeHumanoidFallback(GameObject root, HashSet<Transform> protectedPaths, out Dictionary<Transform, string> renames)
         {
             var processor = new GuardProcessor(root, new GuardSettings(root.GetComponent<AvatarBuildObfuscator>()), value => Track(value));
+            typeof(GuardProcessor).GetMethod("CollectMmdRenderers", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(processor, null);
             renames = (Dictionary<Transform, string>)typeof(GuardProcessor).GetField("objectNames", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(processor);
             var all = root.GetComponentsInChildren<Transform>(true);
             foreach (var t in all) renames[t] = "Mapped_" + renames.Count;
@@ -94,6 +100,33 @@ namespace AvatarTools.Obfuscation.Validation
                 "Original rig or accessory naming was not preserved correctly");
             for (int i = 0; i < before.Length; i++)
                 Check(animator.GetBoneTransform((HumanBodyBones)i) == before[i], "Humanoid binding changed after fallback");
+        }
+
+        private static void HumanoidFallbackMmdObjects()
+        {
+            foreach (bool enabled in new[] { false, true })
+            {
+                var root = HumanoidFixture(true);
+                var animator = root.GetComponent<Animator>();
+                var avatar = animator.avatar;
+                root.GetComponent<AvatarBuildObfuscator>().renameMmdObjectNames = enabled;
+                var bodies = new[] { root.transform.Find("Body"), root.transform.Find("Body_b") };
+                Check(bodies.All(t => avatar.humanDescription.skeleton.Any(b => b.name == t.name)),
+                    "Fixture did not include MMD objects in the Avatar description");
+                var expected = Enumerable.Range(0, (int)HumanBodyBones.LastBone)
+                    .Select(i => animator.GetBoneTransform((HumanBodyBones)i)).ToArray();
+                var sourceNames = root.GetComponentsInChildren<Transform>(true).ToDictionary(t => t, t => t.name);
+                var kept = new HashSet<Transform>();
+                Check(InvokeHumanoidFallback(root, kept, out var renames), "MMD object fallback was rejected");
+                Check(bodies.All(t => kept.Contains(t) != enabled) && expected.Where(t => t != null).All(kept.Contains),
+                    "MMD naming policy retained non-bones or released a Human bone");
+                Check(sourceNames.All(pair => pair.Key.name == pair.Value) && animator.avatar == avatar,
+                    "MMD fallback probe changed its source");
+                foreach (var pair in renames) if (!kept.Contains(pair.Key)) pair.Key.name = pair.Value;
+                animator.Rebind();
+                for (int i = 0; i < expected.Length; i++)
+                    Check(animator.GetBoneTransform((HumanBodyBones)i) == expected[i], "MMD object renaming changed the original Human binding");
+            }
         }
 
         private static void HumanoidFallbackNested()

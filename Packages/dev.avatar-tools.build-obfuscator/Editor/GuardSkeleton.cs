@@ -103,6 +103,21 @@ namespace AvatarTools.Obfuscation.Editor
 
         private bool TryPreserveOriginalAvatar(Animator animator, Transform[] all, Action<Transform> protectPath)
         {
+            if (settings.RenameMmdObjectNames && mmdRenderers.Count != 0)
+            {
+                if (TryPreserveOriginalAvatarWithPolicy(animator, all, protectPath, true))
+                {
+                    report.Note("原 Avatar 绑定验证通过，允许非骨骼 MMD 对象改名；真实骨骼和蒙皮路径继续保留");
+                    return true;
+                }
+                report.Note("MMD 对象改名未通过原 Avatar 绑定验证，继续保留骨架描述路径并尝试其他对象改名");
+            }
+            return TryPreserveOriginalAvatarWithPolicy(animator, all, protectPath, false);
+        }
+
+        private bool TryPreserveOriginalAvatarWithPolicy(Animator animator, Transform[] all,
+            Action<Transform> protectPath, bool renameMmdObjects)
+        {
             // Limit this fallback to one root rig. Interacting nested Avatars need
             // a joint binding proof; their existing whole-tree fallback remains.
             if (animator.transform != root.transform || root.GetComponentsInChildren<Animator>(true).Count(a => a.avatar != null) != 1)
@@ -119,8 +134,13 @@ namespace AvatarTools.Obfuscation.Editor
                     { fixedTransforms.Add(t); if (t == root.transform) break; t = t.parent; }
                 };
                 keep(animator.transform);
+                var mmdPaths = new HashSet<Transform>();
+                if (renameMmdObjects)
+                    foreach (var renderer in mmdRenderers)
+                        for (var t = renderer.transform; t != null && t != root.transform && t.IsChildOf(root.transform); t = t.parent)
+                            mmdPaths.Add(t);
                 var names = new HashSet<string>(sourceAvatar.humanDescription.skeleton.Select(b => b.name), StringComparer.Ordinal);
-                foreach (var t in all) if (names.Contains(t.name)) keep(t);
+                foreach (var t in all) if (names.Contains(t.name) && !mmdPaths.Contains(t)) keep(t);
                 for (int i = 0; i < (int)HumanBodyBones.LastBone; i++) keep(animator.GetBoneTransform((HumanBodyBones)i));
                 foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 { keep(renderer.rootBone); foreach (var bone in renderer.bones) keep(bone); }

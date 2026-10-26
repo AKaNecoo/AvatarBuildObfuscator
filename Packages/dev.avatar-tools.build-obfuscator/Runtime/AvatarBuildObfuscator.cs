@@ -49,6 +49,8 @@ namespace AvatarTools.Obfuscation
         public bool shuffleBlendShapeOrder = true;
         [Tooltip("混淆构建副本对象名，同时重写动画与 AvatarMask 路径；保守模式保留尚无法验证的依赖。")]
         public bool renameGameObjects = true;
+        [Tooltip("独立允许混淆 Body 等 MMD 对象名称及路径；仍保留兼容形变名称、数据和索引。可能影响按固定对象路径查找的 MMD 世界。需要启用对象改名，其他保留规则仍然有效。")]
+        public bool renameMmdObjectNames;
         [Tooltip("打乱构建副本的同级对象顺序，不改变父子关系和坐标。UI、重复同名和已知顺序依赖保留。")]
         public bool shuffleGameObjectOrder = true;
         public bool renameParameters = true;

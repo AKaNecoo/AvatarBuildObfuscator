@@ -85,6 +85,8 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Conservative retains MMD face names, order and Body path", () => ModeTest(ProtectionMode.Conservative));
             Run("Aggressive retains MMD targets while renaming unrelated face shapes", () => ModeTest(ProtectionMode.Aggressive));
             Run("MMD name-only processing retains every frame, weight and index", MmdNamesOnly);
+            Run("MMD object naming opt-in keeps shape data, indices and internal references", MmdObjectNames);
+            Run("MMD object naming respects manual preservation and the object-name switch", MmdObjectNamesPreservation);
             Run("Explicit MMD opt-in restores aggressive shape processing", MmdOptOut);
             Run("Native visemes survive rename", NativeVisemes);
             Run("Eyelid indices remap after static shape removal", EyelidIndices);
@@ -110,6 +112,7 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Unknown driver policy differs by mode", HierarchyUnknown);
             Run("Conservative hierarchy also rewrites all known bindings", () => HierarchyBindings(ProtectionMode.Conservative));
             Run("Original Humanoid fallback protects rig paths without blocking accessories", HumanoidFallback);
+            Run("Original Humanoid fallback independently validates MMD non-bone object names", HumanoidFallbackMmdObjects);
             Run("Original Humanoid fallback refuses interacting nested Avatars", HumanoidFallbackNested);
             Run("Parameters, menu, driver, Animator fields and PhysBone suffixes stay linked", ParameterGraph);
             Run("Vertex permutation preserves topology, channels, skinning and dynamic shapes", MeshPermutation);
@@ -306,6 +309,67 @@ namespace AvatarTools.Obfuscation.Validation
                 AnimationUtility.GetCurveBindings(clip).Single().propertyName == "blendShape.CustomFace", "Source face data changed");
             Check(descriptor.VisemeBlendShapes[0] == result.GetBlendShapeName(1) &&
                 descriptor.customEyeLookSettings.eyelidsBlendshapes.SequenceEqual(new[] { 1, 3, 4 }), "MMD viseme or eyelid reference changed");
+        }
+
+        private static void MmdObjectNames()
+        {
+            foreach (var mode in new[] { ProtectionMode.Conservative, ProtectionMode.Aggressive })
+            {
+                var root = Root();
+                var marker = root.GetComponent<AvatarBuildObfuscator>();
+                Check(!marker.renameMmdObjectNames, "MMD object naming must require explicit opt-in");
+                marker.renameMmdObjectNames = true;
+                marker.shuffleBlendShapeOrder = true;
+                marker.shuffleGameObjectOrder = true;
+                marker.pruneEmptyBlendShapes = true;
+                marker.mergeSynchronizedBlendShapes = true;
+                SiblingChild(root, "Accessory");
+                var source = Mesh("あ", "CustomFace");
+                var renderer = Renderer(root, "Body", source);
+                renderer.SetBlendShapeWeight(0, 27);
+                renderer.SetBlendShapeWeight(1, 63);
+                var before = Baked(renderer);
+                var descriptor = root.AddComponent<VRCAvatarDescriptor>();
+                descriptor.VisemeSkinnedMesh = renderer;
+                descriptor.VisemeBlendShapes = new[] { "あ", "CustomFace" };
+                var eye = descriptor.customEyeLookSettings;
+                eye.eyelidsSkinnedMesh = renderer;
+                eye.eyelidsBlendshapes = new[] { 1, 0, -1 };
+                descriptor.customEyeLookSettings = eye;
+                Controller(root, Clip("Body", "あ"));
+                var report = Process(root, mode);
+                Check(UsernameNameGenerator.IsGeneratedName(renderer.name) && renderer.transform.GetSiblingIndex() == 1,
+                    "MMD object name was retained or its protected index changed");
+                Check(renderer.sharedMesh.blendShapeCount == 2 && renderer.sharedMesh.GetBlendShapeName(0) == "あ" &&
+                    renderer.GetBlendShapeWeight(0) == 27 && renderer.GetBlendShapeWeight(1) == 63 &&
+                    report.ShuffledShapeMeshes == 0 && report.FrozenShapes == 0 && report.PrunedEmptyShapes == 0 && report.MergedShapePairs == 0,
+                    "Object-name opt-in changed MMD shape data or indices: " + report.Summary);
+                Check(descriptor.VisemeBlendShapes.SequenceEqual(Enumerable.Range(0, 2).Select(renderer.sharedMesh.GetBlendShapeName)) &&
+                    descriptor.customEyeLookSettings.eyelidsBlendshapes.SequenceEqual(new[] { 1, 0, -1 }),
+                    "Object-name opt-in changed SDK shape references");
+                var copied = root.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single();
+                var binding = AnimationUtility.GetCurveBindings(copied).Single();
+                Check(root.transform.Find(binding.path) == renderer.transform && binding.propertyName == "blendShape.あ",
+                    "Renamed MMD object lost its internal animation binding");
+                Check(Difference(before.vertices, Baked(renderer).vertices) < .00001f && source.GetBlendShapeName(1) == "CustomFace",
+                    "Object-name opt-in changed posed geometry or source mesh");
+            }
+        }
+
+        private static void MmdObjectNamesPreservation()
+        {
+            foreach (var manual in new[] { false, true })
+            {
+                var root = Root();
+                var marker = root.GetComponent<AvatarBuildObfuscator>();
+                marker.renameMmdObjectNames = true;
+                var renderer = Renderer(root, "Body", Mesh("あ"));
+                if (manual) marker.preserveGameObjects = new[] { renderer.transform };
+                else marker.renameGameObjects = false;
+                Process(root, ProtectionMode.Aggressive);
+                Check(renderer.name == "Body" && renderer.sharedMesh.GetBlendShapeName(0) == "あ",
+                    "MMD object-name opt-in bypassed explicit preservation or the object-name switch");
+            }
         }
 
         private static void MmdOptOut()

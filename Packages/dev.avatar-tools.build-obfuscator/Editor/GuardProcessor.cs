@@ -19,7 +19,7 @@ namespace AvatarTools.Obfuscation.Editor
         public string UserName;
         public bool RenameAssets, FreezeShapes, RenameShapes, RenameHierarchy, RenameParameters, RenameAnimatorInternals, RenameBones, ReorderVertices;
         public bool ShuffleShapes, ShuffleHierarchy;
-        public bool PreserveMmdCompatibility;
+        public bool PreserveMmdCompatibility, RenameMmdObjectNames;
         public bool RandomizeEachBuild, AuditBuild, PruneEmptyShapes, EmbedNotice, EmbedFingerprint, TransformUv, MergeShapes;
         public string RightsHolder, RightsContact, UsageRestrictions;
         public string[] PreserveParameters;
@@ -38,6 +38,7 @@ namespace AvatarTools.Obfuscation.Editor
             FreezeShapes = component.freezeUnusedBlendShapes;
             RenameShapes = component.renameDynamicBlendShapes;
             PreserveMmdCompatibility = !component.allowMmdObfuscation;
+            RenameMmdObjectNames = component.renameMmdObjectNames;
             ShuffleShapes = component.shuffleBlendShapeOrder;
             ShuffleHierarchy = component.shuffleGameObjectOrder;
             RandomizeEachBuild = component.randomizeEachBuild;
@@ -221,7 +222,10 @@ namespace AvatarTools.Obfuscation.Editor
             foreach (var t in settings.PreserveObjects) protectTree(t);
             // MMD worlds can bind external clips to the original face path (often Body).
             // Internal clip rewriting cannot update those world-owned paths.
-            foreach (var renderer in mmdRenderers) protectPath(renderer.transform);
+            if (!settings.RenameMmdObjectNames)
+                foreach (var renderer in mmdRenderers) protectPath(renderer.transform);
+            else if (mmdRenderers.Count != 0)
+                report.Note("允许混淆 MMD 对象名称与路径，仍保留兼容形变名称及全表数据和索引；外部固定对象路径可能失效");
             if (unknownDriver && settings.HasSubtreeOverrides)
                 foreach (var t in all.Where(t => settings.ModeFor(t) == ProtectionMode.Conservative))
                 { blocked.Add(t); protectPath(t); }
