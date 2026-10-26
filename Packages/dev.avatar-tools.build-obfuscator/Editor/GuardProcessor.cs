@@ -285,7 +285,7 @@ namespace AvatarTools.Obfuscation.Editor
                     if (strings.Contains(t.name) || strings.Contains(AnimationUtility.CalculateTransformPath(t, relativeRoot))) protectPath(t);
 
             foreach (var t in all) if (!blocked.Contains(t)) objectNames[t] = NewName();
-            PrepareRebuiltAvatars(all, protectTree);
+            PrepareRebuiltAvatars(all, protectTree, t => { blocked.Add(t); protectPath(t); });
             foreach (var t in blocked) objectNames.Remove(t);
             report.RenamedGameObjects = objectNames.Count;
             report.PreservedGameObjects = all.Length - objectNames.Count;

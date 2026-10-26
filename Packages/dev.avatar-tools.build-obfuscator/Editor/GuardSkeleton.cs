@@ -15,7 +15,7 @@ namespace AvatarTools.Obfuscation.Editor
     {
         private readonly Dictionary<Animator, Avatar> rebuiltAvatars = new Dictionary<Animator, Avatar>();
 
-        private void PrepareRebuiltAvatars(Transform[] all, Action<Transform> protectTree)
+        private void PrepareRebuiltAvatars(Transform[] all, Action<Transform> protectTree, Action<Transform> protectPath)
         {
             if (!settings.RenameBones || objectNames.Count == 0) return;
             // A separate hierarchy preflight lets us reject an unsupported skeleton
@@ -35,7 +35,12 @@ namespace AvatarTools.Obfuscation.Editor
                 // Renaming only name produces an invalid HumanDescription in 2022.3.
                 var parentField = typeof(SkeletonBone).GetField("parentName", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                 if (parentField == null)
-                { protectTree(animator.transform); report.Note("当前 Unity 未暴露可重映射的 SkeletonBone.parentName，保留该 Avatar 层级"); continue; }
+                {
+                    if (TryPreserveOriginalAvatar(animator, all, protectPath))
+                        report.Note("当前 Unity 未暴露 SkeletonBone.parentName，保留原 Avatar 与骨架路径，其他对象继续处理");
+                    else { protectTree(animator.transform); report.Note("当前 Unity 未暴露可重映射的 SkeletonBone.parentName，保留该 Avatar 层级"); }
+                    continue;
+                }
                 if (skeleton.Length > 0 && !human.Any(b => b.boneName == skeleton[0].name))
                     renames[skeleton[0].name] = objectNames.TryGetValue(animator.transform, out var rootName) ? rootName : animator.name;
                 for (int i = 0; i < human.Length; i++)
@@ -80,8 +85,13 @@ namespace AvatarTools.Obfuscation.Editor
                 }
                 catch (Exception e)
                 {
-                    protectTree(animator.transform);
-                    report.Note("Humanoid 重建未通过预检，保留对应层级：" + e.Message);
+                    if (TryPreserveOriginalAvatar(animator, all, protectPath))
+                        report.Note("Humanoid 重建未通过预检，保留原 Avatar 与骨架路径，其他对象继续处理：" + e.Message);
+                    else
+                    {
+                        protectTree(animator.transform);
+                        report.Note("Humanoid 重建未通过预检，保留对应层级：" + e.Message);
+                    }
                 }
                 finally
                 {
@@ -89,6 +99,53 @@ namespace AvatarTools.Obfuscation.Editor
                     if (avatar != null) Object.DestroyImmediate(avatar);
                 }
             }
+        }
+
+        private bool TryPreserveOriginalAvatar(Animator animator, Transform[] all, Action<Transform> protectPath)
+        {
+            // Limit this fallback to one root rig. Interacting nested Avatars need
+            // a joint binding proof; their existing whole-tree fallback remains.
+            if (animator.transform != root.transform || root.GetComponentsInChildren<Animator>(true).Count(a => a.avatar != null) != 1)
+                return false;
+            var sourceAvatar = animator.avatar;
+            if (sourceAvatar == null || !sourceAvatar.isValid || !sourceAvatar.isHuman) return false;
+            GameObject probe = null;
+            try
+            {
+                var fixedTransforms = new HashSet<Transform>();
+                Action<Transform> keep = t =>
+                {
+                    while (t != null && (t == root.transform || t.IsChildOf(root.transform)))
+                    { fixedTransforms.Add(t); if (t == root.transform) break; t = t.parent; }
+                };
+                keep(animator.transform);
+                var names = new HashSet<string>(sourceAvatar.humanDescription.skeleton.Select(b => b.name), StringComparer.Ordinal);
+                foreach (var t in all) if (names.Contains(t.name)) keep(t);
+                for (int i = 0; i < (int)HumanBodyBones.LastBone; i++) keep(animator.GetBoneTransform((HumanBodyBones)i));
+                foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                { keep(renderer.rootBone); foreach (var bone in renderer.bones) keep(bone); }
+
+                probe = Object.Instantiate(root); probe.name = root.name; probe.hideFlags = HideFlags.HideAndDontSave;
+                var copiedTransforms = probe.GetComponentsInChildren<Transform>(true);
+                if (copiedTransforms.Length != all.Length) return false;
+                var probeAnimator = probe.GetComponent<Animator>();
+                var expected = Enumerable.Range(0, (int)HumanBodyBones.LastBone)
+                    .Select(i => probeAnimator.GetBoneTransform((HumanBodyBones)i)).ToArray();
+                float scale = animator.humanScale;
+                for (int i = 0; i < all.Length; i++)
+                    if (!fixedTransforms.Contains(all[i]) && objectNames.TryGetValue(all[i], out var name)) copiedTransforms[i].name = name;
+                // Force native binding against the unchanged original Avatar. Cached
+                // pre-rename GetBoneTransform results are not a sufficient proof.
+                probeAnimator.avatar = null; probeAnimator.avatar = sourceAvatar; probeAnimator.Rebind();
+                if (!probeAnimator.isHuman || Mathf.Abs(probeAnimator.humanScale - scale) > .0001f) return false;
+                for (int i = 0; i < expected.Length; i++)
+                    if (probeAnimator.GetBoneTransform((HumanBodyBones)i) != expected[i]) return false;
+                foreach (var t in fixedTransforms) protectPath(t);
+                return true;
+            }
+            catch (Exception e)
+            { report.Note("原 Avatar 局部保留验证失败，回退整层级保留：" + e.Message); return false; }
+            finally { if (probe != null) Object.DestroyImmediate(probe); }
         }
 
         private void ApplyRebuiltAvatars()

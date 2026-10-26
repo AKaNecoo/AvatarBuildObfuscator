@@ -109,6 +109,8 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Hierarchy option off and Conservative keep object names", HierarchyDisabled);
             Run("Unknown driver policy differs by mode", HierarchyUnknown);
             Run("Conservative hierarchy also rewrites all known bindings", () => HierarchyBindings(ProtectionMode.Conservative));
+            Run("Original Humanoid fallback protects rig paths without blocking accessories", HumanoidFallback);
+            Run("Original Humanoid fallback refuses interacting nested Avatars", HumanoidFallbackNested);
             Run("Parameters, menu, driver, Animator fields and PhysBone suffixes stay linked", ParameterGraph);
             Run("Vertex permutation preserves topology, channels, skinning and dynamic shapes", MeshPermutation);
             Run("Block vertex permutation preserves associations across block boundaries", MeshPermutationBlocks);
