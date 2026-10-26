@@ -36,6 +36,8 @@ To migrate to VPM, first remove a Git installation in Package Manager, then inst
 2. Enter your username and choose a mode. New components default to an existing avatar ID; edit it freely, or enter a username if no ID exists.
 3. Build normally with the VRChat SDK. Inspect the build copy; original Hierarchy and Project names stay unchanged.
 
+Your username is a visible prefix in the build output. Keeping the default also exposes the avatar ID in generated names; change it before building if you do not want to publish that value.
+
 Use **Show latest build report** to search retained items and inspect notices/fingerprints. **Test build and comparison** creates temporary copies for sampled checks and cleans them when the window closes; it does not replace full VRChat testing. Per-renderer lists preserve selected operations, and presets store only operation switches and mode.
 
 The component supports Simplified Chinese, English and Japanese. Options can be switched independently. Declared rights holders and contacts are published with the notice; it does not authenticate ownership or guarantee that AI will refuse to assist in reverse-engineering the model.
@@ -51,11 +53,13 @@ The component supports Simplified Chinese, English and Japanese. Options can be 
 
 Update VPM installations in **ALCOM/VCC**. Git and `.unitypackage` installations use the component's version/update panel; Git also supports Package Manager. Automatic checks default on; automatic installation defaults off. Package-based updates remove temporary downloads afterward.
 
+Git `#main` and `#beta` update independently and do not switch channels automatically. To move from beta to stable, add the same Git URL ending in `#main` again in Package Manager; existing component settings are retained.
+
 ## Notes
 
 Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
-Both modes preserve shape names, order and object paths on meshes with MMD expressions by default for MMD-world compatibility. Enable **Obfuscate MMD expressions** only if you do not need those expressions.
+For MMD-world compatibility, a single matching shape name makes both modes preserve the mesh's **complete BlendShape names, data, order and object path** by default. The rules include Japanese/Chinese characters and common names such as `Blink` and `a`, so some non-MMD meshes may also be retained. Enable **Obfuscate MMD expressions** only if you do not need MMD expressions.
 
 Obfuscation does not prevent extraction: texture pixels, final geometry and required dynamic BlendShapes remain extractable. Check Aggressive mode in a test build first. Console messages prefixed with `[Avatar Build Obfuscator]` report processing counts and preservation reasons.
 
