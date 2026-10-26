@@ -1,6 +1,6 @@
 # Testing and validation
 
-This page summarizes the checks relevant to the current **0.8.1** release. Test commands are below; detailed results from earlier versions remain available in [the 0.8.1 beta record](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/c1c39dfe19893d784d8deceff1cc9b6950547444/TESTING.md) and [the 0.8.0 stable record](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/bf1f2cec13e5b8f8e02d1e57d374674ba8ba0b67/TESTING.md). Test results apply to the stated versions and environments, rather than every avatar or VRChat world.
+This page summarizes the checks relevant to **0.8.1**. Test results apply to the stated versions and environments, rather than every avatar or VRChat world.
 
 ## Current results
 
@@ -27,6 +27,8 @@ python Tools/ci_package.py
 `ci_package.py` validates the package identity, license, GUIDs and metadata, then builds and reads back reproducible TGZ, ZIP and unitypackage archives. Its output is placed under the local `Artifacts/` directory.
 
 Unity Editor checks are opt-in. In a disposable Unity 2022.3 project with the VRChat Avatar SDK and NDMF installed, copy `Tests~/Editor` and `Tests~/Runtime` with their assembly definitions under `Assets`. An Editor script can call `AvatarTools.Obfuscation.Validation.GuardValidation.RunAll(outputJsonPath)` to create and run synthetic fixtures. Full-avatar comparison uses `FullAvatarValidation` with an avatar you are authorized to test; it creates temporary validation assets. Review the output and remove the fixture after testing. These Editor checks are separate from the commands above and require a Unity installation.
+
+For a fresh Assets installation in a disposable project, `python Tools/sync_to_test_project.py <project>` copies the package with its existing GUIDs. It refuses an existing target directory or `.meta`, an existing UPM installation and linked project directories. Use the package manager to update existing installations.
 
 ## Remaining limits
 
