@@ -9,7 +9,7 @@ VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖
 可从[ALCOM／VCC 仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)安装并由 ALCOM／VCC 更新；Git 或 `.unitypackage` 请只选一种安装方式，迁移步骤见仓库说明。
 
 1. 在 **Hierarchy** 选中 Avatar 根对象，在右侧 **Inspector** 底部点击 **Add Component（添加组件）**，搜索并选择 **Avatar Build Obfuscator**。
-2. 填写用户名并选择保守或激进模式。新组件默认读取已有 Avatar ID，可自行修改。该值会作为可见前缀写入构建产物，不希望公开时请更换。
+2. 填写用户名并选择保守或激进模式。新组件默认读取已有 Avatar ID，可自行修改。该值的前缀（最多 32 字符）会公开出现在构建产物名称中，不希望公开时请更换。
 3. 使用 VRChat SDK 正常构建；源工程名称保持原样。
 
 组件可打开可搜索的构建报告、核对声明与指纹，或生成临时副本做构建对照。关闭对照窗口会清理临时产物；采样检查不代替 VRChat 内测试。支持蒙皮骨骼索引表重排、按 Renderer 保留处理项，以及不含身份信息的设置预设。
@@ -37,7 +37,7 @@ Build-time obfuscation for VRChat avatars. NDMF processes a build copy without o
 Install from the [ALCOM/VCC repository page](https://akanecoo.github.io/AvatarBuildObfuscator/) and update through ALCOM/VCC. Use only one installation route; see the repository guide when migrating from Git or a unitypackage.
 
 1. Select the avatar root in **Hierarchy**. Click **Add Component** at the bottom of **Inspector**, then search for and select **Avatar Build Obfuscator**.
-2. Enter your username and choose Conservative or Aggressive. New components default to an existing avatar ID. This value becomes a visible prefix in the build output; change it if you do not want to publish it.
+2. Enter your username and choose Conservative or Aggressive. New components default to an existing avatar ID. Up to 32 characters become a visible prefix in build output names; change the value if you do not want to publish it.
 3. Build normally with the VRChat SDK; original project names stay unchanged.
 
 Open searchable build reports, inspect notices/fingerprints, or compare temporary builds from the component. Closing the comparison window cleans temporary output; sampled checks do not replace VRChat testing. Supports skin bone-palette permutation, per-renderer preservation and identity-free operation presets.
@@ -65,7 +65,7 @@ VRChat アバターのビルド時難読化ツールです。NDMF がコピー�
 [ALCOM／VCC のリポジトリページ](https://akanecoo.github.io/AvatarBuildObfuscator/)から導入し、ALCOM／VCC で更新できます。導入方式は一つだけ使用してください。Git や unitypackage からの移行はリポジトリの説明をご確認ください。
 
 1. **Hierarchy** でルートを選択し、右側の **Inspector** 下部で **Add Component（コンポーネントを追加）** をクリックします。**Avatar Build Obfuscator** を検索して選びます。
-2. ユーザー名と保守／積極モードを設定します。新規追加時は既存の Avatar ID が初期値になります。この値はビルド結果の名前に接頭辞として表示されるため、公開したくない場合は変更してください。
+2. ユーザー名と保守／積極モードを設定します。新規追加時は既存の Avatar ID が初期値になります。先頭部分（最大32文字）はビルド結果の名前に表示されるため、公開したくない場合は変更してください。
 3. VRChat SDK で通常どおりビルドします。元の名前は変わりません。
 
 コンポーネントからレポート検索・声明と識別子の照合・一時ビルド比較ができます。比較ウィンドウを閉じると一時出力を削除します。検査は VRChat 内のテストの代わりにはなりません。ボーン表並べ替え・Renderer ごとの保持・名義情報を含まないプリセットに対応します。

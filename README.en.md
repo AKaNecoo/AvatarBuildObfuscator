@@ -36,7 +36,7 @@ To migrate to VPM, first remove a Git installation in Package Manager, then inst
 2. Enter your username and choose a mode. New components default to an existing avatar ID; edit it freely, or enter a username if no ID exists.
 3. Build normally with the VRChat SDK. Inspect the build copy; original Hierarchy and Project names stay unchanged.
 
-Your username is a visible prefix in the build output. Keeping the default also exposes the avatar ID in generated names; change it before building if you do not want to publish that value.
+Up to 32 characters of your username appear as a visible prefix in build output names. With the default value, this includes part of your avatar ID; change it before building if you do not want to publish that value.
 
 Use **Show latest build report** to search retained items and inspect notices/fingerprints. **Test build and comparison** creates temporary copies for sampled checks and cleans them when the window closes; it does not replace full VRChat testing. Per-renderer lists preserve selected operations, and presets store only operation switches and mode.
 
