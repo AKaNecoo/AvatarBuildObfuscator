@@ -129,6 +129,8 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Shape order switch and excluded renderer preserve indices", ShapeOrderDisabled);
             Run("Sibling shuffle keeps transforms and animation targets in both modes", SiblingOrder);
             Run("Sibling shuffle preserves duplicate names, UI and manual exclusions", SiblingOrderPreserves);
+            Run("Sibling shuffle pins MMD path indices while moving unrelated siblings", SiblingOrderMmdPins);
+            Run("Sibling shuffle pins manual ancestor indices and preserves excluded descendants", SiblingOrderManualPins);
             Run("Sibling shuffle switch is independent of renaming", SiblingOrderDisabled);
             Run("Unreadable textures retain original identity and pixels", UnreadableTexture);
             foreach (var format in new[] { TextureFormat.RGBA32, TextureFormat.DXT1, TextureFormat.DXT5, TextureFormat.BC7 })
@@ -248,9 +250,10 @@ namespace AvatarTools.Obfuscation.Validation
                 (mode == ProtectionMode.Conservative ? r.sharedMesh.GetBlendShapeName(2) == "OtherFace" :
                     UsernameNameGenerator.IsGeneratedName(r.sharedMesh.GetBlendShapeName(2))),
                 "MMD face-name policy failed: " + report.Summary);
-            Check(r.name == "Body" && r.transform.GetSiblingIndex() == 0 &&
-                accessory.transform.GetSiblingIndex() == 1 && decor.transform.GetSiblingIndex() == 2,
+            Check(r.name == "Body" && r.transform.GetSiblingIndex() == 0,
                 "MMD Body path/order changed");
+            Check(accessory.transform.GetSiblingIndex() == 2 && decor.transform.GetSiblingIndex() == 1,
+                "MMD protection unnecessarily blocked unrelated siblings");
             Check(source.blendShapeCount == 3 && source.GetBlendShapeName(0) == "あ", "Source MMD mesh changed");
             Check(accessory.sharedMesh.blendShapeCount == 0 && report.FrozenShapes == 1,
                 "Unrelated mesh stopped being processed: " + report.Summary);
@@ -387,6 +390,77 @@ namespace AvatarTools.Obfuscation.Validation
             Check(uiFirst.transform.GetSiblingIndex()==0 && uiSecond.transform.GetSiblingIndex()==1,"UI order changed");
             Check(a.transform.GetSiblingIndex()==0 && b.transform.GetSiblingIndex()==1 && manual.transform.GetSiblingIndex()==2,"Manual order changed");
         }
+        private static GameObject SiblingChild(GameObject parent, string name)
+        {
+            var child = new GameObject(name);
+            child.transform.SetParent(parent.transform, false);
+            return child;
+        }
+
+        private static void SiblingOrderMmdPins()
+        {
+            foreach (var mode in new[] { ProtectionMode.Conservative, ProtectionMode.Aggressive })
+            {
+                var root = Root();
+                var marker = root.GetComponent<AvatarBuildObfuscator>();
+                marker.shuffleGameObjectOrder = true;
+                marker.renameGameObjects = false;
+                var first = SiblingChild(root, "First");
+                var body = Renderer(root, "Body", Mesh("あ"));
+                var second = SiblingChild(root, "Second");
+                var branch = SiblingChild(root, "Branch");
+                var third = SiblingChild(root, "Third");
+                var innerFirst = SiblingChild(branch, "InnerFirst");
+                var face = Renderer(branch, "Face", Mesh("笑い"));
+                var innerSecond = SiblingChild(branch, "InnerSecond");
+                var innerThird = SiblingChild(branch, "InnerThird");
+                Controller(root, Clip("Branch/Face", "笑い"));
+                var report = Process(root, mode);
+                Check(body.transform.GetSiblingIndex() == 1 && branch.transform.GetSiblingIndex() == 3 &&
+                    face.transform.GetSiblingIndex() == 1, "A fixed MMD path index changed");
+                Check(first.transform.GetSiblingIndex() != 0 || second.transform.GetSiblingIndex() != 2 ||
+                    third.transform.GetSiblingIndex() != 4, "Unrelated root siblings were all preserved");
+                Check(innerFirst.transform.GetSiblingIndex() != 0 || innerSecond.transform.GetSiblingIndex() != 2 ||
+                    innerThird.transform.GetSiblingIndex() != 3, "Unrelated nested siblings were all preserved");
+                Check(root.transform.childCount == 5 && branch.transform.childCount == 4 &&
+                    report.ShuffledSiblingGroups == 2, "Pinned permutation changed hierarchy membership: " + report.Summary);
+                var output = root.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single();
+                var binding = AnimationUtility.GetCurveBindings(output).Single();
+                Check(root.transform.Find(binding.path) == face.transform && binding.propertyName == "blendShape.笑い",
+                    "Pinned sibling shuffle changed the MMD animation target");
+            }
+        }
+
+        private static void SiblingOrderManualPins()
+        {
+            foreach (var mode in new[] { ProtectionMode.Conservative, ProtectionMode.Aggressive })
+            {
+                var root = Root();
+                var marker = root.GetComponent<AvatarBuildObfuscator>();
+                marker.shuffleGameObjectOrder = true;
+                marker.renameGameObjects = false;
+                var first = SiblingChild(root, "First");
+                var branch = SiblingChild(root, "Branch");
+                var second = SiblingChild(root, "Second");
+                var innerFirst = SiblingChild(branch, "InnerFirst");
+                var manual = SiblingChild(branch, "Manual");
+                var innerSecond = SiblingChild(branch, "InnerSecond");
+                var keptFirst = SiblingChild(manual, "KeptFirst");
+                var keptSecond = SiblingChild(manual, "KeptSecond");
+                marker.preserveGameObjects = new[] { manual.transform };
+                var report = Process(root, mode);
+                Check(branch.transform.GetSiblingIndex() == 1 && manual.transform.GetSiblingIndex() == 1,
+                    "Manual exclusion's numeric ancestor path changed");
+                Check(keptFirst.transform.GetSiblingIndex() == 0 && keptSecond.transform.GetSiblingIndex() == 1,
+                    "Excluded subtree order changed");
+                Check(first.transform.GetSiblingIndex() == 2 && second.transform.GetSiblingIndex() == 0 &&
+                    innerFirst.transform.GetSiblingIndex() == 2 && innerSecond.transform.GetSiblingIndex() == 0,
+                    "Manual exclusion unnecessarily blocked unrelated siblings");
+                Check(report.ShuffledSiblingGroups == 2 && report.ReorderedGameObjects == 4,
+                    "Pinned sibling counters are inaccurate: " + report.Summary);
+            }
+        }
+
         private static void SiblingOrderDisabled()
         {
             var root=Root();var marker=root.GetComponent<AvatarBuildObfuscator>();marker.renameGameObjects=false;
