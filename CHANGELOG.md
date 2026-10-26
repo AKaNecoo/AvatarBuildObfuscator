@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.2-beta.2 — 2026-10-26
+
+- In Aggressive mode, rename nonmatching shape names on MMD-compatible meshes while retaining recognized MMD names, every frame and index, and renderer paths. Conservative keeps the full table. Report retained and renamed names separately; nonstandard world name dependencies still need client testing.
+- When rebuilding a single root Humanoid fails, validate an original-Avatar rebind with fixed rig paths before continuing to rename unrelated objects. Keep the whole hierarchy for unsupported nested Avatars or a failed fallback probe.
+- Add shape-table, viseme/eyelid and Humanoid fallback regressions and document the compatibility limits.
+
 ## 0.8.2-beta.1 — 2026-10-26
 
 - Refuse to overwrite existing Assets test installations, folder metadata or linked project directories when using the development sync helper; add installation safety regressions.
