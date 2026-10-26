@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 — 2026-10-26
+
+- Promote the MMD expression compatibility change after the avatar owner reported working expressions in a VRChat MMD world with MMD expression obfuscation disabled. Processing code and asset GUIDs are unchanged from beta.1.
+- Reorganize public validation guidance around current results, reproducible checks and remaining limits; detailed earlier records remain in Git history.
+
 ## 0.8.1-beta.1 — 2026-10-26
 
 - Preserve the complete BlendShape name/data/index table and GameObject path of detected MMD expression renderers in both modes by default, so external world animations can target them.
