@@ -1,17 +1,14 @@
 ## 中文
 
-- 激进模式保留 MMD 兼容名称、数据和索引，同时混淆其余形态键名称。
-- Humanoid 重建失败时，验证后仅保留骨架路径，其他对象继续处理。
-- 非标准 MMD 世界的额外名称依赖仍需上线测试。
+- 同级重排只固定必要对象的序号，其余兄弟对象仍可打乱。
+- 新增“允许混淆 MMD 对象名”独立开关，保留形态键保护；依赖固定对象路径的世界可能受影响。
 
 ## English
 
-- Aggressive keeps MMD-compatible names, data and indices while renaming other shapes.
-- After a verified Humanoid fallback, retain rig paths and continue processing other objects.
-- Extra name dependencies in nonstandard MMD worlds still need client testing.
+- Shuffle unprotected siblings around fixed object indices.
+- Add the separate **Rename MMD objects** option while retaining shape protection; fixed-path worlds may be affected.
 
 ## 日本語
 
-- 積極モードは MMD 互換名・データ・インデックスを保持し、他の形状を改名。
-- Humanoid 再構築失敗時は検証後にボーンのパスを保持し、他のオブジェクトの処理を継続。
-- 独自 MMD ワールドの追加名への依存は、実際のクライアントでの確認が必要。
+- 必要なインデックスを固定し、他の兄弟オブジェクトの順序を変更。
+- 形状保護を維持する「MMD オブジェクト名を変更」を追加。固定パスに依存するワールドに影響する場合があります。

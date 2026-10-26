@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.2-beta.3 — 2026-10-26
+
+- Shuffle unprotected siblings around fixed MMD and manually preserved path indices, instead of retaining the entire sibling group. UI, duplicate-name groups and existing rig checks keep their protection.
+- Add the independent, default-off **Rename MMD objects** option. Allow names such as `Body` to change while retaining compatible shape names, frame data, weights and indices. Validate non-bone MMD nodes separately when keeping the original Avatar; retry the stricter policy if that probe fails. Fixed-path MMD worlds may be affected.
+- Add pinned-slot, manual-subtree, MMD object-name, SDK-reference, original-Avatar and preset regressions; update the three-language Inspector and usage guides.
+
 ## 0.8.2-beta.2 — 2026-10-26
 
 - In Aggressive mode, rename nonmatching shape names on MMD-compatible meshes while retaining recognized MMD names, every frame and index, and renderer paths. Conservative keeps the full table. Report retained and renamed names separately; nonstandard world name dependencies still need client testing.
