@@ -170,9 +170,9 @@ Free, open-source build-time avatar obfuscation. Processes build copies.<br>
 Requires the VRChat Avatars SDK and NDMF. Add the official NDMF repository if it is unavailable.<br>
 VRChat Avatars SDK と NDMF が必要です。NDMF が見つからない場合は公式リポジトリを追加してください。</p>
 <a href="{ndmf}">添加 NDMF 官方仓库 · Add NDMF repository · NDMF公式リポジトリを追加</a>
-<p>安装与更新请在 {managers} 的工程包列表中操作。显示 beta 版本需开启预发布版本。<br>
-Install and update in your project's package list in {managers}. Enable prereleases to see beta versions.<br>
-{managers} のプロジェクトのパッケージ一覧からインストール・更新してください。beta はプレリリースの表示を有効にします。</p>
+<p>安装与更新请在 ALCOM／VCC／VRCLL 的工程包列表中操作。显示 beta 版本需开启预发布版本。<br>
+Install and update in your project's package list in ALCOM/VCC/VRCLL. Enable prereleases to see beta versions.<br>
+ALCOM／VCC／VRCLL のプロジェクトのパッケージ一覧からインストール・更新してください。beta はプレリリースの表示を有効にします。</p>
 <p>从 Git 或 Unity 安装包迁移前，请阅读安装说明。<br>Read the installation guide before migrating from Git or unitypackage.<br>Git・unitypackageからの移行前に導入ガイドをご確認ください。</p>
 <p><a href="https://github.com/{REPOSITORY}/blob/beta/README.md">中文说明</a> · <a href="https://github.com/{REPOSITORY}/blob/beta/README.en.md">English</a> · <a href="https://github.com/{REPOSITORY}/blob/beta/README.ja.md">日本語</a> · <a href="https://github.com/{REPOSITORY}">GitHub</a> · GPL-3.0-only</p>
 <hr><h2>Versions</h2><ul>{links}</ul><p>Bug: <a href="mailto:kiinemaki@qq.com">kiinemaki@qq.com</a></p></html>'''

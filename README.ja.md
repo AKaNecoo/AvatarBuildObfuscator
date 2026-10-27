@@ -16,7 +16,7 @@ VRChat アバターをビルド時に難読化するツールです。コンポ�
 
 ## インストール
 
-**Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先に [ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/) から SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
+**Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先に ALCOM／VCC／VRCLL から SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)：** [パッケージリポジトリのページ](https://akanecoo.github.io/AvatarBuildObfuscator/)のボタン、または掲載URLの手動入力でリポジトリを追加し、プロジェクトのパッケージ一覧で **Avatar Build Obfuscator** をインストールします。beta はプレリリースの表示を有効にしてください。NDMF 公式リポジトリへのリンクもあります。
 
@@ -28,7 +28,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 テスト版は末尾を `#beta` に変更します。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` も利用できます。重複を避けるため、導入方法は一つにしてください。
 
-VPM に移行する場合、Git 版は先に Package Manager で削除し、[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/) から導入します。旧 `.unitypackage` フォルダーは GUID で移行できます。プラグインのフォルダー内に独自のモデルアセットを置かず、アバター上のコンポーネント設定は保持してください。
+VPM に移行する場合、Git 版は先に Package Manager で削除し、ALCOM／VCC／VRCLL から導入します。旧 `.unitypackage` フォルダーは GUID で移行できます。プラグインのフォルダー内に独自のモデルアセットを置かず、アバター上のコンポーネント設定は保持してください。
 
 ## 使い方
 
@@ -51,7 +51,7 @@ VPM に移行する場合、Git 版は先に Package Manager で削除し、[ALC
 
 ## 更新
 
-VPM 版は **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)** で更新します。Git・`.unitypackage` 版はコンポーネントのバージョン・更新欄を利用でき、Git は Package Manager からも更新できます。自動確認は初期状態でオン、自動インストールはオフです。パッケージ方式の更新では一時ダウンロードを処理後に削除します。
+VPM 版は **ALCOM／VCC／VRCLL** で更新します。Git・`.unitypackage` 版はコンポーネントのバージョン・更新欄を利用でき、Git は Package Manager からも更新できます。自動確認は初期状態でオン、自動インストールはオフです。パッケージ方式の更新では一時ダウンロードを処理後に削除します。
 
 Git の `#main` と `#beta` は個別に更新され、別のチャンネルへ自動では切り替わりません。beta から安定版へ移る場合は、末尾を `#main` にした同じ Git URL を Package Manager で再追加します。既存のコンポーネント設定は保持されます。
 

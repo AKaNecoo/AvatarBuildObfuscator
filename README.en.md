@@ -16,7 +16,7 @@ Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and
 
 ## Install
 
-Requires **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) through [ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/), [VCC](https://vrchat.com/home/download) or [VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/) first.
+Requires **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) through ALCOM, VCC or VRCLL first.
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/) / [VCC](https://vrchat.com/home/download) / [VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/):** Open the [package repository page](https://akanecoo.github.io/AvatarBuildObfuscator/), add the repository using its button or paste the listed URL into your manager, then install **Avatar Build Obfuscator** in your project's package list. Enable prereleases for beta versions. The page also links the official NDMF repository.
 
@@ -28,7 +28,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 Use `#beta` for test releases. Alternatively, import a `.unitypackage` from [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases). Choose one installation method to avoid duplicate copies.
 
-To migrate to VPM, first remove a Git installation in Package Manager, then install through [ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/), [VCC](https://vrchat.com/home/download) or [VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/). VPM can migrate legacy `.unitypackage` folders by GUID. Keep your own model assets outside the plugin folder; retain the component settings on your avatar.
+To migrate to VPM, first remove a Git installation in Package Manager, then install through ALCOM, VCC or VRCLL. VPM can migrate legacy `.unitypackage` folders by GUID. Keep your own model assets outside the plugin folder; retain the component settings on your avatar.
 
 ## Use
 
@@ -51,7 +51,7 @@ The component supports Simplified Chinese, English and Japanese. Options can be 
 
 ## Update
 
-Update VPM installations in **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/) / [VCC](https://vrchat.com/home/download) / [VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)**. Git and `.unitypackage` installations use the component's version/update panel; Git also supports Package Manager. Automatic checks default on; automatic installation defaults off. Package-based updates remove temporary downloads afterward.
+Update VPM installations in **ALCOM / VCC / VRCLL**. Git and `.unitypackage` installations use the component's version/update panel; Git also supports Package Manager. Automatic checks default on; automatic installation defaults off. Package-based updates remove temporary downloads afterward.
 
 Git `#main` and `#beta` update independently and do not switch channels automatically. To move from beta to stable, add the same Git URL ending in `#main` again in Package Manager; existing component settings are retained.
 
