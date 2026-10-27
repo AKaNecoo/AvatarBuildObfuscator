@@ -6,7 +6,7 @@
 
 ## 功能
 
-- 混淆资源、对象、骨骼、参数、Animator 内部及动态 BlendShape 名称，使用“用户名＋`Ì/Í/Î/Ï` 乱码”。
+- 混淆资源、对象、骨骼、参数、Animator 内部及动态 BlendShape 名称，使用“用户名＋`Ì/Í/Î/Ï`”。
 - 烘焙并移除可处理的固定／未使用 BlendShape，保留必要的动态形变。
 - 可独立打乱 BlendShape、同级 GameObject、网格顶点和蒙皮骨骼索引表，并更新相关引用。
 - 每次构建可重新随机化，移除无效果空形变，并生成本地残留审计报告。
@@ -18,7 +18,7 @@
 
 需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。先通过 ALCOM／VCC／VRCLL 安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
 
-**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)：** 打开[软件包仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)，点击添加仓库，或在管理器中手动添加页面上的仓库地址，再到工程的软件包管理中安装 **Avatar Build Obfuscator**。测试版需开启预发布版本；页面也提供 NDMF 官方仓库入口。
+**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推荐）：** 打开[软件包仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)，点击添加仓库，或在管理器中手动添加页面上的仓库地址，再到工程的软件包管理中安装 **Avatar Build Obfuscator**。测试版需开启预发布版本；页面也提供 NDMF 官方仓库入口。
 
 **Git：** 打开 **Window → Package Manager → ＋ → Add package from git URL…**，输入：
 

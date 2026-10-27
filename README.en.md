@@ -18,7 +18,7 @@ Experimental texture rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and
 
 Requires **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) through ALCOM, VCC or VRCLL first.
 
-**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/) / [VCC](https://vrchat.com/home/download) / [VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/):** Open the [package repository page](https://akanecoo.github.io/AvatarBuildObfuscator/), add the repository using its button or paste the listed URL into your manager, then install **Avatar Build Obfuscator** in your project's package list. Enable prereleases for beta versions. The page also links the official NDMF repository.
+**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/) / [VCC](https://vrchat.com/home/download) / [VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/) (recommended):** Open the [package repository page](https://akanecoo.github.io/AvatarBuildObfuscator/), add the repository using its button or paste the listed URL into your manager, then install **Avatar Build Obfuscator** in your project's package list. Enable prereleases for beta versions. The page also links the official NDMF repository.
 
 **Git:** Open **Window → Package Manager → ＋ → Add package from git URL…** and enter:
 
