@@ -1,6 +1,6 @@
 # Testing and validation
 
-This page summarizes validation for **0.8.2-beta.3**. Unity checks cover pinned sibling indices and the optional MMD object-name policy. A subsequent VRChat client comparison found missing MMD expressions with object renaming enabled and working expressions after disabling that option. Results apply to the stated versions and environments, rather than every avatar or VRChat world.
+This page summarizes validation carried forward into **0.8.2**. Processing code and asset GUIDs are unchanged from **0.8.2-beta.3**; this release updates version metadata, package documentation and three Inspector translation entries. Unity and client results below were obtained on the beta processing code, rather than rerun for the stable tag. The client comparison found missing MMD expressions with object renaming enabled and working expressions after disabling that option. Results apply to the stated versions and environments, rather than every avatar or VRChat world.
 
 ## Current results
 

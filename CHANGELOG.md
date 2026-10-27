@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.2 — 2026-10-27
+
+- Promote selective Aggressive shape naming, validated original-Avatar fallback and sibling shuffling around fixed indices. Processing logic and asset GUIDs are unchanged from 0.8.2-beta.3.
+- Keep the independent MMD object-name option off by default. Client testing found missing expressions with it enabled and recovery after disabling only that option; keep both MMD opt-in options off when MMD expressions are needed.
+- Add VRCLL installation/update guidance and package-manager download links, with one download-link group per page. Synchronize the package README, Inspector messages and public validation scope.
+- Include the existing test-installation overwrite protections and three-language usage clarifications from the beta series.
+
 ## 0.8.2-beta.3 — 2026-10-26
 
 - Shuffle unprotected siblings around fixed MMD and manually preserved path indices, instead of retaining the entire sibling group. UI, duplicate-name groups and existing rig checks keep their protection.
