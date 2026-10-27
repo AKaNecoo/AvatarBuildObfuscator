@@ -18,7 +18,7 @@ VRChat アバターをビルド時に難読化するツールです。コンポ�
 
 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先に ALCOM／VCC／VRCLL から SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
 
-**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)：** [パッケージリポジトリのページ](https://akanecoo.github.io/AvatarBuildObfuscator/)のボタン、または掲載URLの手動入力でリポジトリを追加し、プロジェクトのパッケージ一覧で **Avatar Build Obfuscator** をインストールします。beta はプレリリースの表示を有効にしてください。NDMF 公式リポジトリへのリンクもあります。
+**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推奨）：** [パッケージリポジトリのページ](https://akanecoo.github.io/AvatarBuildObfuscator/)のボタン、または掲載URLの手動入力でリポジトリを追加し、プロジェクトのパッケージ一覧で **Avatar Build Obfuscator** をインストールします。beta はプレリリースの表示を有効にしてください。NDMF 公式リポジトリへのリンクもあります。
 
 **Git：** **Window → Package Manager → ＋ → Add package from git URL…** を開き、次を入力します。
 
