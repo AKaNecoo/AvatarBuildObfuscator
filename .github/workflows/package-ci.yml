@@ -87,6 +87,6 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: VpmSite
-      - name: Publish ALCOM / VCC repository
+      - name: Publish ALCOM / VCC / VRCLL repository
         id: deployment
         uses: actions/deploy-pages@v4
