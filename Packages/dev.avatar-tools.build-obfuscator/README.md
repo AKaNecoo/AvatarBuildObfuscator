@@ -2,11 +2,13 @@
 
 [中文](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/main/README.md) · [English](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/main/README.en.md) · [日本語](https://github.com/AKaNecoo/AvatarBuildObfuscator/blob/main/README.ja.md)
 
+Package managers / 软件包管理器 / パッケージマネージャー: [ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/) · [VCC](https://vrchat.com/home/download) · [VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)
+
 ## 中文
 
 VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖源资产，无需运行时解密。
 
-可从[ALCOM／VCC 仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)安装并由 ALCOM／VCC 更新；Git 或 `.unitypackage` 请只选一种安装方式，迁移步骤见仓库说明。
+可从[软件包仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)安装并由 ALCOM／VCC／VRCLL 更新；Git 或 `.unitypackage` 请只选一种安装方式，迁移步骤见仓库说明。
 
 1. 在 **Hierarchy** 选中 Avatar 根对象，在右侧 **Inspector** 底部点击 **Add Component（添加组件）**，搜索并选择 **Avatar Build Obfuscator**。
 2. 填写用户名并选择保守或激进模式。新组件默认读取已有 Avatar ID，可自行修改。该值的前缀（最多 32 字符）会公开出现在构建产物名称中，不希望公开时请更换。
@@ -24,9 +26,9 @@ VRChat Avatar 构建时混淆工具，自动处理 NDMF 构建副本，不覆盖
 
 混淆可能增加 Avatar 的下载大小，增幅因模型和选项而异；实验性贴图旋转可能进一步增大体积。上传前请查看 SDK 构建统计。
 
-MMD 兼容保护默认开启：保守保留整网格形变；激进保留兼容名称、全部形变数据和索引，同时混淆其余名称。默认保留对象路径；可单独开启“允许混淆 MMD 对象名”，保留形变保护，但可能影响依赖固定路径的世界。规则含日文／汉字、`Blink`、`a` 等；非标准世界可能依赖额外名称，需实测。不需要 MMD 表情时才开启“允许混淆 MMD 表情”以取消保护。
+需要 MMD 表情时，请保持“允许混淆 MMD 表情”和“允许混淆 MMD 对象名”均关闭。对象改名会改变 Body 等路径，已在实际 MMD 世界中确认可导致表情失效。保守保留兼容网格整表；激进保留匹配名称、全部形变数据和索引，同时混淆其余名称。规则含日文／汉字、Blink、a 等；非标准世界的额外名称仍需实测。
 
-Git／安装包可在组件内检查和安装更新；VPM 安装请在 ALCOM／VCC 中更新。自动安装默认关闭。混淆不保证防提取，贴图、最终几何和必要动态形变仍可提取。
+Git／安装包可在组件内检查和安装更新；VPM 安装请在 ALCOM／VCC／VRCLL 中更新。自动安装默认关闭。混淆不保证防提取，贴图、最终几何和必要动态形变仍可提取。
 
 Git 的 `#main`／`#beta` 独立更新。转正式版时，在 Package Manager 用末尾为 `#main` 的同一 URL 重新添加；组件设置保留。
 
@@ -34,7 +36,7 @@ Git 的 `#main`／`#beta` 独立更新。转正式版时，在 Package Manager �
 
 Build-time obfuscation for VRChat avatars. NDMF processes a build copy without overwriting source assets; no runtime decoder is required.
 
-Install from the [ALCOM/VCC repository page](https://akanecoo.github.io/AvatarBuildObfuscator/) and update through ALCOM/VCC. Use only one installation route; see the repository guide when migrating from Git or a unitypackage.
+Install from the [package repository page](https://akanecoo.github.io/AvatarBuildObfuscator/) and update through ALCOM/VCC/VRCLL. Use only one installation route; see the repository guide when migrating from Git or a unitypackage.
 
 1. Select the avatar root in **Hierarchy**. Click **Add Component** at the bottom of **Inspector**, then search for and select **Avatar Build Obfuscator**.
 2. Enter your username and choose Conservative or Aggressive. New components default to an existing avatar ID. Up to 32 characters become a visible prefix in build output names; change the value if you do not want to publish it.
@@ -52,9 +54,9 @@ Experimental rotation covers selected lilToon 2.4.1, Poiyomi 10.0.27 and UnlitWF
 
 Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
-MMD protection defaults on: Conservative retains all shapes on matching meshes; Aggressive keeps matching names, all frame data and indices while renaming other shapes. Object paths stay unchanged by default. **Rename MMD objects** allows object renaming while keeping shape protection; fixed-path worlds may be affected. Rules include Japanese/Chinese characters, `Blink` and `a`; nonstandard worlds may require extra names, so test in your worlds. Enable **Obfuscate MMD expressions** to remove this protection only when MMD expressions are not needed.
+For MMD expressions, keep both **Obfuscate MMD expressions** and **Rename MMD objects** off. Renaming objects changes paths such as Body; client testing confirmed missing expressions in an MMD world. Conservative retains the whole matching shape table; Aggressive keeps matching names, all frame data and indices while renaming other shapes. Rules include Japanese/Chinese characters, Blink and a; nonstandard worlds may require extra names.
 
-Choose the display language in the component. Git/unitypackage installs can check and install updates there; update VPM installs in ALCOM/VCC. Automatic installation defaults off. Textures, final geometry and required dynamic shapes remain extractable.
+Choose the display language in the component. Git/unitypackage installs can check and install updates there; update VPM installs in ALCOM/VCC/VRCLL. Automatic installation defaults off. Textures, final geometry and required dynamic shapes remain extractable.
 
 Git `#main`/`#beta` update independently. To switch to stable, add the same URL ending in `#main` again in Package Manager; component settings are retained.
 
@@ -62,7 +64,7 @@ Git `#main`/`#beta` update independently. To switch to stable, add the same URL 
 
 VRChat アバターのビルド時難読化ツールです。NDMF がコピーを処理し、元アセットは上書きしません。実行時復号は不要です。
 
-[ALCOM／VCC のリポジトリページ](https://akanecoo.github.io/AvatarBuildObfuscator/)から導入し、ALCOM／VCC で更新できます。導入方式は一つだけ使用してください。Git や unitypackage からの移行はリポジトリの説明をご確認ください。
+[パッケージリポジトリのページ](https://akanecoo.github.io/AvatarBuildObfuscator/)から導入し、ALCOM／VCC／VRCLL で更新できます。導入方式は一つだけ使用してください。Git や unitypackage からの移行はリポジトリの説明をご確認ください。
 
 1. **Hierarchy** でルートを選択し、右側の **Inspector** 下部で **Add Component（コンポーネントを追加）** をクリックします。**Avatar Build Obfuscator** を検索して選びます。
 2. ユーザー名と保守／積極モードを設定します。新規追加時は既存の Avatar ID が初期値になります。先頭部分（最大32文字）はビルド結果の名前に表示されるため、公開したくない場合は変更してください。
@@ -80,9 +82,9 @@ VRChat アバターのビルド時難読化ツールです。NDMF がコピー�
 
 難読化によりアバターのダウンロードサイズが増える場合があります。増加量はモデルや設定によって異なり、実験的なテクスチャ回転でさらに増える場合があります。アップロード前に SDK のビルド統計をご確認ください。
 
-MMD 保護は既定で有効です。保守は対象メッシュの全形状を保持し、積極は一致する名前と全データ・インデックスを保持しながら他の形状を改名します。パスは既定で保持します。「MMD オブジェクト名を変更」で形状保護を維持したまま改名できますが、固定パスに依存するワールドに影響する場合があります。日本語・漢字や `Blink`・`a` などが対象で、独自ワールドの追加名は実測が必要です。MMD 表情が不要な場合に限り「MMD 表情を難読化」で保護を解除できます。
+MMD 表情が必要な場合は「MMD 表情を難読化」と「MMD オブジェクト名を変更」を両方オフにしてください。改名すると Body などのパスが変わり、実際の MMD ワールドで表情が動作しなくなることが確認されています。保守は対象メッシュの全形状を保持し、積極は一致する名前と全データ・インデックスを保持しながら他の形状を改名します。日本語・漢字や Blink・a などが対象で、独自ワールドの追加名は実測が必要です。
 
-コンポーネントで言語を選べます。Git／unitypackage の更新はコンポーネントから、VPM の更新は ALCOM／VCC から行います。自動インストールは初期状態でオフです。テクスチャ、最終形状、必要な動的形状は抽出可能です。
+コンポーネントで言語を選べます。Git／unitypackage の更新はコンポーネントから、VPM の更新は ALCOM／VCC／VRCLL から行います。自動インストールは初期状態でオフです。テクスチャ、最終形状、必要な動的形状は抽出可能です。
 
 Git の `#main`／`#beta` は個別に更新されます。安定版へ切り替える場合は末尾を `#main` にした同じ URL を Package Manager で再追加します。コンポーネント設定は保持されます。
 
