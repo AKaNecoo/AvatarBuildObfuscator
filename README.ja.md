@@ -16,9 +16,9 @@ VRChat アバターをビルド時に難読化するツールです。コンポ�
 
 ## インストール
 
-**Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先に VCC から SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
+**Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先に ALCOM／VCC／VRCLL から SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
 
-**ALCOM／VCC：** [パッケージリポジトリのページ](https://akanecoo.github.io/AvatarBuildObfuscator/)からリポジトリを追加し、プロジェクトのパッケージ一覧で **Avatar Build Obfuscator** をインストールします。beta はプレリリースの表示を有効にしてください。NDMF 公式リポジトリへのリンクもあります。
+**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)：** [パッケージリポジトリのページ](https://akanecoo.github.io/AvatarBuildObfuscator/)のボタン、または掲載URLの手動入力でリポジトリを追加し、プロジェクトのパッケージ一覧で **Avatar Build Obfuscator** をインストールします。beta はプレリリースの表示を有効にしてください。NDMF 公式リポジトリへのリンクもあります。
 
 **Git：** **Window → Package Manager → ＋ → Add package from git URL…** を開き、次を入力します。
 
@@ -28,13 +28,15 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 テスト版は末尾を `#beta` に変更します。[Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) の `.unitypackage` も利用できます。重複を避けるため、導入方法は一つにしてください。
 
-VPM に移行する場合、Git 版は先に Package Manager で削除し、ALCOM／VCC から導入します。旧 `.unitypackage` フォルダーは GUID で移行できます。プラグインのフォルダー内に独自のモデルアセットを置かず、アバター上のコンポーネント設定は保持してください。
+VPM に移行する場合、Git 版は先に Package Manager で削除し、ALCOM／VCC／VRCLL から導入します。旧 `.unitypackage` フォルダーは GUID で移行できます。プラグインのフォルダー内に独自のモデルアセットを置かず、アバター上のコンポーネント設定は保持してください。
 
 ## 使い方
 
 1. **Hierarchy** でアバターのルートを選択します。右側の **Inspector** 下部で **Add Component（コンポーネントを追加）** をクリックし、**Avatar Build Obfuscator** を検索して **Avatar Tools → Avatar Build Obfuscator** を選びます。
 2. ユーザー名とモードを設定します。新規追加時は既存の Avatar ID が初期値になります。自由に変更でき、ID がない場合は手動入力します。
 3. VRChat SDK で通常どおりビルドします。結果はビルド用コピーで確認します。元の Hierarchy と Project の名前は変わりません。
+
+ユーザー名の先頭部分（最大32文字）はビルド結果の名前に表示されます。初期値のままでは Avatar ID の一部も含まれるため、公開したくない場合はビルド前に変更してください。
 
 **最新のビルドレポートを表示** で保持項目の検索と声明・識別子の照合ができます。**テストビルドと比較検査** は一時コピーを検査し、ウィンドウを閉じると削除します。VRChat 内での全機能テストの代わりにはなりません。Renderer ごとの保持設定ができ、プリセットは処理スイッチとモードのみ保存します。
 
@@ -43,21 +45,25 @@ VPM に移行する場合、Git 版は先に Package Manager で削除し、ALCO
 | モード | 説明 |
 | --- | --- |
 | 保守（既定） | 機能の維持を優先し、確認できない依存関係を保持します。 |
-| 激進 | 処理範囲を広げ、未知の互換性リスクを許容します。外部連携に影響する場合があります。 |
+| 積極 | 処理範囲を広げ、未知の互換性リスクを許容します。外部連携に影響する場合があります。 |
 
 **サブツリー別のモード**で体・衣装・アクセサリーを個別に設定できます。最も近い設定済み祖先を継承します。共有アセットと全体パラメータ／コントローラーは保守優先で、最適化による統合元が不明な場合は保守に戻して報告します。
 
 ## 更新
 
-VPM 版は **ALCOM／VCC** で更新します。Git・`.unitypackage` 版はコンポーネントのバージョン・更新欄を利用でき、Git は Package Manager からも更新できます。自動確認は初期状態でオン、自動インストールはオフです。パッケージ方式の更新では一時ダウンロードを処理後に削除します。
+VPM 版は **ALCOM／VCC／VRCLL** で更新します。Git・`.unitypackage` 版はコンポーネントのバージョン・更新欄を利用でき、Git は Package Manager からも更新できます。自動確認は初期状態でオン、自動インストールはオフです。パッケージ方式の更新では一時ダウンロードを処理後に削除します。
+
+Git の `#main` と `#beta` は個別に更新され、別のチャンネルへ自動では切り替わりません。beta から安定版へ移る場合は、末尾を `#main` にした同じ Git URL を Package Manager で再追加します。既存のコンポーネント設定は保持されます。
 
 ## 注意
 
 難読化によりアバターのダウンロードサイズが増える場合があります。増加量はモデルや設定によって異なり、実験的なテクスチャ回転でさらに増える場合があります。アップロード前に SDK のビルド統計をご確認ください。
 
-MMD ワールドの表情に対応するため、MMD 形状を持つメッシュの形状名・順序とオブジェクトパスは両モードで既定のまま保持します。MMD 表情が不要な場合に限り、コンポーネントの「MMD 表情を難読化」を有効にしてください。
+MMD 表情が必要な場合は、**「MMD 表情を難読化」と「MMD オブジェクト名を変更」を両方オフ**にしてください。オブジェクトの改名は `Body` などのパスを変更します。形状名・データ・インデックスを保持していても、実際の MMD ワールドで表情が動作しなくなることが確認されています。
 
-難読化は抽出を防ぐものではありません。テクスチャの画素、最終形状、必要な動的 BlendShape は抽出可能です。激進モードは先にテストビルドで機能を確認してください。Console の `[Avatar Build Obfuscator]` ログで処理件数と保持理由を確認できます。
+MMD 互換保護は既定で有効です。対象メッシュでは、保守モードは全形状を保持し、積極モードは一致する名前と**全形状のデータ・インデックス**を保持しながら他の形状を改名します。日本語・漢字や `Blink`・`a` なども判定対象です。独自仕様のワールドでは別の名前が必要な場合があるため、積極モードは実際のワールドで確認してください。上記のオプションは、対応する MMD 互換性が不要な場合に限り有効にしてください。
+
+難読化は抽出を防ぐものではありません。テクスチャの画素、最終形状、必要な動的 BlendShape は抽出可能です。積極モードは先にテストビルドで機能を確認してください。Console の `[Avatar Build Obfuscator]` ログで処理件数と保持理由を確認できます。
 
 ## 関連文書
 

@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.8.2 — 2026-10-27
+
+- Promote selective Aggressive shape naming, validated original-Avatar fallback and sibling shuffling around fixed indices. Processing logic and asset GUIDs are unchanged from 0.8.2-beta.3.
+- Keep the independent MMD object-name option off by default. Client testing found missing expressions with it enabled and recovery after disabling only that option; keep both MMD opt-in options off when MMD expressions are needed.
+- Add VRCLL installation/update guidance and package-manager download links, with one download-link group per page. Synchronize the package README, Inspector messages and public validation scope.
+- Include the existing test-installation overwrite protections and three-language usage clarifications from the beta series.
+
+## 0.8.2-beta.3 — 2026-10-26
+
+- Shuffle unprotected siblings around fixed MMD and manually preserved path indices, instead of retaining the entire sibling group. UI, duplicate-name groups and existing rig checks keep their protection.
+- Add the independent, default-off **Rename MMD objects** option. Allow names such as `Body` to change while retaining compatible shape names, frame data, weights and indices. Validate non-bone MMD nodes separately when keeping the original Avatar; retry the stricter policy if that probe fails. Fixed-path MMD worlds may be affected.
+- Add pinned-slot, manual-subtree, MMD object-name, SDK-reference, original-Avatar and preset regressions; update the three-language Inspector and usage guides.
+
+## 0.8.2-beta.2 — 2026-10-26
+
+- In Aggressive mode, rename nonmatching shape names on MMD-compatible meshes while retaining recognized MMD names, every frame and index, and renderer paths. Conservative keeps the full table. Report retained and renamed names separately; nonstandard world name dependencies still need client testing.
+- When rebuilding a single root Humanoid fails, validate an original-Avatar rebind with fixed rig paths before continuing to rename unrelated objects. Keep the whole hierarchy for unsupported nested Avatars or a failed fallback probe.
+- Add shape-table, viseme/eyelid and Humanoid fallback regressions and document the compatibility limits.
+
+## 0.8.2-beta.1 — 2026-10-26
+
+- Refuse to overwrite existing Assets test installations, folder metadata or linked project directories when using the development sync helper; add installation safety regressions.
+- Clarify independent Git update channels, visible username/Avatar ID prefixes and whole-mesh MMD preservation in all three languages and editor tooltips. Use 「積極」 for the Japanese Aggressive mode label.
+- Remove direct links to detailed historical test logs from the current validation guide. Avatar processing rules and asset GUIDs are unchanged from 0.8.1.
+
 ## 0.8.1 — 2026-10-26
 
 - Promote the MMD expression compatibility change after the avatar owner reported working expressions in a VRChat MMD world with MMD expression obfuscation disabled. Processing code and asset GUIDs are unchanged from beta.1.

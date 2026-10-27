@@ -31,6 +31,7 @@ namespace AvatarTools.Obfuscation.Editor
             if (unknownDriver && !settings.HasSubtreeOverrides && settings.Mode == ProtectionMode.Conservative)
             { report.Note("同级重排：保守模式保留未知驱动的对象顺序"); return; }
             var blocked = new HashSet<Transform>();
+            var fixedIndices = new HashSet<Transform>();
             if (unknownDriver && settings.HasSubtreeOverrides)
                 foreach (var conservative in root.GetComponentsInChildren<Transform>(true)
                     .Where(t => settings.ModeFor(t) == ProtectionMode.Conservative))
@@ -43,15 +44,15 @@ namespace AvatarTools.Obfuscation.Editor
             foreach (var manual in settings.PreserveObjects)
             {
                 blockTree(manual);
-                // Also retain its index at each ancestor. A manual exclusion must be
-                // useful to integrations that use both names and numeric GetChild.
+                // Pin each path node to its original slot. Other siblings can move
+                // without changing the numeric GetChild path to this subtree.
                 for (var t = manual; t != null && t != root.transform && t.IsChildOf(root.transform); t = t.parent)
-                    if (t.parent != null) blocked.Add(t.parent);
+                    fixedIndices.Add(t);
             }
             // Keep the external MMD target's sibling index and its ancestor path.
             foreach (var renderer in mmdRenderers)
                 for (var t = renderer.transform; t != null && t != root.transform && t.IsChildOf(root.transform); t = t.parent)
-                    if (t.parent != null) blocked.Add(t.parent);
+                    fixedIndices.Add(t);
             foreach (var animator in root.GetComponentsInChildren<Animator>(true))
                 if (animator.avatar != null && (!animator.avatar.isValid || !animator.avatar.isHuman))
                 { blockTree(animator.transform); report.Note("同级重排：Generic/无效 Avatar 层级保持顺序"); }
@@ -66,7 +67,14 @@ namespace AvatarTools.Obfuscation.Editor
                 if (t is RectTransform || t.GetComponentInParent<Canvas>(true) != null ||
                     children.Any(c => c is RectTransform || c.GetComponent<Canvas>() != null))
                 { report.Note("同级重排：UI 布局和绘制顺序保留"); continue; }
-                siblingOrders[t] = ShuffledIndices(children.Length).Select(i => children[i]).ToArray();
+                var slots = Enumerable.Range(0, children.Length).Where(i => !fixedIndices.Contains(children[i])).ToArray();
+                if (slots.Length < 2) continue;
+                var order = ShuffledIndices(slots.Length);
+                var shuffled = (Transform[])children.Clone();
+                for (int i = 0; i < slots.Length; i++) shuffled[slots[i]] = children[slots[order[i]]];
+                siblingOrders[t] = shuffled;
+                if (slots.Length != children.Length)
+                    report.Note("同级重排：固定 MMD 目标及手动保留路径的序号，其余同级对象继续重排");
             }
         }
 

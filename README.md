@@ -16,9 +16,9 @@
 
 ## 安装
 
-需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。先通过 VCC 安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
+需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。先通过 ALCOM／VCC／VRCLL 安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
 
-**ALCOM／VCC：** 打开[软件包仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)，点击添加仓库，再到工程的软件包管理中安装 **Avatar Build Obfuscator**。测试版需开启预发布版本；页面也提供 NDMF 官方仓库入口。
+**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)：** 打开[软件包仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)，点击添加仓库，或在管理器中手动添加页面上的仓库地址，再到工程的软件包管理中安装 **Avatar Build Obfuscator**。测试版需开启预发布版本；页面也提供 NDMF 官方仓库入口。
 
 **Git：** 打开 **Window → Package Manager → ＋ → Add package from git URL…**，输入：
 
@@ -28,13 +28,15 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 测试版将末尾改为 `#beta`。也可从 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) 下载 `.unitypackage`；安装方式只选一种，避免重复安装。
 
-转用 VPM 时，Git 版先在 Package Manager 中移除本包，再从 ALCOM／VCC 安装。VPM 可按 GUID 迁移旧 `.unitypackage` 目录。插件目录内不要存放自己的模型资产，场景上的组件设置无需删除。
+转用 VPM 时，Git 版先在 Package Manager 中移除本包，再从 ALCOM／VCC／VRCLL 安装。VPM 可按 GUID 迁移旧 `.unitypackage` 目录。插件目录内不要存放自己的模型资产，场景上的组件设置无需删除。
 
 ## 使用
 
 1. 在 **Hierarchy** 选中 Avatar 根对象，到右侧 **Inspector** 底部点击 **Add Component（添加组件）**，搜索 **Avatar Build Obfuscator**，选择 **Avatar Tools → Avatar Build Obfuscator**。
 2. 填写用户名并选择模式。新组件默认读取已有 Avatar ID，可自行修改；没有 ID 时手动填写。
 3. 使用 VRChat SDK 正常构建。效果在构建副本中查看，源 Hierarchy 和 Project 名称保持原样。
+
+用户名的前缀（最多 32 字符）会公开出现在构建产物名称中；保留默认值时也会包含 Avatar ID 的一部分。不希望公开该值时，请在构建前更换。
 
 组件中的 **查看最近一次构建报告** 可搜索处理记录、查看保留原因并核对声明／指纹；**测试构建与对照检查** 可生成临时副本进行采样比较，关闭窗口后清理。采样不代替 VRChat 内的完整功能测试。局部保留列表可跳过特定 Renderer 的处理，预设仅保存处理开关与模式。
 
@@ -49,13 +51,17 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 ## 更新
 
-VPM 安装在 **ALCOM／VCC** 中更新。Git 和 `.unitypackage` 安装可在组件的 **版本与更新** 中操作，Git 也可使用 Package Manager。自动检查默认开启，自动安装默认关闭；安装包更新后会删除临时下载文件。
+VPM 安装在 **ALCOM／VCC／VRCLL** 中更新。Git 和 `.unitypackage` 安装可在组件的 **版本与更新** 中操作，Git 也可使用 Package Manager。自动检查默认开启，自动安装默认关闭；安装包更新后会删除临时下载文件。
+
+Git 的 `#main` 和 `#beta` 独立更新，不会自动跨渠道切换。测试版转正式版时，在 Package Manager 用末尾为 `#main` 的同一 Git URL 重新添加，现有组件设置会保留。
 
 ## 注意
 
 混淆可能增加 Avatar 的下载大小，增幅因模型和选项而异；实验性贴图旋转可能进一步增大体积。上传前请查看 SDK 构建统计。
 
-为兼容 MMD 世界表情，检测到 MMD 形变的网格默认保留形变名称、顺序和对象路径，两档模式均如此。仅在不需要 MMD 表情时开启组件中的“允许混淆 MMD 表情”。
+需要 MMD 表情时，请保持 **“允许混淆 MMD 表情”和“允许混淆 MMD 对象名”均关闭**。对象改名会改变 `Body` 等路径，已在实际 MMD 世界中确认可导致表情失效，即使形变名称、数据和索引仍被保留。
+
+MMD 兼容保护默认开启。命中兼容规则的网格，保守模式保留全部形变；激进模式保留匹配的名称、**全部形变数据和索引**，同时混淆其余名称。规则含日文／汉字及 `Blink`、`a` 等常见名称；非标准世界可能依赖额外名称，激进仍需实测。仅在不需要相应 MMD 兼容时开启上述选项。
 
 混淆不能保证防提取：贴图像素、最终几何和必要动态 BlendShape 仍可提取。激进模式请先在测试构建中确认功能；Console 的 `[Avatar Build Obfuscator]` 日志可查看处理数量和保留原因。
 

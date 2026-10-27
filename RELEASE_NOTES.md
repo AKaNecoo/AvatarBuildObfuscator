@@ -1,14 +1,17 @@
 ## 中文
 
-- 修复 MMD 世界表情失效：两档模式默认保留相关形变和对象路径。
-- 不需要 MMD 表情时，可主动开启“允许混淆 MMD 表情”。
+- 扩大激进模式的形变名称混淆，改进原 Avatar 回退和同级顺序重排。
+- 新增独立 MMD 对象名开关；需要 MMD 表情时，请保持两项 MMD 混淆选项均关闭。
+- 安装与更新说明加入 VRCLL，整理管理器下载链接及测试说明。
 
 ## English
 
-- Fix MMD-world expressions by preserving their shapes and object paths in both modes by default.
-- Avatars that do not need MMD expressions can explicitly enable **Obfuscate MMD expressions**.
+- Expand Aggressive shape naming and improve original-Avatar fallback and sibling shuffling.
+- Add the separate MMD object-name option. Keep both MMD obfuscation options off when MMD expressions are needed.
+- Add VRCLL guidance and simplify manager download links and validation notes.
 
 ## 日本語
 
-- MMD ワールドの表情が動かなくなる問題を修正し、両モードで対象の形状とオブジェクトパスを既定で保持します。
-- MMD 表情が不要な場合は「MMD 表情を難読化」を明示的に有効化できます。
+- 積極モードの形状名変更を拡大し、元の Avatar へのフォールバックと兄弟順変更を改善。
+- MMD オブジェクト名の個別オプションを追加。MMD 表情が必要な場合は二つの MMD 難読化オプションをオフにしてください。
+- VRCLL の導入・更新案内を追加し、ダウンロードリンクと検証説明を整理。

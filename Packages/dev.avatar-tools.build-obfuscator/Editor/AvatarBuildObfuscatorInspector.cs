@@ -141,6 +141,8 @@ namespace AvatarTools.Obfuscation.Editor
             Field("allowMmdObfuscation");
             Field("shuffleBlendShapeOrder");
             Field("renameGameObjects");
+            using (new EditorGUI.DisabledScope(!Property("renameGameObjects").boolValue || Property("allowMmdObfuscation").boolValue))
+                Field("renameMmdObjectNames");
             Field("shuffleGameObjectOrder");
             using (new EditorGUI.DisabledScope(!Property("renameGameObjects").boolValue)) Field("renameBones");
             Field("renameParameters");

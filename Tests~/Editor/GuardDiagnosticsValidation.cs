@@ -109,13 +109,13 @@ namespace AvatarTools.Obfuscation.Validation
         private static void PresetIsolation()
         {
             var a = Root().GetComponent<AvatarBuildObfuscator>(); a.userName = "Private identity"; a.rightsContact = "private@example.org";
-            a.reorderBonePalette = false; a.experimentalUvTransform = true;
+            a.reorderBonePalette = false; a.experimentalUvTransform = true; a.renameMmdObjectNames = true;
             var preset = Track(ScriptableObject.CreateInstance<ObfuscationPreset>()); preset.Capture(a);
             Check(!EditorJsonUtility.ToJson(preset).Contains("private@example.org") && !EditorJsonUtility.ToJson(preset).Contains("Private identity"), "Preset leaked identity");
             preset.options.Add(new ObfuscationPreset.Option { property = "userName", enabled = true });
             var b = Root().GetComponent<AvatarBuildObfuscator>(); b.userName = "Other identity"; b.rightsContact = "other@example.org";
             preset.Apply(b);
-            Check(b.userName == "Other identity" && b.rightsContact == "other@example.org" && !b.reorderBonePalette && b.experimentalUvTransform, "Preset overwrote identity or failed to apply operations");
+            Check(b.userName == "Other identity" && b.rightsContact == "other@example.org" && !b.reorderBonePalette && b.experimentalUvTransform && b.renameMmdObjectNames, "Preset overwrote identity or failed to apply operations");
         }
 
         private static void DurationPlaceholder()
