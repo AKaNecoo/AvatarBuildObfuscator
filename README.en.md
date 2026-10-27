@@ -59,7 +59,9 @@ Git `#main` and `#beta` update independently and do not switch channels automati
 
 Obfuscation may increase the avatar's download size; the amount depends on the model and enabled options. Experimental texture rotation may increase it further. Check the SDK build statistics before uploading.
 
-MMD compatibility protection is on by default. On matching meshes, Conservative retains all shapes; Aggressive keeps matching names and **every shape's data and index**, while renaming other shapes. Object paths stay unchanged by default. **Rename MMD objects** separately allows names such as `Body` to change while keeping shape protection; fixed-path worlds may be affected. Rules include Japanese/Chinese characters and names such as `Blink` and `a`. Nonstandard worlds may require additional names, so test Aggressive in your worlds. Enable **Obfuscate MMD expressions** to disable this protection only if you do not need MMD expressions.
+For MMD expressions, keep both **Obfuscate MMD expressions** and **Rename MMD objects** off. Object renaming changes paths such as `Body`; a client test confirmed missing expressions in an MMD world even with shape names, data and indices retained.
+
+MMD compatibility protection is on by default. On matching meshes, Conservative retains all shapes; Aggressive keeps matching names and **every shape's data and index**, while renaming other shapes. Rules include Japanese/Chinese characters and names such as `Blink` and `a`. Nonstandard worlds may require additional names, so test Aggressive in your worlds. Enable the above options only if you do not need the corresponding MMD compatibility.
 
 Obfuscation does not prevent extraction: texture pixels, final geometry and required dynamic BlendShapes remain extractable. Check Aggressive mode in a test build first. Console messages prefixed with `[Avatar Build Obfuscator]` report processing counts and preservation reasons.
 

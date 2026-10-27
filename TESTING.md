@@ -1,12 +1,13 @@
 # Testing and validation
 
-This page summarizes validation for **0.8.2-beta.3**. The current Unity checks cover pinned sibling indices and the optional MMD object-name policy. Earlier VPM and VRChat client reports are versioned separately. Results apply to the stated versions and environments, rather than every avatar or VRChat world.
+This page summarizes validation for **0.8.2-beta.3**. Unity checks cover pinned sibling indices and the optional MMD object-name policy. A subsequent VRChat client comparison found missing MMD expressions with object renaming enabled and working expressions after disabling that option. Results apply to the stated versions and environments, rather than every avatar or VRChat world.
 
 ## Current results
 
 | Check | Result and scope |
 | --- | --- |
 | Prior MMD client result | The avatar creator reported working MMD expressions with **0.8.1-beta.1** and **Obfuscate MMD expressions** disabled. That version kept the whole name table; this report does **not** validate selective Aggressive naming or the new MMD object-name option. |
+| Current MMD client comparison | On **0.8.2-beta.3** in Aggressive mode, the avatar creator reported missing MMD expressions with **Rename MMD objects** enabled and **Obfuscate MMD expressions** disabled. Turning only **Rename MMD objects** off, with other settings unchanged, restored expressions. This identifies an object-name/path compatibility problem in that tested avatar/world combination. Selective shape naming worked there with object paths retained; this does not establish compatibility with every MMD world. |
 | Unity processing | In Unity 2022.3.22f1, local and Git-installed candidate sources pass 69 synthetic cases with no observed native errors. Coverage includes pinned MMD/manual path indices, unrelated sibling movement, complete shape frame/index/weight retention, viseme/eyelid and animation references, original-Avatar fallback, interacting nested-Avatar rejection and preset isolation. |
 | Full avatar build comparison | With **Rename MMD objects** enabled only on a test copy, local and Git comparisons pass 16 renderer pairs, 35 geometry/pose/shape samples, 33 material slots and 2,106 dependency-file checks, with zero missing bindings. The body object is renamed; its mesh retains 278 shapes, with 40 compatible names retained and 238 others renamed. Saved-scene files are checked separately from these preview-copy dependencies. |
 | Original-Avatar fallback | A separate native full-avatar probe tests the MMD object-name option both off and on. A non-bone body node listed in the imported skeleton description can be renamed while retaining the original Avatar and all Human-bone Transform identities. This verifies that case, not support for every rig that fails rebuilding. |
@@ -35,7 +36,8 @@ For a fresh Assets installation in a disposable project, `python Tools/sync_to_t
 
 ## Remaining limits
 
-- The reported VRChat result covers 0.8.1-beta.1 with MMD expression obfuscation **off**. Selective Aggressive naming, other MMD worlds and custom external names/paths still need client testing. **Rename MMD objects** is off by default; enabling it may affect worlds using fixed object paths even though shape names/data/indices remain protected. Conservative retains the whole MMD name table.
+- Keep both **Obfuscate MMD expressions** and **Rename MMD objects** off when MMD expressions are required. The 0.8.2-beta.3 client comparison confirmed failure with object renaming enabled and recovery after disabling it. That comparison covers one avatar/world combination; other MMD worlds and custom external names/paths still need testing. Conservative retains the whole MMD name table, but changing object paths can still break externally owned animations.
+- The installation guide includes VRCLL as a VPM manager. The configured link targets and generated repository page are checked; native repository registration, installation and updating in VRCLL have not been separately exercised.
 - Build comparisons sample selected geometry, poses, shapes, materials and references. They do not exhaustively verify every Animator transition, expression menu, PhysBone, network synchronization or face-tracking interaction.
 - SDK-preprocess audits describe references at that callback, including references from editor-only components. They are not a final VRCA inventory: retained-resource counts alone do not establish which resources survive final serialization.
 - Quest/iOS behavior and every shader or custom integration have not been tested. Aggressive mode and experimental UV/texture rotation need avatar-specific checks.
