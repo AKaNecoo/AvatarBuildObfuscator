@@ -1,14 +1,14 @@
 ## 中文
 
-- 修复构建后反射／MatCap 遮罩、主贴图等上游生成贴图引用丢失。
-- 保留材质参数、共享贴图与纹理坐标设置，补充两档材质回归检查。
+- 添加居中 ABO 字标，统一组件控件样式，整理开关顺序并相邻放置两项 MMD 设置。
+- 将安装说明及更新提示中的 VRCLL 名称改为 VCL。
 
 ## English
 
-- Fix lost generated texture references, including reflection/MatCap masks and main textures.
-- Preserve material values, shared textures and texture transforms; add regressions for both modes.
+- Add centered ABO branding, consistent Inspector controls and grouped options, including adjacent MMD switches.
+- Rename VRCLL to VCL in installation guides and update messages.
 
 ## 日本語
 
-- 反射・MatCap マスクやメインテクスチャなど、生成テクスチャの参照が失われる不具合を修正。
-- マテリアル値・共有テクスチャ・座標設定を保持し、両モードの回帰検査を追加。
+- ABO ロゴを中央に配置し、コンポーネントの表示を統一。設定順を整理し、MMD の2項目を隣接配置。
+- 導入ガイド・更新案内の VRCLL 表記を VCL に変更。

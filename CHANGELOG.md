@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.4-beta.1 — 2026-10-28
+
+- Add the ABO wordmark to the component Inspector header.
+- Center Inspector branding, use consistent controls and group related options, including both MMD switches.
+- Update package-manager names to VCL in the installation guides, Inspector and repository page.
+
 ## 0.8.3 — 2026-10-28
 
 - Promote the generated-material texture-reference fix after the avatar creator confirmed that the originally affected outfit looked correct with beta.1. Processing code and asset GUIDs are unchanged from 0.8.3-beta.1.
