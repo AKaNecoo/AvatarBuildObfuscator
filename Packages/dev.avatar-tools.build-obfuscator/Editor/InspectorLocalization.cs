@@ -12,8 +12,8 @@ namespace AvatarTools.Obfuscation.Editor
         internal static readonly string[] LanguageNames = { "简体中文", "English", "日本語" };
         private static readonly Dictionary<string, string[]> Copy = new Dictionary<string, string[]>
         {
-            { "update.vpm", new[] { "此安装由 VPM 管理。请在 ALCOM／VCC／VRCLL 的工程包列表中更新，组件不会通过 Git 或安装包覆盖它。", "This installation is managed by VPM. Update in your project's ALCOM/VCC/VRCLL package list; the component will not replace it through Git or unitypackage.", "VPM 管理のインストールです。ALCOM／VCC／VRCLL のプロジェクトのパッケージ一覧で更新してください。このコンポーネントは Git・unitypackage で上書きしません。" } },
-            { "update.vpmGuide", new[] { "ALCOM／VCC／VRCLL 使用说明", "ALCOM / VCC / VRCLL guide", "ALCOM／VCC／VRCLL のガイド" } },
+            { "update.vpm", new[] { "此安装由 VPM 管理。请在 ALCOM／VCC／VCL 的工程包列表中更新，组件不会通过 Git 或安装包覆盖它。", "This installation is managed by VPM. Update in your project's ALCOM/VCC/VCL package list; the component will not replace it through Git or unitypackage.", "VPM 管理のインストールです。ALCOM／VCC／VCL のプロジェクトのパッケージ一覧で更新してください。このコンポーネントは Git・unitypackage で上書きしません。" } },
+            { "update.vpmGuide", new[] { "ALCOM／VCC／VCL 使用说明", "ALCOM / VCC / VCL guide", "ALCOM／VCC／VCL のガイド" } },
             { "subtreeModes", new[] { "按子树设置模式", "Subtree mode overrides", "サブツリー別のモード" } },
             { "subtreeModes.tip", new[] { "拖入本Avatar内的子树根对象。最近的配置祖先生效，同一对象重复时使用最后一项；共享资源和全局参数/控制器保守优先。优化器合并来源不明确时保留并报告。", "Choose subtree roots within this avatar. Nearest configured ancestor wins; the last duplicate wins. Shared resources and global parameters/controllers use conservative priority. Ambiguous optimizer merges are retained and reported.", "このAvatar内のサブツリーのルートを指定します。最も近い設定済み祖先を継承し、重複時は最後の設定を使用します。共有アセット・全体パラメータ・コントローラーは保守優先です。最適化による統合元が不明な場合は保持して報告します。" } },
             { "subtreeRoot", new[] { "子树根对象", "Subtree root", "サブツリーのルート" } },

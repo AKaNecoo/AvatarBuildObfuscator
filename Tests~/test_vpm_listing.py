@@ -120,6 +120,9 @@ class VpmListingTests(unittest.TestCase):
         self.assertIn('https%3A%2F%2Fvpm.nadena.dev%2Fvpm.json', page)
         self.assertIn('README.en.md', page)
         self.assertIn('README.ja.md', page)
+        self.assertIn('ALCOM / VCC / VCL', page)
+        self.assertNotIn('VRCLL', page)
+        self.assertEqual(page.count('href="https://start.gamemode1.com/pages/vrclearnlauncher/"'), 1)
 
 
 if __name__ == '__main__':
