@@ -127,6 +127,7 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Generated-folder guard rejects package sources and traversal", GeneratedFolderGuard);
             Run("Imported assets use one batch instead of an import per file", BatchedImports);
             Run("Custom Shader copies preserve properties and source files", ShaderCopy);
+            MaterialReferenceTests();
             Run("Serialized reference walk retains generated resource names", AssetNamesSurviveTraversal);
             Run("Shape order shuffle remaps weights, frames, animation and eyelid indices", ShapeOrder);
             Run("Shape order switch and excluded renderer preserve indices", ShapeOrderDisabled);
