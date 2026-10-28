@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.4 — 2026-10-28
+
+- Add the centered ABO wordmark to the component Inspector and three-language repository READMEs.
+- Use consistent Inspector controls, group related options and rename the VCL manager in guides and update messages.
+- Promote the tested beta.1 interface update after the avatar creator's basic online smoke test. Product code and asset GUIDs are unchanged from beta.1.
+
+## 0.8.4-beta.1 — 2026-10-28
+
+- Add the ABO wordmark to the component Inspector header.
+- Center Inspector branding, use consistent controls and group related options, including both MMD switches.
+- Update package-manager names to VCL in the installation guides, Inspector and repository page.
+
 ## 0.8.3 — 2026-10-28
 
 - Promote the generated-material texture-reference fix after the avatar creator confirmed that the originally affected outfit looked correct with beta.1. Processing code and asset GUIDs are unchanged from 0.8.3-beta.1.

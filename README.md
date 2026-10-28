@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Packages/dev.avatar-tools.build-obfuscator/Editor/Icons/ABOWordmark.png" alt="ABO" width="200">
+</p>
+
 # Avatar Build Obfuscator (ABO)
 
 [English](README.en.md) · [日本語](README.ja.md)
@@ -16,9 +20,9 @@
 
 ## 安装
 
-需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。先通过 ALCOM／VCC／VRCLL 安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
+需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。先通过 ALCOM／VCC／VCL 安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
 
-**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VRCLL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推荐）：** 打开[软件包仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)，点击添加仓库，或在管理器中手动添加页面上的仓库地址，再到工程的软件包管理中安装 **Avatar Build Obfuscator**。测试版需开启预发布版本；页面也提供 NDMF 官方仓库入口。
+**[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VCL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推荐）：** 打开[软件包仓库页](https://akanecoo.github.io/AvatarBuildObfuscator/)，点击添加仓库，或在管理器中手动添加页面上的仓库地址，再到工程的软件包管理中安装 **Avatar Build Obfuscator**。测试版需开启预发布版本；页面也提供 NDMF 官方仓库入口。
 
 **Git：** 打开 **Window → Package Manager → ＋ → Add package from git URL…**，输入：
 
@@ -28,7 +32,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 测试版将末尾改为 `#beta`。也可从 [Releases](https://github.com/AKaNecoo/AvatarBuildObfuscator/releases) 下载 `.unitypackage`；安装方式只选一种，避免重复安装。
 
-转用 VPM 时，Git 版先在 Package Manager 中移除本包，再从 ALCOM／VCC／VRCLL 安装。VPM 可按 GUID 迁移旧 `.unitypackage` 目录。插件目录内不要存放自己的模型资产，场景上的组件设置无需删除。
+转用 VPM 时，Git 版先在 Package Manager 中移除本包，再从 ALCOM／VCC／VCL 安装。VPM 可按 GUID 迁移旧 `.unitypackage` 目录。插件目录内不要存放自己的模型资产，场景上的组件设置无需删除。
 
 ## 使用
 
@@ -51,7 +55,7 @@ https://github.com/AKaNecoo/AvatarBuildObfuscator.git?path=/Packages/dev.avatar-
 
 ## 更新
 
-VPM 安装在 **ALCOM／VCC／VRCLL** 中更新。Git 和 `.unitypackage` 安装可在组件的 **版本与更新** 中操作，Git 也可使用 Package Manager。自动检查默认开启，自动安装默认关闭；安装包更新后会删除临时下载文件。
+VPM 安装在 **ALCOM／VCC／VCL** 中更新。Git 和 `.unitypackage` 安装可在组件的 **版本与更新** 中操作，Git 也可使用 Package Manager。自动检查默认开启，自动安装默认关闭；安装包更新后会删除临时下载文件。
 
 Git 的 `#main` 和 `#beta` 独立更新，不会自动跨渠道切换。测试版转正式版时，在 Package Manager 用末尾为 `#main` 的同一 Git URL 重新添加，现有组件设置会保留。
 

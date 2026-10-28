@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "Packages/dev.avatar-tools.build-obfuscator"
 NAME = "dev.avatar-tools.build-obfuscator"
 VERSION = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$")
+PRODUCT_RESOURCES = {"Editor/TextureMip.shader", "Editor/Icons/ABOWordmark.png"}
 
 
 def validate(package=PACKAGE):
@@ -52,7 +53,7 @@ def validate(package=PACKAGE):
         else:
             if not Path(str(path) + ".meta").is_file():
                 raise ValueError(f"Missing .meta: {relative}")
-            if path.is_file() and path.suffix not in (".cs", ".asmdef", ".json", ".md") and path.name != "LICENSE" and relative != "Editor/TextureMip.shader":
+            if path.is_file() and path.suffix not in (".cs", ".asmdef", ".json", ".md") and path.name != "LICENSE" and relative not in PRODUCT_RESOURCES:
                 raise ValueError(f"Non-product file: {relative}")
             if path.suffix in (".asmdef", ".json"):
                 json.loads(path.read_text(encoding="utf-8-sig"))

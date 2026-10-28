@@ -83,7 +83,7 @@ def package_manifest(data, version):
             path = PurePosixPath(entry.filename)
             if path.is_absolute() or '..' in path.parts or chr(92) in entry.filename or ':' in entry.filename or stat.S_ISLNK(entry.external_attr >> 16):
                 raise ValueError('Unsafe archive path')
-            if path.suffix not in ('.cs', '.meta', '.json', '.md', '.shader', '.asmdef') and path.name != 'LICENSE':
+            if path.suffix not in ('.cs', '.meta', '.json', '.md', '.shader', '.asmdef') and path.name != 'LICENSE' and entry.filename != 'Editor/Icons/ABOWordmark.png':
                 raise ValueError('Non-product archive content')
         manifest = json.loads(archive.read('package.json').decode('utf-8-sig'))
         if manifest.get('name') != PACKAGE or manifest.get('version') != version:
@@ -151,12 +151,12 @@ def site_html(listing):
     ndmf = 'vcc://vpm/addRepo?url=' + urllib.parse.quote(NDMF_REPO, safe='')
     managers = ('<a href="https://vrc-get.anatawa12.com/zh-hans/alcom/">ALCOM</a> / '
                 '<a href="https://vrchat.com/home/download">VCC</a> / '
-                '<a href="https://start.gamemode1.com/pages/vrclearnlauncher/">VRCLL</a>')
+                '<a href="https://start.gamemode1.com/pages/vrclearnlauncher/">VCL</a>')
     links = ''.join(f'<li><a href="https://github.com/{REPOSITORY}/releases/tag/v{html.escape(v)}">{html.escape(v)}</a></li>'
                     for v in listing['packages'][PACKAGE]['versions'])
     return f'''<!doctype html>
 <html lang="zh-Hans"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ABO · ALCOM / VCC / VRCLL</title>
+<title>ABO · ALCOM / VCC / VCL</title>
 <style>body{{font:16px/1.7 system-ui,sans-serif;max-width:760px;margin:64px auto;padding:0 24px;color:#222;background:#fafafa}}a{{color:#2057a5}}.add{{display:inline-block;padding:10px 18px;margin:8px 12px 8px 0;background:#2057a5;color:white;text-decoration:none;border-radius:6px}}code{{display:block;overflow-wrap:anywhere;padding:12px;background:#eee}}h1{{line-height:1.2}}hr{{border:0;border-top:1px solid #ddd;margin:32px 0}}</style>
 <h1>Avatar Build Obfuscator <small>ABO</small></h1>
 <p>免费、开源的 VRChat Avatar 构建时混淆组件。仅处理构建副本。<br>
@@ -170,9 +170,9 @@ Free, open-source build-time avatar obfuscation. Processes build copies.<br>
 Requires the VRChat Avatars SDK and NDMF. Add the official NDMF repository if it is unavailable.<br>
 VRChat Avatars SDK と NDMF が必要です。NDMF が見つからない場合は公式リポジトリを追加してください。</p>
 <a href="{ndmf}">添加 NDMF 官方仓库 · Add NDMF repository · NDMF公式リポジトリを追加</a>
-<p>安装与更新请在 ALCOM／VCC／VRCLL 的工程包列表中操作。显示 beta 版本需开启预发布版本。<br>
-Install and update in your project's package list in ALCOM/VCC/VRCLL. Enable prereleases to see beta versions.<br>
-ALCOM／VCC／VRCLL のプロジェクトのパッケージ一覧からインストール・更新してください。beta はプレリリースの表示を有効にします。</p>
+<p>安装与更新请在 ALCOM／VCC／VCL 的工程包列表中操作。显示 beta 版本需开启预发布版本。<br>
+Install and update in your project's package list in ALCOM/VCC/VCL. Enable prereleases to see beta versions.<br>
+ALCOM／VCC／VCL のプロジェクトのパッケージ一覧からインストール・更新してください。beta はプレリリースの表示を有効にします。</p>
 <p>从 Git 或 Unity 安装包迁移前，请阅读安装说明。<br>Read the installation guide before migrating from Git or unitypackage.<br>Git・unitypackageからの移行前に導入ガイドをご確認ください。</p>
 <p><a href="https://github.com/{REPOSITORY}/blob/beta/README.md">中文说明</a> · <a href="https://github.com/{REPOSITORY}/blob/beta/README.en.md">English</a> · <a href="https://github.com/{REPOSITORY}/blob/beta/README.ja.md">日本語</a> · <a href="https://github.com/{REPOSITORY}">GitHub</a> · GPL-3.0-only</p>
 <hr><h2>Versions</h2><ul>{links}</ul><p>Bug: <a href="mailto:kiinemaki@qq.com">kiinemaki@qq.com</a></p></html>'''

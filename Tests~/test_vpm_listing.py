@@ -76,6 +76,14 @@ class VpmListingTests(unittest.TestCase):
                 release, data = fixture(extra=(name, b'private'))
                 with self.assertRaises(ValueError): VPM.build_listing([release], lambda _: data)
 
+    def test_editor_wordmark_is_allowed_without_allowing_other_textures(self):
+        image = (ROOT / 'Packages/dev.avatar-tools.build-obfuscator/Editor/Icons/ABOWordmark.png').read_bytes()
+        release, data = fixture(extra=('Editor/Icons/ABOWordmark.png', image))
+        self.assertIn(VPM.PACKAGE, VPM.build_listing([release], lambda _: data)['packages'])
+        release, data = fixture(extra=('Editor/Icons/private.png', image))
+        with self.assertRaisesRegex(ValueError, 'Non-product'):
+            VPM.build_listing([release], lambda _: data)
+
     def test_wrong_manifest_version_guid_or_dependency_is_rejected(self):
         for changes in ({'version': '0.6.0'}, {'name': 'unrelated.package'}, {'license': 'MIT'}, {'vpmDependencies': {}},
                         {'legacyFolders': {'Assets/Other': '0' * 32}}):
@@ -112,6 +120,9 @@ class VpmListingTests(unittest.TestCase):
         self.assertIn('https%3A%2F%2Fvpm.nadena.dev%2Fvpm.json', page)
         self.assertIn('README.en.md', page)
         self.assertIn('README.ja.md', page)
+        self.assertIn('ALCOM / VCC / VCL', page)
+        self.assertNotIn('VRCLL', page)
+        self.assertEqual(page.count('href="https://start.gamemode1.com/pages/vrclearnlauncher/"'), 1)
 
 
 if __name__ == '__main__':

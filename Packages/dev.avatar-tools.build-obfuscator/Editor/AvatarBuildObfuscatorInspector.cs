@@ -3,9 +3,7 @@
 
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace AvatarTools.Obfuscation.Editor
 {
@@ -14,12 +12,21 @@ namespace AvatarTools.Obfuscation.Editor
     {
         private readonly Dictionary<string, SerializedProperty> properties = new Dictionary<string, SerializedProperty>();
         private InspectorLanguage language;
-        private float inspectorWidth;
         private bool showExperiments;
         private bool showSubtreeModes;
         private ObfuscationPreset preset;
+        private Texture2D wordmark;
+        private GUIStyle titleStyle;
+        private readonly PackageUpdatePanel updates = new PackageUpdatePanel();
 
-        private void OnEnable() { properties.Clear(); }
+        private void OnEnable()
+        {
+            properties.Clear();
+            wordmark = null;
+            titleStyle = null;
+            PackageUpdates.Changed += Repaint;
+        }
+        private void OnDisable() { PackageUpdates.Changed -= Repaint; }
         private SerializedProperty Property(string name)
         {
             if (!properties.TryGetValue(name, out var value)) properties[name] = value = serializedObject.FindProperty(name);
@@ -30,53 +37,11 @@ namespace AvatarTools.Obfuscation.Editor
         private void Help(string key, MessageType type = MessageType.None)
         { EditorGUILayout.HelpBox(InspectorLocalization.Text(key, language), type); }
 
-        public override VisualElement CreateInspectorGUI()
-        {
-            var root = new VisualElement { name = "avatar-build-obfuscator-inspector" };
-            var username = new TextField
-            {
-                name = "avatar-build-obfuscator-username",
-                bindingPath = "userName",
-                isDelayed = false
-            };
-            var header = new IMGUIContainer(() => DrawGUI(DrawHeader));
-            var options = new IMGUIContainer(() => DrawGUI(DrawOptions));
-            var updates = new PackageUpdatePanel((InspectorLanguage)Property("inspectorLanguage").enumValueIndex);
-            root.Add(header);
-            root.Add(updates);
-            root.Add(username);
-            root.Add(options);
-            root.RegisterCallback<GeometryChangedEvent>(evt =>
-            {
-                inspectorWidth = evt.newRect.width;
-                username.labelElement.style.minWidth = LabelWidth(inspectorWidth);
-                username.labelElement.style.width = LabelWidth(inspectorWidth);
-                header.MarkDirtyRepaint();
-                options.MarkDirtyRepaint();
-            });
-            root.TrackPropertyValue(Property("inspectorLanguage"), property =>
-            {
-                var selected = (InspectorLanguage)property.enumValueIndex;
-                ((INotifyValueChanged<string>)username.labelElement).SetValueWithoutNotify(InspectorLocalization.Text("userName", selected));
-                username.tooltip = InspectorLocalization.Text("userName.tip", selected);
-                updates.SetLanguage(selected);
-                header.MarkDirtyRepaint();
-                options.MarkDirtyRepaint();
-            });
-            root.TrackPropertyValue(Property("userName"), property =>
-            {
-                if (username.value != property.stringValue) username.SetValueWithoutNotify(property.stringValue);
-                options.MarkDirtyRepaint();
-            });
-            var initialLanguage = (InspectorLanguage)Property("inspectorLanguage").enumValueIndex;
-            username.label = InspectorLocalization.Text("userName", initialLanguage);
-            username.tooltip = InspectorLocalization.Text("userName.tip", initialLanguage);
-            return root;
-        }
-
         public override void OnInspectorGUI() => DrawGUI(() =>
         {
             DrawHeader();
+            updates.Draw(language);
+            GUI.SetNextControlName("AvatarBuildObfuscator.Username");
             Field("userName");
             DrawOptions();
         });
@@ -87,7 +52,7 @@ namespace AvatarTools.Obfuscation.Editor
             float previousWidth = EditorGUIUtility.labelWidth;
             try
             {
-                EditorGUIUtility.labelWidth = LabelWidth(inspectorWidth > 0 ? inspectorWidth : EditorGUIUtility.currentViewWidth);
+                EditorGUIUtility.labelWidth = LabelWidth(EditorGUIUtility.currentViewWidth);
                 language = (InspectorLanguage)Property("inspectorLanguage").enumValueIndex;
                 draw();
                 serializedObject.ApplyModifiedProperties();
@@ -100,7 +65,21 @@ namespace AvatarTools.Obfuscation.Editor
 
         private void DrawHeader()
         {
-            EditorGUILayout.LabelField("Avatar Build Obfuscator", EditorStyles.boldLabel);
+            if (wordmark == null)
+                wordmark = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                    AssetDatabase.GUIDToAssetPath("b3c15ccde3df48af9d6279af188268e1"));
+            if (wordmark != null)
+            {
+                var slot = GUILayoutUtility.GetRect(0f, 64f, GUILayout.ExpandWidth(true));
+                float width = Mathf.Min(180f, slot.width);
+                var textureRect = new Rect(0f, .22f, 1f, .56f);
+                float height = width * wordmark.height * textureRect.height / wordmark.width;
+                var rect = new Rect(slot.x + (slot.width - width) * .5f, slot.y + 4f, width, height);
+                GUI.DrawTextureWithTexCoords(rect, wordmark, textureRect, true);
+            }
+            if (titleStyle == null)
+                titleStyle = new GUIStyle(EditorStyles.boldLabel) { alignment = TextAnchor.MiddleCenter };
+            EditorGUILayout.LabelField("Avatar Build Obfuscator", titleStyle);
             var selector = Property("inspectorLanguage");
             language = (InspectorLanguage)selector.enumValueIndex;
             selector.enumValueIndex = EditorGUILayout.Popup(
@@ -135,20 +114,24 @@ namespace AvatarTools.Obfuscation.Editor
             if (GUILayout.Button(InspectorLocalization.Text("compareBuild", language)))
                 BuildComparisonWindow.Open(((AvatarBuildObfuscator)target).gameObject, language);
             Field("renameAssets");
-            Field("freezeUnusedBlendShapes");
-            Field("pruneEmptyBlendShapes");
-            Field("renameDynamicBlendShapes");
-            Field("allowMmdObfuscation");
-            Field("shuffleBlendShapeOrder");
             Field("renameGameObjects");
-            using (new EditorGUI.DisabledScope(!Property("renameGameObjects").boolValue || Property("allowMmdObfuscation").boolValue))
-                Field("renameMmdObjectNames");
             Field("shuffleGameObjectOrder");
             using (new EditorGUI.DisabledScope(!Property("renameGameObjects").boolValue)) Field("renameBones");
             Field("renameParameters");
             Field("renameAnimatorInternals");
+            EditorGUILayout.Space(4f);
+            Field("freezeUnusedBlendShapes");
+            Field("pruneEmptyBlendShapes");
+            Field("renameDynamicBlendShapes");
+            Field("shuffleBlendShapeOrder");
+            EditorGUILayout.Space(4f);
+            Field("allowMmdObfuscation");
+            using (new EditorGUI.DisabledScope(!Property("renameGameObjects").boolValue || Property("allowMmdObfuscation").boolValue))
+                Field("renameMmdObjectNames");
+            EditorGUILayout.Space(4f);
             Field("reorderMeshVertices");
             Field("reorderBonePalette");
+            EditorGUILayout.Space(4f);
             Field("embedBuildFingerprint");
             Field("embedOwnershipNotice");
             if (Property("embedOwnershipNotice").boolValue)
