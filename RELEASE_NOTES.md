@@ -1,17 +1,14 @@
 ## 中文
 
-- 扩大激进模式的形变名称混淆，改进原 Avatar 回退和同级顺序重排。
-- 新增独立 MMD 对象名开关；需要 MMD 表情时，请保持两项 MMD 混淆选项均关闭。
-- 安装与更新说明加入 VRCLL，整理管理器下载链接及测试说明。
+- 修复构建后反射／MatCap 遮罩、主贴图等上游生成贴图引用丢失。
+- 保留材质参数、共享贴图与纹理坐标设置，补充两档材质回归检查。
 
 ## English
 
-- Expand Aggressive shape naming and improve original-Avatar fallback and sibling shuffling.
-- Add the separate MMD object-name option. Keep both MMD obfuscation options off when MMD expressions are needed.
-- Add VRCLL guidance and simplify manager download links and validation notes.
+- Fix lost generated texture references, including reflection/MatCap masks and main textures.
+- Preserve material values, shared textures and texture transforms; add regressions for both modes.
 
 ## 日本語
 
-- 積極モードの形状名変更を拡大し、元の Avatar へのフォールバックと兄弟順変更を改善。
-- MMD オブジェクト名の個別オプションを追加。MMD 表情が必要な場合は二つの MMD 難読化オプションをオフにしてください。
-- VRCLL の導入・更新案内を追加し、ダウンロードリンクと検証説明を整理。
+- 反射・MatCap マスクやメインテクスチャなど、生成テクスチャの参照が失われる不具合を修正。
+- マテリアル値・共有テクスチャ・座標設定を保持し、両モードの回帰検査を追加。

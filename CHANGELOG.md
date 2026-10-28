@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.3 — 2026-10-28
+
+- Promote the generated-material texture-reference fix after the avatar creator confirmed that the originally affected outfit looked correct with beta.1. Processing code and asset GUIDs are unchanged from 0.8.3-beta.1.
+- Update public validation guidance with the original-project visual feedback and its scope.
+
+## 0.8.3-beta.1 — 2026-10-28
+
+- Fix generated texture references becoming null on saved material copies. This can remove reflection or MatCap masks, or a main texture, when upstream tools supply unsaved textures that must retain their identity.
+- Remap material textures through native APIs by property name, retaining shared bindings, empty slots and texture transforms while preserving material rendering state. Generic serialized-reference rewriting remains in place for other supported asset graphs.
+- Add eight saved-material regressions across both modes, readable/unreadable generated masks and resource naming on/off. The pre-fix processor fails six cases; the fix passes all eight without changing the source inputs.
+
 ## 0.8.2 — 2026-10-27
 
 - Promote selective Aggressive shape naming, validated original-Avatar fallback and sibling shuffling around fixed indices. Processing logic and asset GUIDs are unchanged from 0.8.2-beta.3.

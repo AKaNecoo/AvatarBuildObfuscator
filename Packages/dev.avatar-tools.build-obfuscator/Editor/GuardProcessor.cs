@@ -762,6 +762,7 @@ namespace AvatarTools.Obfuscation.Editor
                     (AnimationClip)CloneAsset(pair.Value, relativeRoot))).ToList());
             }
             else if (original is AnimationClip clip) RewriteClip(clip, (AnimationClip)copy, relativeRoot);
+            else if (original is Material material) RewriteMaterialReferences(material, (Material)copy, relativeRoot);
             else if (copy is AvatarMask mask)
             {
                 for (int i = 0; i < mask.transformCount; i++)
@@ -774,6 +775,29 @@ namespace AvatarTools.Obfuscation.Editor
                 RewriteSerializedReferences(original, copy, relativeRoot);
             RewriteAnimatorNames(copy);
             return copy;
+        }
+
+        private void RewriteMaterialReferences(Material source, Material copy, Transform relativeRoot)
+        {
+            var textures = source.GetTexturePropertyNames().Select(property => new
+            {
+                Property = property, Texture = source.GetTexture(property),
+                Scale = source.GetTextureScale(property), Offset = source.GetTextureOffset(property)
+            }).ToArray();
+            if (source.shader != null) copy.shader = (Shader)CloneAsset(source.shader, relativeRoot);
+            copy.CopyPropertiesFromMaterial(source);
+            foreach (var binding in textures)
+            {
+                // SerializedObject assignments on a saved material can silently discard an
+                // unsaved generated texture. Such textures are intentionally retained when
+                // unreadable; native Material setters keep them until NDMF serializes the graph.
+                var replacement = (Texture)CloneAsset(binding.Texture, relativeRoot);
+                copy.SetTexture(binding.Property, replacement);
+                copy.SetTextureScale(binding.Property, binding.Scale);
+                copy.SetTextureOffset(binding.Property, binding.Offset);
+                if (copy.GetTexture(binding.Property) != replacement)
+                    throw new InvalidOperationException("Material texture reference was not retained: " + binding.Property);
+            }
         }
 
         private void RewriteSerializedReferences(Object source, Object copy, Transform relativeRoot)
