@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Packages/dev.avatar-tools.build-obfuscator/Editor/Icons/ABOWordmark.png" alt="ABO" width="200">
+</p>
+
 # Avatar Build Obfuscator (ABO)
 
 [English](README.en.md) · [日本語](README.ja.md)
