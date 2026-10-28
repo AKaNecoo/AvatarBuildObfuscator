@@ -1,11 +1,12 @@
 # Testing and validation
 
-This page covers **0.8.4-beta.1**, which adds Inspector branding, consistent controls, grouped options and the VCL manager name. Avatar-processing code is unchanged from **0.8.3**. The UI checks below were run for this update; processing, SDK and client results were carried forward from the explicitly stated earlier versions and were not rerun as new avatar/client acceptance for this UI release. Results apply to the stated versions and environments, rather than every avatar or VRChat world.
+This page covers **0.8.4**, which promotes the Inspector branding, consistent controls, grouped options and VCL naming from **0.8.4-beta.1**, and adds branding to the three-language repository READMEs. All product code and asset GUIDs are unchanged from beta.1; only package release metadata differs. Avatar-processing code remains unchanged from **0.8.3**. The UI checks below were run on beta.1. Stable-release checks rerun the Unity-independent tests and archive validation; Unity UI, processing and SDK checks are carried forward from the stated versions rather than rerun for the stable label. Results apply to the stated versions and environments, rather than every avatar or VRChat world.
 
 ## Current results
 
 | Check | Result and scope |
 | --- | --- |
+| Basic client smoke test | Before requesting promotion of **0.8.4-beta.1**, the avatar creator completed a basic online model-function check without reporting a problem. This does not establish complete menu, Animator, PhysBone, network, face-tracking or MMD-world coverage. |
 | Inspector UI | In Unity 2022.3.22f1, the centered wordmark and title are displayed with standard IMGUI controls. The two MMD options are adjacent. Real Windows clicks, mixed English/Chinese text entry and Ctrl+Z were checked on a disposable test object. The source avatar component settings remain unchanged. This does not exhaustively cover every input method or editor theme. |
 | Prior MMD client result | The avatar creator reported working MMD expressions with **0.8.1-beta.1** and **Obfuscate MMD expressions** disabled. That version kept the whole name table; this report does **not** validate selective Aggressive naming or the new MMD object-name option. |
 | Prior MMD client comparison | On **0.8.2-beta.3** in Aggressive mode, the avatar creator reported missing MMD expressions with **Rename MMD objects** enabled and **Obfuscate MMD expressions** disabled. Turning only **Rename MMD objects** off, with other settings unchanged, restored expressions. This identifies an object-name/path compatibility problem in that tested avatar/world combination. Selective shape naming worked there with object paths retained; this does not establish compatibility with every MMD world. |
