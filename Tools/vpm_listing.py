@@ -83,7 +83,7 @@ def package_manifest(data, version):
             path = PurePosixPath(entry.filename)
             if path.is_absolute() or '..' in path.parts or chr(92) in entry.filename or ':' in entry.filename or stat.S_ISLNK(entry.external_attr >> 16):
                 raise ValueError('Unsafe archive path')
-            if path.suffix not in ('.cs', '.meta', '.json', '.md', '.shader', '.asmdef') and path.name != 'LICENSE':
+            if path.suffix not in ('.cs', '.meta', '.json', '.md', '.shader', '.asmdef') and path.name != 'LICENSE' and entry.filename != 'Editor/Icons/ABOWordmark.png':
                 raise ValueError('Non-product archive content')
         manifest = json.loads(archive.read('package.json').decode('utf-8-sig'))
         if manifest.get('name') != PACKAGE or manifest.get('version') != version:

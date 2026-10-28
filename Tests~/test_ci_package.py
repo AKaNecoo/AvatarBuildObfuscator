@@ -50,6 +50,12 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Non-product"):
             ci.validate(self.package)
 
+    def test_unrelated_texture_rejected(self):
+        shutil.copyfile(self.package / "Editor/Icons/ABOWordmark.png", self.package / "private.png")
+        (self.package / "private.png.meta").write_text("guid: " + "f" * 32)
+        with self.assertRaisesRegex(ValueError, "Non-product"):
+            ci.validate(self.package)
+
     def test_component_guid_retained(self):
         p = self.package / "Runtime/AvatarBuildObfuscator.cs.meta"
         p.write_text(p.read_text().replace("7c5e3c2dfef2cf4469c50c0ba239aac9", "e" * 32))

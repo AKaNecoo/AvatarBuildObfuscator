@@ -18,8 +18,13 @@ namespace AvatarTools.Obfuscation.Editor
         private bool showExperiments;
         private bool showSubtreeModes;
         private ObfuscationPreset preset;
+        private Texture2D wordmark;
 
-        private void OnEnable() { properties.Clear(); }
+        private void OnEnable()
+        {
+            properties.Clear();
+            wordmark = null;
+        }
         private SerializedProperty Property(string name)
         {
             if (!properties.TryGetValue(name, out var value)) properties[name] = value = serializedObject.FindProperty(name);
@@ -100,6 +105,18 @@ namespace AvatarTools.Obfuscation.Editor
 
         private void DrawHeader()
         {
+            if (wordmark == null)
+                wordmark = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                    AssetDatabase.GUIDToAssetPath("b3c15ccde3df48af9d6279af188268e1"));
+            if (wordmark != null)
+            {
+                var slot = GUILayoutUtility.GetRect(0f, 64f, GUILayout.ExpandWidth(true));
+                float width = Mathf.Min(180f, slot.width);
+                var textureRect = new Rect(0f, .22f, 1f, .56f);
+                float height = width * wordmark.height * textureRect.height / wordmark.width;
+                var rect = new Rect(slot.x, slot.y + 4f, width, height);
+                GUI.DrawTextureWithTexCoords(rect, wordmark, textureRect, true);
+            }
             EditorGUILayout.LabelField("Avatar Build Obfuscator", EditorStyles.boldLabel);
             var selector = Property("inspectorLanguage");
             language = (InspectorLanguage)selector.enumValueIndex;
