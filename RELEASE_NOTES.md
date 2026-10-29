@@ -1,14 +1,14 @@
 ## 中文
 
-- 在组件和 README 添加 ABO 字标，统一组件控件样式，并将两项 MMD 设置相邻放置。
-- 将安装说明及更新提示中的 VRCLL 名称改为 VCL。
+- 补齐构建后期菜单图标和 Animator 资源的混淆，关闭审计仍会执行；保留图标格式、Mip Streaming 和动画参数协议。
+- 居中 README 标题与语言入口。
 
 ## English
 
-- Add ABO branding to the Inspector and READMEs, with consistent controls and adjacent MMD switches.
-- Rename VRCLL to VCL in installation guides and update messages.
+- Obfuscate late menu icons and Animator resources even with audit disabled, retaining texture storage/streaming and animation parameter protocols.
+- Center README titles and language links.
 
 ## 日本語
 
-- コンポーネントと README に ABO ロゴを追加。表示を統一し、MMD の2項目を隣接配置。
-- 導入ガイド・更新案内の VRCLL 表記を VCL に変更。
+- ビルド後半で追加されるメニューアイコンと Animator を難読化。監査が無効でも動作し、画像形式・Mip Streaming・パラメーターの互換性を維持。
+- README のタイトルと言語リンクを中央配置。

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.5-beta.1 — 2026-10-29
+
+- Complete naming and references for imported menu icons and Animator graphs introduced after the main NDMF pass, including builds with audit reports disabled. Preserve icon storage/streaming, menu labels, shared references, late protocol parameters and nested Animator bindings.
+- Reuse existing build copies without repeating geometry or hierarchy transforms; persist late native resources independently and save each dirty generated file once. Exclude owned copies from source-reference audit classification.
+- Center titles and language links in the three repository READMEs.
+
 ## 0.8.4 — 2026-10-28
 
 - Add the centered ABO wordmark to the component Inspector and three-language repository READMEs.
