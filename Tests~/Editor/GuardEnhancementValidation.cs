@@ -171,7 +171,9 @@ namespace AvatarTools.Obfuscation.Validation
             var report = Process(root); Check(report.AuditStage == "ndmf-pass", "Wrong manual audit stage");
             r.name = "Body"; r.sharedMaterial = material;
             new BuildAuditCompletion().OnPreprocessAvatar(root);
-            Check(report.AuditStage == "sdk-preprocess" && report.AuditEntries.Any(e => e.category == "source-resource-reference" && e.path == path), "Late reference invisible to audit");
+            Check(report.AuditStage == "sdk-preprocess" && r.sharedMaterial != material &&
+                UsernameNameGenerator.IsGeneratedName(r.sharedMaterial.name) &&
+                !report.AuditEntries.Any(e => e.category == "source-resource-reference" && e.path == path), "Late material was not completed before audit");
             Check(report.AuditEntries.Any(e => e.category == "retained-object-name" && e.name == "Body"), "Late original name invisible");
             AssetDatabase.SaveAssetIfDirty(material); Check(bytes.SequenceEqual(File.ReadAllBytes(path)), "Audit changed source bytes");
         }

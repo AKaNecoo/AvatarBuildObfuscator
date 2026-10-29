@@ -132,7 +132,9 @@ namespace AvatarTools.Obfuscation.Editor
                 if (graphNames)
                 {
                     var layers = controller.layers;
-                    foreach (var layer in layers) { layer.name = NewName(); report.RenamedAnimatorNames++; }
+                    foreach (var layer in layers)
+                        if (!sdkResourceCompletion || !UsernameNameGenerator.IsGeneratedName(layer.name))
+                        { layer.name = NewName(); report.RenamedAnimatorNames++; }
                     controller.layers = layers;
                 }
             }

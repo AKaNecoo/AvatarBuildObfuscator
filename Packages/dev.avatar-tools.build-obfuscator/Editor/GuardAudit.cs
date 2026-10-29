@@ -29,14 +29,14 @@ namespace AvatarTools.Obfuscation.Editor
         {
             foreach (var t in root.GetComponentsInChildren<Transform>(true)) sourceObjectNames.Add(t.name);
             foreach (var asset in WalkReferencedAssets())
-                if (!(asset is Component) && EditorUtility.IsPersistent(asset) && !GeneratedPath(AssetDatabase.GetAssetPath(asset)))
+                if (!(asset is Component) && !owned.Contains(asset) && EditorUtility.IsPersistent(asset) && !GeneratedPath(AssetDatabase.GetAssetPath(asset)))
                     sourceAssets.Add(asset.GetInstanceID());
         }
 
         private static bool GeneratedPath(string path) => path.StartsWith("Packages/nadena.dev.ndmf/__Generated/", StringComparison.Ordinal) ||
             path.StartsWith("Packages/com.vrcfury.temp/", StringComparison.Ordinal);
 
-        private void EmbedBuildMetadata()
+        private void EmbedBuildMetadata(bool includeHierarchy = true)
         {
             if (!settings.EmbedNotice && !settings.EmbedFingerprint) return;
             string fingerprint = settings.EmbedFingerprint ? report.BuildFingerprint : "";
@@ -45,9 +45,10 @@ namespace AvatarTools.Obfuscation.Editor
             // Every material in this set is independently owned. Tags are data, not shader instructions.
             foreach (var material in owned.OfType<Material>())
             {
-                if (settings.EmbedNotice) material.SetOverrideTag(NoticeTag, notice);
-                if (settings.EmbedFingerprint) material.SetOverrideTag(FingerprintTag, fingerprint);
+                if (settings.EmbedNotice && material.GetTag(NoticeTag, false, "") != notice) material.SetOverrideTag(NoticeTag, notice);
+                if (settings.EmbedFingerprint && material.GetTag(FingerprintTag, false, "") != fingerprint) material.SetOverrideTag(FingerprintTag, fingerprint);
             }
+            if (!includeHierarchy) return;
             // Keep the readable notices out of the avatar's immediate child list.
             // This ordinary, independently named subtree contains no functional bindings.
             var container = AddMetadataObject(NewName(), root.transform).transform;
@@ -143,7 +144,7 @@ namespace AvatarTools.Obfuscation.Editor
             path == "Resources/unity_builtin_extra" || path == "Library/unity default resources" || path.StartsWith("Packages/com.vrchat.", StringComparison.Ordinal);
     }
 
-    // A later SDK callback catches changes made after this plugin's NDMF pass.
+    // A later SDK callback completes resources added after this plugin's NDMF pass.
     // Manual NDMF builds still receive the explicitly labelled ndmf-pass report.
     public sealed class BuildAuditCompletion : IVRCSDKPreprocessAvatarCallback
     {
@@ -160,7 +161,12 @@ namespace AvatarTools.Obfuscation.Editor
             if (avatarGameObject != null && pending.TryGetValue(avatarGameObject.GetInstanceID(), out var processor))
             {
                 pending.Remove(avatarGameObject.GetInstanceID());
-                processor.AuditOutput("sdk-preprocess");
+                try { processor.FinishSdkBuild(); }
+                catch (Exception e)
+                {
+                    Debug.LogException(new InvalidOperationException("[Avatar Build Obfuscator] SDK resource completion failed", e));
+                    return false;
+                }
             }
             return true;
         }
