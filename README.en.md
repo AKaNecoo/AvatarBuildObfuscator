@@ -12,7 +12,7 @@
 
 ## Features
 
-- Rename resources, objects, bones, parameters, Animator internals and dynamic BlendShapes using your username plus `Ì/Í/Î/Ï` symbols.
+- Rename resources, objects, bones, parameters, Animator internals and dynamic BlendShapes using your username followed by a random suffix made from Ì, Í, Î and Ï.
 - Bake and remove supported fixed/unused BlendShapes and zero-delta shapes, while retaining required dynamic shapes.
 - Independently shuffle BlendShape, sibling GameObject, mesh vertex and skin bone-palette order, updating related references.
 - Randomize each build and write local processing reports; optionally embed multilingual authorization notices and build fingerprints.
@@ -59,7 +59,7 @@ Use `#beta` for test releases.
 
 **What to expect:** Conservative mode prioritizes compatibility, so its changes may be less noticeable. Aggressive mode covers more and usually produces more noticeable obfuscation, with higher compatibility risks.
 
-**For MMD expressions, keep both Obfuscate MMD expressions and Rename MMD objects off.** Object renaming changes paths such as `Body` and can break MMD expressions.
+**For MMD expressions, keep both Obfuscate MMD expressions and Rename MMD objects off.** Object renaming changes hierarchy paths and can break MMD expressions.
 
 <details>
 <summary>More settings and build checks</summary>
