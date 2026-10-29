@@ -2,9 +2,11 @@
   <img src="Packages/dev.avatar-tools.build-obfuscator/Editor/Icons/ABOWordmark.png" alt="ABO" width="200">
 </p>
 
-# Avatar Build Obfuscator (ABO)
+<h1 align="center">Avatar Build Obfuscator (ABO)</h1>
 
-[English](README.en.md) · [日本語](README.ja.md)
+<p align="center">
+  <a href="README.en.md">English</a> · <a href="README.ja.md">日本語</a>
+</p>
 
 用于 VRChat Avatar 的构建时混淆工具。添加组件后，NDMF 自动处理构建副本，不覆盖源资产，无需运行时解密。
 

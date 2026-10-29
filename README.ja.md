@@ -2,9 +2,11 @@
   <img src="Packages/dev.avatar-tools.build-obfuscator/Editor/Icons/ABOWordmark.png" alt="ABO" width="200">
 </p>
 
-# Avatar Build Obfuscator (ABO)
+<h1 align="center">Avatar Build Obfuscator (ABO)</h1>
 
-[中文](README.md) · [English](README.en.md)
+<p align="center">
+  <a href="README.md">中文</a> · <a href="README.en.md">English</a>
+</p>
 
 VRChat アバターをビルド時に難読化するツールです。コンポーネントを追加すると NDMF がビルド用コピーを処理し、元アセットは上書きしません。実行時の復号は不要です。
 

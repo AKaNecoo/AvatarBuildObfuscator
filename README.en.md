@@ -2,9 +2,11 @@
   <img src="Packages/dev.avatar-tools.build-obfuscator/Editor/Icons/ABOWordmark.png" alt="ABO" width="200">
 </p>
 
-# Avatar Build Obfuscator (ABO)
+<h1 align="center">Avatar Build Obfuscator (ABO)</h1>
 
-[中文](README.md) · [日本語](README.ja.md)
+<p align="center">
+  <a href="README.md">中文</a> · <a href="README.ja.md">日本語</a>
+</p>
 
 Build-time obfuscation for VRChat avatars. Add the component and NDMF processes the build copy without overwriting source assets. No runtime decoder is required.
 
