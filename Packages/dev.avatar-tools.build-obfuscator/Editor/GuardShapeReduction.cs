@@ -119,7 +119,7 @@ namespace AvatarTools.Obfuscation.Editor
         private bool RemoveShapeBinding(EditorCurveBinding binding, Transform relativeRoot)
         {
             if (!binding.propertyName.StartsWith("blendShape.", StringComparison.Ordinal)) return false;
-            var targets = ResolveRenderers(relativeRoot, binding.path).ToArray();
+            var targets = ResolveRenderers(relativeRoot, sdkResourceCompletion ? MapPath(binding.path, relativeRoot) : binding.path).ToArray();
             return targets.Length == 1 && removedShapeCurves.TryGetValue(targets[0], out var removed) && removed.Contains(binding.propertyName.Substring(11));
         }
     }

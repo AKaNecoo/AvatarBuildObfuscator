@@ -195,7 +195,8 @@ namespace AvatarTools.Obfuscation.Editor
             if (settings.TransformUv) TransformUvTextures();
             EmbedBuildMetadata();
             BuildComparison.RecordShapeNames(shapeRenames, report.MergedShapePairs > 0);
-            if (settings.AuditBuild) { AuditOutput("ndmf-pass"); BuildAuditCompletion.Register(root, this); }
+            if (settings.AuditBuild) AuditOutput("ndmf-pass");
+            BuildAuditCompletion.Register(root, this);
             return report;
         }
 
@@ -677,6 +678,7 @@ namespace AvatarTools.Obfuscation.Editor
             foreach (var component in root.GetComponentsInChildren<Component>(true))
             {
                 if (component == null || component is Transform || component is AvatarBuildObfuscator) continue;
+                if (sdkResourceCompletion && component is VRC.SDKBase.IEditorOnly) continue;
                 var relativeRoot = component is Animator animator ? animator.transform : root.transform;
                 using (var so = new SerializedObject(component))
                 {
@@ -746,6 +748,7 @@ namespace AvatarTools.Obfuscation.Editor
             if (copy == original) return original;
             if (!(copy is Shader)) copy.name = settings.RenameAssets && namedAsset ? NewName() : original.name;
             map[original] = copy; // Register before walking cyclic state machines or menus.
+            if (animationObject) copiedAnimationRoots[copy] = relativeRoot;
             nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(original), copy);
             Own(copy);
             if (settings.RenameAssets && namedAsset) report.RenamedAssets++;
@@ -784,17 +787,23 @@ namespace AvatarTools.Obfuscation.Editor
                 Property = property, Texture = source.GetTexture(property),
                 Scale = source.GetTextureScale(property), Offset = source.GetTextureOffset(property)
             }).ToArray();
-            if (source.shader != null) copy.shader = (Shader)CloneAsset(source.shader, relativeRoot);
-            copy.CopyPropertiesFromMaterial(source);
+            if (source.shader != null)
+            {
+                var shader = (Shader)CloneAsset(source.shader, relativeRoot);
+                if (copy.shader != shader) copy.shader = shader;
+            }
+            // SDK completion revisits owned materials in place. Unity's native
+            // property vectors do not support assigning themselves as the source.
+            if (copy != source) copy.CopyPropertiesFromMaterial(source);
             foreach (var binding in textures)
             {
                 // SerializedObject assignments on a saved material can silently discard an
                 // unsaved generated texture. Such textures are intentionally retained when
                 // unreadable; native Material setters keep them until NDMF serializes the graph.
                 var replacement = (Texture)CloneAsset(binding.Texture, relativeRoot);
-                copy.SetTexture(binding.Property, replacement);
-                copy.SetTextureScale(binding.Property, binding.Scale);
-                copy.SetTextureOffset(binding.Property, binding.Offset);
+                if (copy.GetTexture(binding.Property) != replacement) copy.SetTexture(binding.Property, replacement);
+                if (copy.GetTextureScale(binding.Property) != binding.Scale) copy.SetTextureScale(binding.Property, binding.Scale);
+                if (copy.GetTextureOffset(binding.Property) != binding.Offset) copy.SetTextureOffset(binding.Property, binding.Offset);
                 if (copy.GetTexture(binding.Property) != replacement)
                     throw new InvalidOperationException("Material texture reference was not retained: " + binding.Property);
             }
@@ -879,7 +888,7 @@ namespace AvatarTools.Obfuscation.Editor
         {
             if (binding.propertyName.StartsWith("blendShape.", StringComparison.Ordinal))
             {
-                var targets = ResolveRenderers(relativeRoot, binding.path).ToArray();
+                var targets = ResolveRenderers(relativeRoot, sdkResourceCompletion ? MapPath(binding.path, relativeRoot) : binding.path).ToArray();
                 if (targets.Length == 1 && shapeRenames.TryGetValue(targets[0], out var names) &&
                     names.TryGetValue(binding.propertyName.Substring(11), out var name)) binding.propertyName = "blendShape." + name;
             }
@@ -924,7 +933,8 @@ namespace AvatarTools.Obfuscation.Editor
         private void Own(Object value)
         {
             owned.Add(value); report.CopiedObjects++;
-            saveAsset?.Invoke(value);
+            if (sdkResourceCompletion) SaveSdkResource(value);
+            else saveAsset?.Invoke(value);
         }
 
         private string NewName()

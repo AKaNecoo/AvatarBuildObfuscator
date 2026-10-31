@@ -15,6 +15,11 @@ namespace AvatarTools.Obfuscation.Editor
 {
     public sealed partial class GuardProcessor
     {
+        private string importedAssetFolder;
+        private bool sdkResourceCompletion;
+        private ScriptableObject sdkResourceContainer;
+        private readonly Dictionary<Object, Transform> copiedAnimationRoots = new Dictionary<Object, Transform>();
+
         /// <summary>
         /// Run before opening NDMF's serialization scope: asset imports must be allowed
         /// to complete. CopyAsset preserves compressed/imported data and importer settings
@@ -22,7 +27,7 @@ namespace AvatarTools.Obfuscation.Editor
         /// </summary>
         public void PrepareImportedAssets(string generatedFolder)
         {
-            if (!settings.RenameAssets || string.IsNullOrEmpty(generatedFolder)) return;
+            if (string.IsNullOrEmpty(generatedFolder)) return;
             generatedFolder = generatedFolder.Replace('\\', '/').TrimEnd('/');
             // NDMF's normal SDK/Play pipeline saves under its package's __Generated
             // tree. Manual/test builds can instead choose an Assets folder. Accept
@@ -33,6 +38,8 @@ namespace AvatarTools.Obfuscation.Editor
             if (!allowed || generatedFolder.Split('/').Any(segment => segment == "." || segment == ".."))
                 throw new ArgumentException("Generated assets must be inside Assets or NDMF's __Generated tree");
             if (!AssetDatabase.IsValidFolder(generatedFolder)) return;
+            importedAssetFolder = generatedFolder;
+            if (!settings.RenameAssets) return;
             var sources = WalkReferencedAssets().Where(x => x is Texture || x is AudioClip).ToArray();
             var pending = new List<Tuple<Object, string, string>>();
             var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -45,6 +52,7 @@ namespace AvatarTools.Obfuscation.Editor
                 for (int i = 0; i < sources.Length; i++)
                 {
                     var asset = sources[i];
+                    if (owned.Contains(asset) || sharedAssets.ContainsKey(asset)) continue;
                     if (asset is RenderTexture || !AssetDatabase.IsMainAsset(asset)) continue;
                     string path = AssetDatabase.GetAssetPath(asset);
                     var importer = AssetImporter.GetAtPath(path);
@@ -118,6 +126,76 @@ namespace AvatarTools.Obfuscation.Editor
 
         private IEnumerable<Object> WalkReferencedAssets()
             => BuildMetadataInspection.Dependencies(root);
+
+        // SDK callbacks and late NDMF passes can add resources after the main pass.
+        // Revisit only asset references, retaining the existing path/parameter maps;
+        // do not run geometry, shape, UV or hierarchy transformations a second time.
+        internal void FinishSdkBuild()
+        {
+            if (settings.RenameAssets || settings.RenameAnimatorInternals)
+            {
+                sdkResourceCompletion = true;
+                try
+                {
+                    if (settings.AuditBuild) CaptureAuditSources();
+                    PrepareImportedAssets(importedAssetFolder);
+                    RewriteComponentAssets();
+                    // An owned menu/material may have received a new source reference.
+                    // Never write into unowned source objects reached through the graph.
+                    foreach (var asset in WalkReferencedAssets().Where(owned.Contains).ToArray())
+                    {
+                        if (asset is Material material) RewriteMaterialReferences(material, material, root.transform);
+                        else if (!(asset is Texture || asset is Mesh || asset is Avatar || asset is AudioClip || asset is Shader))
+                            RewriteOwnedAssetReferences(asset);
+                    }
+                    EmbedBuildMetadata(false);
+                    // Thousands of subassets can share one generated file. Save each
+                    // dirty file once, rather than serializing that file for every child.
+                    var persisted = owned.Concat(new Object[] { sdkResourceContainer })
+                        .Where(a => a != null && EditorUtility.IsPersistent(a));
+                    foreach (var group in persisted.GroupBy(AssetDatabase.GetAssetPath))
+                    {
+                        var dirty = group.FirstOrDefault(EditorUtility.IsDirty);
+                        if (dirty != null) AssetDatabase.SaveAssetIfDirty(dirty);
+                    }
+                }
+                finally { sdkResourceCompletion = false; }
+            }
+            if (settings.AuditBuild) AuditOutput("sdk-preprocess");
+        }
+
+        private void RewriteOwnedAssetReferences(Object asset)
+        {
+            using (var serialized = new SerializedObject(asset))
+            {
+                var p = serialized.GetIterator(); bool changed = false;
+                while (p.Next(true))
+                {
+                    if (p.propertyType != SerializedPropertyType.ObjectReference || p.propertyPath == "m_Script") continue;
+                    var source = p.objectReferenceValue;
+                    if (source == null || source is GameObject || source is Component || source is MonoScript) continue;
+                    var replacement = CloneAsset(source, copiedAnimationRoots.TryGetValue(asset, out var animatorRoot) ? animatorRoot : root.transform);
+                    if (replacement != source) { p.objectReferenceValue = replacement; changed = true; }
+                }
+                if (changed) serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        private void SaveSdkResource(Object value)
+        {
+            if (EditorUtility.IsPersistent(value)) return;
+            if (string.IsNullOrEmpty(importedAssetFolder)) { saveAsset?.Invoke(value); return; }
+            if (sdkResourceContainer == null)
+            {
+                // The NDMF saver has finished by this callback. Use a new, independent
+                // container in its generated folder instead of reopening that saver.
+                sdkResourceContainer = ScriptableObject.CreateInstance<nadena.dev.ndmf.runtime.SubAssetContainer>();
+                sdkResourceContainer.name = NewName();
+                AssetDatabase.CreateAsset(sdkResourceContainer, AssetDatabase.GenerateUniqueAssetPath(
+                    importedAssetFolder + "/abo-final-" + report.BuildFingerprint + ".asset"));
+            }
+            AssetDatabase.AddObjectToAsset(value, sdkResourceContainer);
+        }
 
         private Shader CopyShader(Shader source)
         {
