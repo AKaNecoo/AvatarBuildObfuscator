@@ -1,11 +1,12 @@
 # Testing and validation
 
-This page covers **0.8.5-beta.1**, which completes imported menu icons and Animator resources introduced after the main NDMF pass, including builds with audit disabled. Current checks include Unity-independent tests, native Unity resource regressions, an SDK callback comparison and a resource AssetBundle reload probe. Earlier geometry, Inspector-input and client results are identified by their stated versions and are carried forward where applicable. The current beta has not received a new VRChat client acceptance test. Results apply to the stated environments, rather than every avatar, integration or world.
+This page covers **0.8.5**, promoted from 0.8.5-beta.1 with unchanged processing code and asset GUIDs. It completes imported menu icons and Animator resources introduced after the main NDMF pass, including builds with audit disabled. Checks include Unity-independent tests, native Unity resource regressions, an SDK callback comparison and a resource AssetBundle reload probe. Earlier geometry, Inspector-input and client results are identified by their stated versions and are carried forward where applicable. Results apply to the stated environments, rather than every avatar, integration or world.
 
 ## Current results
 
 | Check | Result and scope |
 | --- | --- |
+| Current client retest | Before 0.8.5 promotion, the avatar creator repeated the VRChat check and reported normal gesture-driven clothing changes. This is targeted feedback for that avatar and configuration, rather than exhaustive client or world coverage. |
 | Prior basic client smoke test | Before requesting promotion of **0.8.4-beta.1**, the avatar creator completed a basic online model-function check without reporting a problem. This does not establish complete menu, Animator, PhysBone, network, face-tracking or MMD-world coverage. |
 | Inspector UI from 0.8.4-beta.1 | In Unity 2022.3.22f1, the centered wordmark and title are displayed with standard IMGUI controls. The two MMD options are adjacent. Real Windows clicks, mixed English/Chinese text entry and Ctrl+Z were checked on a disposable test object. The source avatar component settings remain unchanged. This does not exhaustively cover every input method or editor theme. |
 | Prior MMD client result | The avatar creator reported working MMD expressions with **0.8.1-beta.1** and **Obfuscate MMD expressions** disabled. That version kept the whole name table; this report does **not** validate selective Aggressive naming or the new MMD object-name option. |
