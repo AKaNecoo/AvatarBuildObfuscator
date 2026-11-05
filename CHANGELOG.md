@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.6-beta.1 — 2026-11-05
+
+- Keep Thry/Poiyomi optimizer shaders in independent readable build-source files, rather than binary NDMF containers. Retain generated shader names and source-relative include resolution without changing source materials or shaders.
+- Use compact generated disk filenames to avoid repeating the full shader name in the locker's cache paths. Cover both processing modes, late SDK shader references and real Poiyomi locking with native integration checks.
+
 ## 0.8.5 — 2026-10-31
 
 - Promote late menu-icon and Animator resource completion from 0.8.5-beta.1. Processing code and asset GUIDs are unchanged from the tested beta.

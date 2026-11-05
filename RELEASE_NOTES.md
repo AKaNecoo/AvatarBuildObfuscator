@@ -1,14 +1,14 @@
 ## 中文
 
-- 完善构建后期菜单图标和 Animator 资源的混淆，保留贴图格式、流送设置与动画参数协议。
-- 精简三语 README，居中简介，补充模式效果提示与反馈入口。
+- 修复 Thry／Poiyomi 读取混淆 Shader 时 include 路径错误、导致材质锁定失败的问题。
+- 缩短 Shader 副本的磁盘文件名，保留内部混淆名称，避免锁定缓存路径过长。
 
 ## English
 
-- Complete late menu-icon and Animator resource obfuscation while retaining texture storage, streaming and animation parameter protocols.
-- Simplify the three-language READMEs, center introductions, and clarify mode effects and feedback options.
+- Fix material locking failures when Thry/Poiyomi reads includes from obfuscated shaders.
+- Shorten generated shader filenames while retaining internal obfuscated names to avoid long locker cache paths.
 
 ## 日本語
 
-- ビルド後半のメニューアイコンと Animator の難読化を改善。画像形式・ストリーミング設定・パラメーターの互換性を維持。
-- 三言語 README を整理し、概要を中央配置。モードの効果と不具合報告の案内を追加。
+- Thry／Poiyomi が難読化シェーダーの include を読み込む際に、マテリアルのロックが失敗する問題を修正。
+- シェーダー内部の難読化名を維持しつつ生成ファイル名を短縮し、ロック用キャッシュのパス長を抑制。
