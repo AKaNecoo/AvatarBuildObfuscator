@@ -64,6 +64,8 @@ Vertex permutation shuffles 128-vertex source blocks, then shuffles the vertices
 
 Readable shader source can be copied/recompiled under a generated name with relative includes resolved. Property, keyword and pass contracts remain. Built-in/mobile-whitelisted/container shaders and NadeVision's fixed shader identity are preserved. NadeVision actually searches by shader name; bypassing its validation would conceal a functional break. Shader compilation can take time; creation has progress and timing diagnostics. Native compilation is not guaranteed to respond to cancellation immediately.
 
+Shaders exposing Thry's optimizer-lock drawer require a readable source file: that optimizer opens the shader's asset path instead of reading a compiled Shader object. Preparation imports their independent `.shader` copies before NDMF's import-suspending serialization scope. Relative includes are rebased to the source directory; the shader declaration keeps its generated username-prefixed name, while a short independent disk stem avoids repeating that long name in the locker's cache path. Persistent source copies are kept out of binary subasset containers. Late SDK resources use the same preparation path. If a manual build provides no valid generated import folder, these shaders retain their original source identity with a report note. No Thry assembly dependency or source shader/material edits are required.
+
 ## Validation and security boundary
 
 ### User-facing local diagnostics
