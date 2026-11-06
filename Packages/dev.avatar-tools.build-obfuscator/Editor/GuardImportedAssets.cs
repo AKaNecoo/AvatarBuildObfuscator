@@ -19,6 +19,8 @@ namespace AvatarTools.Obfuscation.Editor
         private bool sdkResourceCompletion;
         private ScriptableObject sdkResourceContainer;
         private readonly Dictionary<Object, Transform> copiedAnimationRoots = new Dictionary<Object, Transform>();
+        internal bool DeferUnlockedShaderNames;
+        private readonly HashSet<Shader> deferredShaders = new HashSet<Shader>();
 
         /// <summary>
         /// Run before opening NDMF's serialization scope: asset imports must be allowed
@@ -26,6 +28,9 @@ namespace AvatarTools.Obfuscation.Editor
         /// without changing Read/Write, decoding textures or touching the source files.
         /// </summary>
         public void PrepareImportedAssets(string generatedFolder)
+            => TimeStage(sdkResourceCompletion ? "sdk-imports" : "imports", () => PrepareImportedAssetsCore(generatedFolder));
+
+        private void PrepareImportedAssetsCore(string generatedFolder)
         {
             if (string.IsNullOrEmpty(generatedFolder)) return;
             generatedFolder = generatedFolder.Replace('\\', '/').TrimEnd('/');
@@ -40,6 +45,13 @@ namespace AvatarTools.Obfuscation.Editor
             if (!AssetDatabase.IsValidFolder(generatedFolder)) return;
             importedAssetFolder = generatedFolder;
             if (!settings.RenameAssets) return;
+            if (sdkResourceCompletion)
+            {
+                // The locker has now consumed the original source/name. If it was
+                // skipped (for example in Play), prepare a readable final copy.
+                foreach (var deferred in deferredShaders) sharedAssets.Remove(deferred);
+                deferredShaders.Clear();
+            }
             var dependencies = WalkReferencedAssets().ToArray();
             var sources = dependencies.Where(x => x is Texture || x is AudioClip).ToArray();
             var pending = new List<Tuple<Object, string, string>>();
@@ -111,6 +123,13 @@ namespace AvatarTools.Obfuscation.Editor
             foreach (var shader in dependencies.OfType<Shader>())
             {
                 if (owned.Contains(shader) || sharedAssets.ContainsKey(shader) || !RequiresShaderSourceFile(shader)) continue;
+                if (IsLockedShader(shader)) continue; // Its compiled data can be cloned directly.
+                if (DeferUnlockedShaderNames && !sdkResourceCompletion)
+                {
+                    deferredShaders.Add(shader); sharedAssets[shader] = shader;
+                    report.Note("待锁定 Shader 保留稳定源码至 SDK 收尾，再对最终副本改名以复用锁定缓存");
+                    continue;
+                }
                 var copy = CopyShader(shader, true);
                 sharedAssets[shader] = copy;
                 if (copy == shader) continue;
@@ -150,9 +169,9 @@ namespace AvatarTools.Obfuscation.Editor
                 sdkResourceCompletion = true;
                 try
                 {
-                    if (settings.AuditBuild) CaptureAuditSources();
+                    if (settings.AuditBuild) TimeStage("sdk-source-audit", CaptureAuditSources);
                     PrepareImportedAssets(importedAssetFolder);
-                    RewriteComponentAssets();
+                    TimeStage("sdk-asset-references", RewriteComponentAssets);
                     // An owned menu/material may have received a new source reference.
                     // Never write into unowned source objects reached through the graph.
                     foreach (var asset in WalkReferencedAssets().Where(owned.Contains).ToArray())
@@ -219,6 +238,44 @@ namespace AvatarTools.Obfuscation.Editor
             return false;
         }
 
+        private static bool IsLockedShader(Shader shader)
+        {
+            for (int i = 0; i < shader.GetPropertyCount(); i++)
+                if (shader.GetPropertyAttributes(i).Contains("ThryShaderOptimizerLockButton"))
+                    return shader.GetPropertyDefaultFloatValue(i) == 1;
+            return false;
+        }
+
+        private Shader CopyCompiledShader(Shader source)
+        {
+            Shader copy = null;
+            try
+            {
+                copy = Object.Instantiate(source);
+                using (var serialized = new SerializedObject(copy))
+                {
+                    // Shader.name's setter does not update the native parsed name.
+                    // Change only the copied identity, retaining all program blobs,
+                    // keyword tables, properties, passes and default textures.
+                    var parsedName = serialized.FindProperty("m_ParsedForm.m_Name");
+                    if (parsedName == null) { Object.DestroyImmediate(copy); return null; }
+                    var name = NewName(); parsedName.stringValue = name;
+                    var objectName = serialized.FindProperty("m_Name");
+                    if (objectName != null) objectName.stringValue = name;
+                    serialized.ApplyModifiedPropertiesWithoutUndo();
+                    if (copy.name != name || copy.isSupported != source.isSupported || ShaderUtil.ShaderHasError(copy))
+                        throw new InvalidOperationException("Compiled Shader copy did not retain its native contract");
+                }
+                return copy;
+            }
+            catch
+            {
+                if (copy != null) Object.DestroyImmediate(copy);
+                report.Note("Shader 编译数据无法直接复制，回退源码副本路线");
+                return null;
+            }
+        }
+
         private Shader CopyShader(Shader source, bool fileBacked = false)
         {
             string path = AssetDatabase.GetAssetPath(source);
@@ -226,7 +283,13 @@ namespace AvatarTools.Obfuscation.Editor
                 source.name.StartsWith("VRChat/Mobile/", StringComparison.Ordinal) || source.name.StartsWith("Hidden/Internal", StringComparison.Ordinal) ||
                 source.name == "NadeVision/Depth Aware Nade")
             { report.Note("内置/移动白名单/非源码 Shader 保留契约名称与实现"); return source; }
-            if (RequiresShaderSourceFile(source) && !fileBacked)
+            bool needsSource = RequiresShaderSourceFile(source) && !IsLockedShader(source);
+            if (!needsSource)
+            {
+                var compiled = CopyCompiledShader(source);
+                if (compiled != null) return compiled;
+            }
+            if (needsSource && !fileBacked)
             {
                 report.Note("依赖源码文件的 Shader 未准备独立构建文件，保留原 Shader 以允许材质锁定");
                 return source;

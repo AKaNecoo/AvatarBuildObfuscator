@@ -70,6 +70,13 @@ namespace AvatarTools.Obfuscation.Editor
     }
 
     [Serializable]
+    public sealed class GuardStageTiming
+    {
+        public string Stage;
+        public double Seconds;
+    }
+
+    [Serializable]
     public sealed class GuardReport
     {
         public int ShapesBefore, ShapesAfter, FrozenShapes, RenamedShapes, RenamedAssets, CopiedObjects;
@@ -91,6 +98,7 @@ namespace AvatarTools.Obfuscation.Editor
         public bool Randomized;
         public List<AuditEntry> AuditEntries = new List<AuditEntry>();
         public List<string> Notes = new List<string>();
+        public List<GuardStageTiming> Timings = new List<GuardStageTiming>();
         public string Summary => "形变 " + ShapesBefore + " → " + ShapesAfter +
             "，烘焙/移除 " + FrozenShapes + "，形变改名 " + RenamedShapes +
             "，资源改名 " + RenamedAssets + "，对象改名 " + RenamedGameObjects +
@@ -166,34 +174,42 @@ namespace AvatarTools.Obfuscation.Editor
             report.PackageVersion = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(AvatarBuildObfuscator).Assembly)?.version ?? "unmanaged";
             foreach (var t in root.GetComponentsInChildren<Transform>(true)) usedNames.Add(t.name);
             saveAsset = saver;
-            if (settings.AuditBuild) CaptureAuditSources();
+            if (settings.AuditBuild) TimeStage("source-audit", CaptureAuditSources);
+        }
+
+        private void TimeStage(string stage, Action action)
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            try { action(); }
+            finally { report.Timings.Add(new GuardStageTiming { Stage = stage, Seconds = watch.Elapsed.TotalSeconds }); }
         }
 
         public GuardReport Run()
         {
             if (PrefabUtility.IsPartOfPrefabAsset(root))
                 throw new InvalidOperationException("Avatar Guard accepts a build copy, not a prefab asset.");
-            CollectUsage();
-            CollectMmdRenderers();
-            CollectFixedShapeNames();
-            PlanParameterNames();
-            if (settings.ShuffleHierarchy) PlanSiblingOrder();
-            if (settings.FreezeShapes || settings.RenameShapes || settings.ShuffleShapes || settings.PruneEmptyShapes || settings.MergeShapes) ProcessShapes();
-            else foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
-                if (r.sharedMesh != null) report.ShapesBefore += r.sharedMesh.blendShapeCount;
+            TimeStage("analysis", () => {
+                CollectUsage(); CollectMmdRenderers(); CollectFixedShapeNames(); PlanParameterNames();
+                if (settings.ShuffleHierarchy) PlanSiblingOrder();
+            });
+            TimeStage("blendshapes", () => {
+                if (settings.FreezeShapes || settings.RenameShapes || settings.ShuffleShapes || settings.PruneEmptyShapes || settings.MergeShapes) ProcessShapes();
+                else foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                    if (r.sharedMesh != null) report.ShapesBefore += r.sharedMesh.blendShapeCount;
+            });
             if (!settings.FreezeShapes && !settings.RenameShapes && !settings.ShuffleShapes && !settings.PruneEmptyShapes && !settings.MergeShapes) report.ShapesAfter = report.ShapesBefore;
-            if (settings.RenameHierarchy) PlanHierarchy();
+            if (settings.RenameHierarchy) TimeStage("hierarchy-plan", PlanHierarchy);
             else report.PreservedGameObjects = root.GetComponentsInChildren<Transform>(true).Length;
-            RewriteComponentAssets();
+            TimeStage("asset-references", RewriteComponentAssets);
             // Binding analysis and all graph copies use the original paths. Rename only
             // after the copied clips/masks have been rewritten successfully.
             foreach (var pair in objectNames) pair.Key.name = pair.Value;
             ApplyRebuiltAvatars();
             if (settings.ShuffleHierarchy) ApplySiblingOrder();
-            if (settings.ReorderVertices) ReorderMeshes();
-            if (settings.ReorderBonePalette) ReorderBonePalettes();
-            if (settings.TransformUv) TransformUvTextures();
-            EmbedBuildMetadata();
+            if (settings.ReorderVertices) TimeStage("vertex-order", ReorderMeshes);
+            if (settings.ReorderBonePalette) TimeStage("bone-palettes", ReorderBonePalettes);
+            if (settings.TransformUv) TimeStage("uv-textures", TransformUvTextures);
+            TimeStage("metadata", () => EmbedBuildMetadata());
             BuildComparison.RecordShapeNames(shapeRenames, report.MergedShapePairs > 0);
             if (settings.AuditBuild) AuditOutput("ndmf-pass");
             BuildAuditCompletion.Register(root, this);
