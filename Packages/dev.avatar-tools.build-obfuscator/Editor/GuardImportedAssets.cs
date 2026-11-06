@@ -29,9 +29,12 @@ namespace AvatarTools.Obfuscation.Editor
         /// without changing Read/Write, decoding textures or touching the source files.
         /// </summary>
         public void PrepareImportedAssets(string generatedFolder)
-            => TimeStage(sdkResourceCompletion ? "sdk-imports" : "imports", () => PrepareImportedAssetsCore(generatedFolder));
+            => PrepareImportedAssets(generatedFolder, null);
 
-        private void PrepareImportedAssetsCore(string generatedFolder)
+        private void PrepareImportedAssets(string generatedFolder, Object[] dependencies)
+            => TimeStage(sdkResourceCompletion ? "sdk-imports" : "imports", () => PrepareImportedAssetsCore(generatedFolder, dependencies));
+
+        private void PrepareImportedAssetsCore(string generatedFolder, Object[] dependencies)
         {
             if (string.IsNullOrEmpty(generatedFolder)) return;
             generatedFolder = generatedFolder.Replace('\\', '/').TrimEnd('/');
@@ -53,7 +56,7 @@ namespace AvatarTools.Obfuscation.Editor
                 foreach (var deferred in deferredShaders) sharedAssets.Remove(deferred);
                 deferredShaders.Clear();
             }
-            var dependencies = WalkReferencedAssets().ToArray();
+            dependencies = dependencies ?? WalkReferencedAssets().ToArray();
             var sources = dependencies.Where(x => x is Texture || x is AudioClip).ToArray();
             var pending = new List<Tuple<Object, string, string>>();
             int nativeAudioBefore = report.NativeAudioCopies;
@@ -206,8 +209,15 @@ namespace AvatarTools.Obfuscation.Editor
                 sdkResourceCompletion = true;
                 try
                 {
-                    if (settings.AuditBuild) TimeStage("sdk-source-audit", CaptureAuditSources);
-                    PrepareImportedAssets(importedAssetFolder);
+                    // Audit capture only records identities. Share this local snapshot
+                    // with import preparation, then discard it before rewriting references.
+                    // Every SDK completion and public preparation starts with a fresh graph.
+                    Object[] dependencies = null;
+                    if (settings.AuditBuild) TimeStage("sdk-source-audit", () => {
+                        dependencies = WalkReferencedAssets().ToArray();
+                        CaptureAuditSources(dependencies);
+                    });
+                    PrepareImportedAssets(importedAssetFolder, dependencies);
                     TimeStage("sdk-asset-references", RewriteComponentAssets);
                     // An owned menu/material may have received a new source reference.
                     // Never write into unowned source objects reached through the graph.
