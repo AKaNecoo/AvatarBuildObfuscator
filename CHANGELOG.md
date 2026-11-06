@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.6-beta.3 — 2026-11-06
+
+- On Windows Standalone 64-bit NDMF builds, reuse independent native copies of already-encoded AudioClips instead of reimporting files solely for obfuscated names. Retain encoded resource ranges, compression, loading flags, shared references and late SDK persistence; fall back to file imports if the native contract differs.
+- Keep texture imports, other build targets and direct/manual processor calls on their existing routes. Record native audio-copy counts and add eight regressions across both modes and all three audio load types.
+
 ## 0.8.6-beta.2 — 2026-11-06
 
 - Reuse native compiled Shader data when naming ordinary and already-locked shaders, avoiding source recompilation solely for a new name. Preserve the readable-source fallback and existing identity exceptions.
