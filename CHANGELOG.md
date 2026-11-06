@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.6-beta.4 — 2026-11-06
+
+- Reuse resource-reference snapshots within unchanged audit/import phases, reducing repeated dependency scans. Recollect references after rewriting and on each later SDK completion or public preparation call.
+- Add eight regressions covering late resources, repeated preparation/completion, audit consistency, cyclic/shared menu references and source texture/importer isolation in both modes.
+
 ## 0.8.6-beta.3 — 2026-11-06
 
 - On Windows Standalone 64-bit NDMF builds, reuse independent native copies of already-encoded AudioClips instead of reimporting files solely for obfuscated names. Retain encoded resource ranges, compression, loading flags, shared references and late SDK persistence; fall back to file imports if the native contract differs.
