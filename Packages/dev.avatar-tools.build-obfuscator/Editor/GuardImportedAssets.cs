@@ -20,6 +20,7 @@ namespace AvatarTools.Obfuscation.Editor
         private ScriptableObject sdkResourceContainer;
         private readonly Dictionary<Object, Transform> copiedAnimationRoots = new Dictionary<Object, Transform>();
         internal bool DeferUnlockedShaderNames;
+        internal bool UseNativeImportedAudio;
         private readonly HashSet<Shader> deferredShaders = new HashSet<Shader>();
 
         /// <summary>
@@ -55,6 +56,7 @@ namespace AvatarTools.Obfuscation.Editor
             var dependencies = WalkReferencedAssets().ToArray();
             var sources = dependencies.Where(x => x is Texture || x is AudioClip).ToArray();
             var pending = new List<Tuple<Object, string, string>>();
+            int nativeAudioBefore = report.NativeAudioCopies;
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // CopyAsset normally refreshes and imports for every single file. Hundreds
             // of avatar textures/audio then repeatedly enter import/postprocessor work.
@@ -73,6 +75,18 @@ namespace AvatarTools.Obfuscation.Editor
                     if (EditorUtility.DisplayCancelableProgressBar("Avatar Build Obfuscator",
                         "复制构建资源 " + (i + 1) + "/" + sources.Length + "（完成后统一导入）", (float)i / sources.Length))
                         throw new OperationCanceledException("用户取消了构建资源复制");
+                    if (UseNativeImportedAudio && asset is AudioClip audio)
+                    {
+                        var native = CopyImportedAudio(audio);
+                        if (native != null)
+                        {
+                            native.name = NewName();
+                            sharedAssets[asset] = native;
+                            nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(asset), native);
+                            Own(native); report.RenamedAssets++; report.NativeAudioCopies++;
+                            continue;
+                        }
+                    }
                     string name = NewName();
                     string destination = ImportedAssetPath(generatedFolder, name, Path.GetExtension(path));
                     if (destination == null)
@@ -116,7 +130,8 @@ namespace AvatarTools.Obfuscation.Editor
                 if (asset is Texture) report.ImportedTextureCopies++;
             }
             watch.Stop();
-            report.Note("批量复制/导入 " + pending.Count + " 个贴图/音频，用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒");
+            report.Note("批量复制/导入 " + pending.Count + " 个贴图/音频，原生音频副本 " + (report.NativeAudioCopies - nativeAudioBefore) +
+                " 个，用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒");
             // Source-reading optimizers cannot consume a Shader subasset in a binary
             // NDMF container. Import these independent source files before the caller
             // opens its serialization scope (which suspends asset imports).
@@ -135,6 +150,28 @@ namespace AvatarTools.Obfuscation.Editor
                 if (copy == shader) continue;
                 nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(shader), copy);
                 Own(copy); report.RenamedAssets++;
+            }
+        }
+
+        private AudioClip CopyImportedAudio(AudioClip source)
+        {
+            AudioClip copy = null;
+            try
+            {
+                copy = Object.Instantiate(source);
+                copy.name = source.name;
+                // Compare every native serialized field, including the encoded
+                // resource range, load/preload/background flags and compression.
+                // Naming and saving happen only after this independent copy passes.
+                if (EditorJsonUtility.ToJson(copy) != EditorJsonUtility.ToJson(source))
+                    throw new InvalidOperationException("Native audio copy changed its serialized contract");
+                return copy;
+            }
+            catch
+            {
+                if (copy != null) Object.DestroyImmediate(copy);
+                report.Note("音频编译数据无法直接复制，回退独立文件导入路线");
+                return null;
             }
         }
 

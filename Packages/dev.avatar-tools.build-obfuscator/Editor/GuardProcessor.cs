@@ -82,6 +82,7 @@ namespace AvatarTools.Obfuscation.Editor
         public int ShapesBefore, ShapesAfter, FrozenShapes, RenamedShapes, RenamedAssets, CopiedObjects;
         public int RenamedGameObjects, PreservedGameObjects, RewrittenPaths;
         public int RenamedParameters, RenamedAnimatorNames, RebuiltAvatars, ReorderedMeshes, ImportedTextureCopies;
+        public int NativeAudioCopies;
         public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
         public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
         public int PreservedMmdRenderers, PreservedMmdShapeNames, RenamedMmdShapeNames;

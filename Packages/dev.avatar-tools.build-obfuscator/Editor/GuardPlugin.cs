@@ -53,6 +53,10 @@ namespace AvatarTools.Obfuscation.Editor
                         // callback has locked the material. Final resource completion
                         // still assigns per-build names to the compiled shader copy.
                         processor.DeferUnlockedShaderNames = true;
+                        // Reuse active-platform encoded audio data on the validated
+                        // desktop target. Other targets and direct processor callers
+                        // retain the file/importer route until separately validated.
+                        processor.UseNativeImportedAudio = UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64;
                         var containerPath = UnityEditor.AssetDatabase.GetAssetPath(context.AssetSaver.CurrentContainer);
                         if (!string.IsNullOrEmpty(containerPath))
                             processor.PrepareImportedAssets(System.IO.Path.GetDirectoryName(containerPath)?.Replace('\\', '/'));
