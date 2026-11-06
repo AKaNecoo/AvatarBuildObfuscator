@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.6-beta.2 — 2026-11-06
+
+- Reuse native compiled Shader data when naming ordinary and already-locked shaders, avoiding source recompilation solely for a new name. Preserve the readable-source fallback and existing identity exceptions.
+- Keep unlocked Thry/Poiyomi source identities stable until locking, then name the final independent compiled copy. Repeated randomized builds can reuse the locker's content cache without changing source materials or shaders.
+- Record per-stage Editor timings in local build reports and add cache-reuse, skipped-locking and rendered-pixel regressions. SDK compression and network upload are measured separately; no processing options are disabled for this optimization.
+
 ## 0.8.6-beta.1 — 2026-11-05
 
 - Keep Thry/Poiyomi optimizer shaders in independent readable build-source files, rather than binary NDMF containers. Retain generated shader names and source-relative include resolution without changing source materials or shaders.
