@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.6 — 2026-11-07
+
+- Fix Thry/Poiyomi locking for generated shaders that need readable source and relative includes.
+- Reuse compiled shader data, shader lock caches and encoded Windows audio to reduce repeated compilation and imports during builds.
+- Reduce repeated resource-reference scans while keeping late SDK resources covered. This release ships the processing code tested in 0.8.6-beta.4.
+
 ## 0.8.6-beta.4 — 2026-11-06
 
 - Reuse resource-reference snapshots within unchanged audit/import phases, reducing repeated dependency scans. Recollect references after rewriting and on each later SDK completion or public preparation call.
