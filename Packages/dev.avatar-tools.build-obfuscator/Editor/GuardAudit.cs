@@ -25,10 +25,12 @@ namespace AvatarTools.Obfuscation.Editor
         private readonly HashSet<string> sourceObjectNames = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<GameObject> metadataObjects = new HashSet<GameObject>();
 
-        private void CaptureAuditSources()
+        private void CaptureAuditSources() => CaptureAuditSources(WalkReferencedAssets());
+
+        private void CaptureAuditSources(IEnumerable<Object> assets)
         {
             foreach (var t in root.GetComponentsInChildren<Transform>(true)) sourceObjectNames.Add(t.name);
-            foreach (var asset in WalkReferencedAssets())
+            foreach (var asset in assets)
                 if (!(asset is Component) && !owned.Contains(asset) && EditorUtility.IsPersistent(asset) && !GeneratedPath(AssetDatabase.GetAssetPath(asset)))
                     sourceAssets.Add(asset.GetInstanceID());
         }
@@ -96,7 +98,8 @@ namespace AvatarTools.Obfuscation.Editor
                         unknownDriver && settings.ModeFor(t) == ProtectionMode.Conservative ? "Conservative unknown-driver preservation" :
                         "SDK, humanoid or fixed-path contract; see build notes");
             }
-            foreach (var asset in WalkReferencedAssets())
+            // Counts and entries describe the same unchanged output graph.
+            foreach (var asset in outputAssets)
             {
                 if (asset is Component) continue;
                 string path = AssetDatabase.GetAssetPath(asset);

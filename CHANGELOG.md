@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.8.6 — 2026-11-07
+
+- Fix Thry/Poiyomi locking for generated shaders that need readable source and relative includes.
+- Reuse compiled shader data, shader lock caches and encoded Windows audio to reduce repeated compilation and imports during builds.
+- Reduce repeated resource-reference scans while keeping late SDK resources covered. This release ships the processing code tested in 0.8.6-beta.4.
+
+## 0.8.6-beta.4 — 2026-11-06
+
+- Reuse resource-reference snapshots within unchanged audit/import phases, reducing repeated dependency scans. Recollect references after rewriting and on each later SDK completion or public preparation call.
+- Add eight regressions covering late resources, repeated preparation/completion, audit consistency, cyclic/shared menu references and source texture/importer isolation in both modes.
+
+## 0.8.6-beta.3 — 2026-11-06
+
+- On Windows Standalone 64-bit NDMF builds, reuse independent native copies of already-encoded AudioClips instead of reimporting files solely for obfuscated names. Retain encoded resource ranges, compression, loading flags, shared references and late SDK persistence; fall back to file imports if the native contract differs.
+- Keep texture imports, other build targets and direct/manual processor calls on their existing routes. Record native audio-copy counts and add eight regressions across both modes and all three audio load types.
+
+## 0.8.6-beta.2 — 2026-11-06
+
+- Reuse native compiled Shader data when naming ordinary and already-locked shaders, avoiding source recompilation solely for a new name. Preserve the readable-source fallback and existing identity exceptions.
+- Keep unlocked Thry/Poiyomi source identities stable until locking, then name the final independent compiled copy. Repeated randomized builds can reuse the locker's content cache without changing source materials or shaders.
+- Record per-stage Editor timings in local build reports and add cache-reuse, skipped-locking and rendered-pixel regressions. SDK compression and network upload are measured separately; no processing options are disabled for this optimization.
+
+## 0.8.6-beta.1 — 2026-11-05
+
+- Keep Thry/Poiyomi optimizer shaders in independent readable build-source files, rather than binary NDMF containers. Retain generated shader names and source-relative include resolution without changing source materials or shaders.
+- Use compact generated disk filenames to avoid repeating the full shader name in the locker's cache paths. Cover both processing modes, late SDK shader references and real Poiyomi locking with native integration checks.
+
 ## 0.8.5 — 2026-10-31
 
 - Promote late menu-icon and Animator resource completion from 0.8.5-beta.1. Processing code and asset GUIDs are unchanged from the tested beta.

@@ -19,6 +19,9 @@ namespace AvatarTools.Obfuscation.Editor
         private bool sdkResourceCompletion;
         private ScriptableObject sdkResourceContainer;
         private readonly Dictionary<Object, Transform> copiedAnimationRoots = new Dictionary<Object, Transform>();
+        internal bool DeferUnlockedShaderNames;
+        internal bool UseNativeImportedAudio;
+        private readonly HashSet<Shader> deferredShaders = new HashSet<Shader>();
 
         /// <summary>
         /// Run before opening NDMF's serialization scope: asset imports must be allowed
@@ -26,6 +29,12 @@ namespace AvatarTools.Obfuscation.Editor
         /// without changing Read/Write, decoding textures or touching the source files.
         /// </summary>
         public void PrepareImportedAssets(string generatedFolder)
+            => PrepareImportedAssets(generatedFolder, null);
+
+        private void PrepareImportedAssets(string generatedFolder, Object[] dependencies)
+            => TimeStage(sdkResourceCompletion ? "sdk-imports" : "imports", () => PrepareImportedAssetsCore(generatedFolder, dependencies));
+
+        private void PrepareImportedAssetsCore(string generatedFolder, Object[] dependencies)
         {
             if (string.IsNullOrEmpty(generatedFolder)) return;
             generatedFolder = generatedFolder.Replace('\\', '/').TrimEnd('/');
@@ -40,8 +49,17 @@ namespace AvatarTools.Obfuscation.Editor
             if (!AssetDatabase.IsValidFolder(generatedFolder)) return;
             importedAssetFolder = generatedFolder;
             if (!settings.RenameAssets) return;
-            var sources = WalkReferencedAssets().Where(x => x is Texture || x is AudioClip).ToArray();
+            if (sdkResourceCompletion)
+            {
+                // The locker has now consumed the original source/name. If it was
+                // skipped (for example in Play), prepare a readable final copy.
+                foreach (var deferred in deferredShaders) sharedAssets.Remove(deferred);
+                deferredShaders.Clear();
+            }
+            dependencies = dependencies ?? WalkReferencedAssets().ToArray();
+            var sources = dependencies.Where(x => x is Texture || x is AudioClip).ToArray();
             var pending = new List<Tuple<Object, string, string>>();
+            int nativeAudioBefore = report.NativeAudioCopies;
             var watch = System.Diagnostics.Stopwatch.StartNew();
             // CopyAsset normally refreshes and imports for every single file. Hundreds
             // of avatar textures/audio then repeatedly enter import/postprocessor work.
@@ -60,6 +78,18 @@ namespace AvatarTools.Obfuscation.Editor
                     if (EditorUtility.DisplayCancelableProgressBar("Avatar Build Obfuscator",
                         "复制构建资源 " + (i + 1) + "/" + sources.Length + "（完成后统一导入）", (float)i / sources.Length))
                         throw new OperationCanceledException("用户取消了构建资源复制");
+                    if (UseNativeImportedAudio && asset is AudioClip audio)
+                    {
+                        var native = CopyImportedAudio(audio);
+                        if (native != null)
+                        {
+                            native.name = NewName();
+                            sharedAssets[asset] = native;
+                            nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(asset), native);
+                            Own(native); report.RenamedAssets++; report.NativeAudioCopies++;
+                            continue;
+                        }
+                    }
                     string name = NewName();
                     string destination = ImportedAssetPath(generatedFolder, name, Path.GetExtension(path));
                     if (destination == null)
@@ -103,7 +133,49 @@ namespace AvatarTools.Obfuscation.Editor
                 if (asset is Texture) report.ImportedTextureCopies++;
             }
             watch.Stop();
-            report.Note("批量复制/导入 " + pending.Count + " 个贴图/音频，用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒");
+            report.Note("批量复制/导入 " + pending.Count + " 个贴图/音频，原生音频副本 " + (report.NativeAudioCopies - nativeAudioBefore) +
+                " 个，用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒");
+            // Source-reading optimizers cannot consume a Shader subasset in a binary
+            // NDMF container. Import these independent source files before the caller
+            // opens its serialization scope (which suspends asset imports).
+            foreach (var shader in dependencies.OfType<Shader>())
+            {
+                if (owned.Contains(shader) || sharedAssets.ContainsKey(shader) || !RequiresShaderSourceFile(shader)) continue;
+                if (IsLockedShader(shader)) continue; // Its compiled data can be cloned directly.
+                if (DeferUnlockedShaderNames && !sdkResourceCompletion)
+                {
+                    deferredShaders.Add(shader); sharedAssets[shader] = shader;
+                    report.Note("待锁定 Shader 保留稳定源码至 SDK 收尾，再对最终副本改名以复用锁定缓存");
+                    continue;
+                }
+                var copy = CopyShader(shader, true);
+                sharedAssets[shader] = copy;
+                if (copy == shader) continue;
+                nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(shader), copy);
+                Own(copy); report.RenamedAssets++;
+            }
+        }
+
+        private AudioClip CopyImportedAudio(AudioClip source)
+        {
+            AudioClip copy = null;
+            try
+            {
+                copy = Object.Instantiate(source);
+                copy.name = source.name;
+                // Compare every native serialized field, including the encoded
+                // resource range, load/preload/background flags and compression.
+                // Naming and saving happen only after this independent copy passes.
+                if (EditorJsonUtility.ToJson(copy) != EditorJsonUtility.ToJson(source))
+                    throw new InvalidOperationException("Native audio copy changed its serialized contract");
+                return copy;
+            }
+            catch
+            {
+                if (copy != null) Object.DestroyImmediate(copy);
+                report.Note("音频编译数据无法直接复制，回退独立文件导入路线");
+                return null;
+            }
         }
 
         private static string ImportedAssetPath(string folder, string name, string extension)
@@ -137,9 +209,16 @@ namespace AvatarTools.Obfuscation.Editor
                 sdkResourceCompletion = true;
                 try
                 {
-                    if (settings.AuditBuild) CaptureAuditSources();
-                    PrepareImportedAssets(importedAssetFolder);
-                    RewriteComponentAssets();
+                    // Audit capture only records identities. Share this local snapshot
+                    // with import preparation, then discard it before rewriting references.
+                    // Every SDK completion and public preparation starts with a fresh graph.
+                    Object[] dependencies = null;
+                    if (settings.AuditBuild) TimeStage("sdk-source-audit", () => {
+                        dependencies = WalkReferencedAssets().ToArray();
+                        CaptureAuditSources(dependencies);
+                    });
+                    PrepareImportedAssets(importedAssetFolder, dependencies);
+                    TimeStage("sdk-asset-references", RewriteComponentAssets);
                     // An owned menu/material may have received a new source reference.
                     // Never write into unowned source objects reached through the graph.
                     foreach (var asset in WalkReferencedAssets().Where(owned.Contains).ToArray())
@@ -197,13 +276,71 @@ namespace AvatarTools.Obfuscation.Editor
             AssetDatabase.AddObjectToAsset(value, sdkResourceContainer);
         }
 
-        private Shader CopyShader(Shader source)
+        private static bool RequiresShaderSourceFile(Shader shader)
+        {
+            // Inspect the public shader contract, without taking an assembly/package
+            // dependency on ThryEditor or changing any source material's lock state.
+            for (int i = 0; i < shader.GetPropertyCount(); i++)
+                if (shader.GetPropertyAttributes(i).Contains("ThryShaderOptimizerLockButton")) return true;
+            return false;
+        }
+
+        private static bool IsLockedShader(Shader shader)
+        {
+            for (int i = 0; i < shader.GetPropertyCount(); i++)
+                if (shader.GetPropertyAttributes(i).Contains("ThryShaderOptimizerLockButton"))
+                    return shader.GetPropertyDefaultFloatValue(i) == 1;
+            return false;
+        }
+
+        private Shader CopyCompiledShader(Shader source)
+        {
+            Shader copy = null;
+            try
+            {
+                copy = Object.Instantiate(source);
+                using (var serialized = new SerializedObject(copy))
+                {
+                    // Shader.name's setter does not update the native parsed name.
+                    // Change only the copied identity, retaining all program blobs,
+                    // keyword tables, properties, passes and default textures.
+                    var parsedName = serialized.FindProperty("m_ParsedForm.m_Name");
+                    if (parsedName == null) { Object.DestroyImmediate(copy); return null; }
+                    var name = NewName(); parsedName.stringValue = name;
+                    var objectName = serialized.FindProperty("m_Name");
+                    if (objectName != null) objectName.stringValue = name;
+                    serialized.ApplyModifiedPropertiesWithoutUndo();
+                    if (copy.name != name || copy.isSupported != source.isSupported || ShaderUtil.ShaderHasError(copy))
+                        throw new InvalidOperationException("Compiled Shader copy did not retain its native contract");
+                }
+                return copy;
+            }
+            catch
+            {
+                if (copy != null) Object.DestroyImmediate(copy);
+                report.Note("Shader 编译数据无法直接复制，回退源码副本路线");
+                return null;
+            }
+        }
+
+        private Shader CopyShader(Shader source, bool fileBacked = false)
         {
             string path = AssetDatabase.GetAssetPath(source);
             if (!path.EndsWith(".shader", StringComparison.OrdinalIgnoreCase) || !File.Exists(path) ||
                 source.name.StartsWith("VRChat/Mobile/", StringComparison.Ordinal) || source.name.StartsWith("Hidden/Internal", StringComparison.Ordinal) ||
                 source.name == "NadeVision/Depth Aware Nade")
             { report.Note("内置/移动白名单/非源码 Shader 保留契约名称与实现"); return source; }
+            bool needsSource = RequiresShaderSourceFile(source) && !IsLockedShader(source);
+            if (!needsSource)
+            {
+                var compiled = CopyCompiledShader(source);
+                if (compiled != null) return compiled;
+            }
+            if (needsSource && !fileBacked)
+            {
+                report.Note("依赖源码文件的 Shader 未准备独立构建文件，保留原 Shader 以允许材质锁定");
+                return source;
+            }
             string code = File.ReadAllText(path);
             var declaration = Regex.Match(code, "\\bShader\\s*\"[^\"]+\"");
             if (!declaration.Success) return source;
@@ -221,12 +358,35 @@ namespace AvatarTools.Obfuscation.Editor
                 "创建 Shader 副本（仅此构建）：" + source.name, .5f))
             { EditorUtility.ClearProgressBar(); throw new OperationCanceledException("用户取消了 Shader 副本创建"); }
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            Shader shader;
-            try { shader = ShaderUtil.CreateShaderAsset(code, true); }
+            Shader shader; string destination = null;
+            try
+            {
+                if (fileBacked)
+                {
+                    // Thry also uses the input filename in its cache, whose directory
+                    // already includes the full shader name. Keep the disk stem short;
+                    // the shader's internal name still carries the complete prefix.
+                    destination = AssetDatabase.GenerateUniqueAssetPath(importedAssetFolder +
+                        "/abo-shader-" + Guid.NewGuid().ToString("N") + ".shader");
+                    if (Path.GetFullPath(destination).Length > 240)
+                    {
+                        report.Note("构建输出目录过长，保留依赖源码文件的 Shader；请缩短工程路径或 Avatar 根对象名称");
+                        return source;
+                    }
+                    File.WriteAllText(destination, code, new System.Text.UTF8Encoding(false));
+                    AssetDatabase.ImportAsset(destination, ImportAssetOptions.ForceSynchronousImport);
+                    shader = AssetDatabase.LoadAssetAtPath<Shader>(destination);
+                }
+                else shader = ShaderUtil.CreateShaderAsset(code, true);
+            }
             finally { EditorUtility.ClearProgressBar(); }
             report.Note("Shader 副本创建用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒：" + source.name);
-            if (ShaderUtil.ShaderHasError(shader))
-            { Object.DestroyImmediate(shader); throw new InvalidOperationException("复制 Shader 编译失败，停止本次构建：" + source.name); }
+            if (shader == null || ShaderUtil.ShaderHasError(shader))
+            {
+                if (destination != null) AssetDatabase.DeleteAsset(destination);
+                else if (shader != null) Object.DestroyImmediate(shader);
+                throw new InvalidOperationException("复制 Shader 编译失败，停止本次构建：" + source.name);
+            }
             return shader;
         }
     }
