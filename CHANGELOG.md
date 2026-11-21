@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.7-beta.1 — 2026-11-21
+
+- Preserve network-synced parameters and their PhysBone families in both modes to keep names consistent across platform builds.
+- Keep the original source and name of Thry/Poiyomi shaders that are still unlocked at SDK completion.
+
 ## 0.8.6 — 2026-11-07
 
 - Fix Thry/Poiyomi locking for generated shaders that need readable source and relative includes.

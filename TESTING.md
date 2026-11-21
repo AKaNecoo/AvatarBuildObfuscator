@@ -1,5 +1,16 @@
 # Testing and validation
 
+## 0.8.7-beta.1
+
+On Unity 6000.0.67f1 with Avatar SDK 3.11.0-beta.1, 115 Editor cases passed. They cover the core build processor, Thry/Poiyomi shader handling, late SDK resources and dependency snapshots.
+
+- Both modes keep the same network-synced expression names under randomized builds with different parameter lists. The cases check menu and Animator bindings, parameter drivers, PhysBone suffixes and continued renaming of local parameters.
+- If locking is skipped, SDK completion keeps the original readable shader. If locking succeeds, the randomized compiled copy retains its lock status. The tests also check locking cache reuse and rendered pixels.
+- A Windows avatar bundle built through the SDK's local Build API reopened successfully. All 172 synced parameters avoided ABO renaming and 81 local parameters were obfuscated. All 87 renderer materials had supported shaders, including the six materials on the previously affected prop. The run produced no unlocked-shader stripping messages. It used Poiyomi Toon 10.0.29.
+- PC-to-mobile synchronization in the VRChat client remains open.
+
+## 0.8.6
+
 **0.8.6** promotes the processing code from **0.8.6-beta.4**. Only release metadata differs within the distributed package. The Editor and bundle results below come from the tested beta.4 code and earlier checks identified by version. The release also includes the Thry/Poiyomi locking fix and the shader, audio and resource-scan optimizations.
 
 ## Current results
@@ -52,7 +63,7 @@ python Tools/ci_package.py
 
 Unity Editor checks are opt-in. In a disposable Unity 2022.3 project with the VRChat Avatar SDK and NDMF installed, copy `Tests~/Editor` and `Tests~/Runtime` with their assembly definitions under `Assets`. An Editor script can call `AvatarTools.Obfuscation.Validation.GuardValidation.RunAll(outputJsonPath)` to create and run synthetic fixtures. Full-avatar comparison uses `FullAvatarValidation` with an avatar you are authorized to test; it creates temporary validation assets. Review the output and remove the fixture after testing. These Editor checks are separate from the commands above and require a Unity installation.
 
-The same `GuardValidation` class provides `RunEnhanced(outputJsonPath)`, `RunMaterialReferences(outputJsonPath)` and `RunLateResources(outputJsonPath)` for the enhancement, saved-material and late-resource suites. `RunShaderSources(outputJsonPath)` adds nine opt-in source/locker integration cases requiring ThryEditor and Poiyomi Toon. `RunShaderPerformance(outputJsonPath)` adds seven cache and rendered-copy checks; it also requires lilToon and a loaded, locked Poiyomi shader. `RunAudioPerformance(outputJsonPath)` adds eight native-audio and late-persistence checks. `RunDependencySnapshots(outputJsonPath)` adds eight audit/import freshness cases. The eight suites contain 159 cases in total. Use a separate JSON output path for each suite. Import the test assembly through Unity for AssetPostprocessor-dependent checks; loading its DLL alone does not register the import observer.
+The same `GuardValidation` class provides `RunEnhanced(outputJsonPath)`, `RunMaterialReferences(outputJsonPath)` and `RunLateResources(outputJsonPath)` for the enhancement, saved-material and late-resource suites. `RunShaderSources(outputJsonPath)` adds nine opt-in source and locking cases requiring ThryEditor and Poiyomi Toon. `RunShaderPerformance(outputJsonPath)` adds seven cache and rendered-copy checks and requires lilToon and a loaded, locked Poiyomi shader. `RunAudioPerformance(outputJsonPath)` adds eight native-audio and late-persistence checks. `RunDependencySnapshots(outputJsonPath)` adds eight audit and import freshness cases. Use a separate JSON output path for each suite. Import the test assembly through Unity to register the AssetPostprocessor used by the tests.
 
 Local audit JSON includes a `Timings` array with stage names and elapsed seconds for ABO processing. Measure the SDK's AssetBundle stage and network upload separately. For a performance comparison, keep avatar/settings, build target, compression, hardware and cache state equivalent; first builds and shader/package changes can take longer.
 
