@@ -1,5 +1,12 @@
 # Testing and validation
 
+## 0.8.7-beta.2
+
+- 125 Editor cases passed on Unity 6000.0.67f1 and Avatar SDK 3.11.0-beta.1. The checks include shared textures, late resources, retained-source identifiers, nested Animator roots, duplicate paths and Poiyomi shader locking.
+- In a 3,325-query renderer-binding probe across 22 Animator roots, all resolved renderer sets matched. Median time was 187 ms for repeated hierarchy walks and 0.54 ms with a fresh per-root index. This measures only path lookups.
+- A separate preparation and audit comparison copied 334 textures and 291 encoded audio clips on each run. The first pair's 8,343 audit rows matched exactly. Warm preparation did not speed up in that comparison. The product still uses Unity's import route for textures.
+- On one Windows avatar, sequential SDK preprocess callbacks took 176.81 s with the candidate and 180.24 s with beta.1. The hierarchy stage took 0.11 s and 6.04 s respectively. Both outputs had 87 materials with supported shaders, 172 synced parameters that retained their names, and matching rename counts. These runs exclude AssetBundle packaging and upload. Cache and run-order effects remain.
+
 ## 0.8.7-beta.1
 
 On Unity 6000.0.67f1 with Avatar SDK 3.11.0-beta.1, 115 Editor cases passed. They cover the core build processor, Thry/Poiyomi shader handling, late SDK resources and dependency snapshots.

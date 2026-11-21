@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.7-beta.2 — 2026-11-22
+
+- Reuse renderer path lookups for animation bindings and share one reference graph across the initial source audit and import preparation.
+- Batch audit source identifiers and show ranked processing times in the report.
+
 ## 0.8.7-beta.1 — 2026-11-21
 
 - Preserve network-synced parameters and their PhysBone families in both modes to keep names consistent across platform builds.

@@ -1,14 +1,14 @@
 ## 中文
 
-- 保留网络同步参数原名，兼容 SDK 3.11 跨平台同步。
-- SDK 收尾保留尚未锁定的 Thry／Poiyomi Shader。
+- 减少构建时重复的层级查找和资源扫描。
+- 构建报告新增 ABO 各阶段耗时排行。
 
 ## English
 
-- Preserve network-synced parameter names for SDK 3.11 cross-platform sync.
-- Retain Thry/Poiyomi shaders that remain unlocked at SDK completion.
+- Reduce repeated hierarchy lookups and resource scans during builds.
+- Add ranked ABO stage timings to build reports.
 
 ## 日本語
 
-- SDK 3.11 のクロスプラットフォーム同期に対応するため、ネットワーク同期パラメーターの名前を維持。
-- SDK 処理終了時に未ロックの Thry／Poiyomi シェーダーを維持。
+- ビルド中の階層検索とアセット走査の重複を削減。
+- ビルドレポートに ABO の処理時間ランキングを追加。
