@@ -12,7 +12,7 @@
 
 ## Features
 
-- Rename resources, objects, bones, parameters, Animator internals and dynamic BlendShapes using your username followed by a random suffix made from Ì, Í, Î and Ï.
+- Rename resources, objects, bones, local parameters, Animator internals and dynamic BlendShapes using your username followed by a random suffix made from Ì, Í, Î and Ï. Network-synced parameters keep their names.
 - Bake and remove supported fixed/unused BlendShapes and zero-delta shapes, while retaining required dynamic shapes.
 - Independently shuffle BlendShape, sibling GameObject, mesh vertex and skin bone-palette order, updating related references.
 - Randomize each build and write local processing reports; optionally embed multilingual authorization notices and build fingerprints.
