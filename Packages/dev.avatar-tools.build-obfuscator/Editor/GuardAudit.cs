@@ -27,11 +27,24 @@ namespace AvatarTools.Obfuscation.Editor
 
         private void CaptureAuditSources() => CaptureAuditSources(WalkReferencedAssets());
 
+        private Object[] CaptureAuditSnapshot(string stage)
+        {
+            if (!settings.AuditBuild) return null;
+            Object[] assets = null;
+            TimeStage(stage, () =>
+            {
+                assets = WalkReferencedAssets().ToArray();
+                CaptureAuditSources(assets);
+            });
+            return assets;
+        }
+
         private void CaptureAuditSources(IEnumerable<Object> assets)
         {
             foreach (var t in root.GetComponentsInChildren<Transform>(true)) sourceObjectNames.Add(t.name);
             foreach (var asset in assets)
-                if (!(asset is Component) && !owned.Contains(asset) && EditorUtility.IsPersistent(asset) && !GeneratedPath(AssetDatabase.GetAssetPath(asset)))
+                if (!(asset is Component) && !owned.Contains(asset) && !sourceAssets.Contains(asset.GetInstanceID()) &&
+                    EditorUtility.IsPersistent(asset) && !GeneratedPath(AssetDatabase.GetAssetPath(asset)))
                     sourceAssets.Add(asset.GetInstanceID());
         }
 
@@ -77,6 +90,22 @@ namespace AvatarTools.Obfuscation.Editor
         public void AuditOutput(string stage)
         {
             if (root == null) return;
+            TimeStage(stage == "sdk-preprocess" ? "sdk-output-audit" : "output-audit", () => CollectOutputAudit(stage));
+            try
+            {
+                string folder = Path.Combine(Path.GetDirectoryName(Application.dataPath), "Library/AvatarBuildObfuscator/Reports");
+                Directory.CreateDirectory(folder);
+                string json = JsonUtility.ToJson(report, true);
+                File.WriteAllText(Path.Combine(folder, "latest.json"), json);
+                File.WriteAllText(Path.Combine(folder, report.BuildFingerprint + ".json"), json);
+                foreach (var old in new DirectoryInfo(folder).GetFiles("*.json").Where(f => f.Name != "latest.json")
+                    .OrderByDescending(f => f.LastWriteTimeUtc).Skip(12)) old.Delete();
+            }
+            catch (Exception e) { Debug.LogWarning("[Avatar Build Obfuscator] Local audit could not be written: " + e.Message); }
+        }
+
+        private void CollectOutputAudit(string stage)
+        {
             var outputAssets = WalkReferencedAssets().ToArray();
             report.OutputObjects = root.GetComponentsInChildren<Transform>(true).Count(t => !metadataObjects.Contains(t.gameObject));
             report.OutputMaterials = outputAssets.OfType<Material>().Distinct().Count();
@@ -88,6 +117,20 @@ namespace AvatarTools.Obfuscation.Editor
             report.MetadataMismatches = metadata.invalidFingerprints + metadata.fingerprints.Count(f => f != report.BuildFingerprint);
             report.AuditStage = stage;
             report.AuditEntries.Clear();
+            var identities = new List<(AuditEntry entry, Object source)>();
+            void Audit(string category, Object asset, string path, string reason)
+            {
+                var entry = new AuditEntry { category = category, type = asset.GetType().Name, name = asset.name,
+                    path = path, reason = reason, sourceGlobalId = "" };
+                report.AuditEntries.Add(entry);
+                try
+                {
+                    var source = nadena.dev.ndmf.ObjectRegistry.GetReference(asset).Object;
+                    if (source != null) identities.Add((entry, source));
+                    else entry.sourceGlobalId = SourceId(source);
+                }
+                catch (Exception) { }
+            }
             foreach (var t in root.GetComponentsInChildren<Transform>(true))
             {
                 if (metadataObjects.Contains(t.gameObject)) continue;
@@ -102,44 +145,49 @@ namespace AvatarTools.Obfuscation.Editor
             foreach (var asset in outputAssets)
             {
                 if (asset is Component) continue;
-                string path = AssetDatabase.GetAssetPath(asset);
                 if (sourceAssets.Contains(asset.GetInstanceID()))
+                {
+                    string path = AssetDatabase.GetAssetPath(asset);
                     Audit("source-resource-reference", asset, path, IsProxyAsset(asset, path) ? "SDK/built-in identity contract" :
                         !settings.RenameAssets ? "Resource naming disabled; source data retained" : asset is Shader ? "Fixed shader identity or unsupported shader source" :
                         "Unsupported, explicitly preserved or unavailable independent copy; see build notes");
+                }
                 else if (!(asset is Shader) && !UsernameNameGenerator.IsGeneratedName(asset.name) && !string.IsNullOrEmpty(asset.name))
-                    Audit("retained-resource-name", asset, path, "Renaming disabled or resource contract retained");
+                    Audit("retained-resource-name", asset, AssetDatabase.GetAssetPath(asset), "Renaming disabled or resource contract retained");
             }
             foreach (var r in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
             {
                 var mesh = r.sharedMesh;
                 if (mesh == null) continue;
+                string path = null;
                 for (int i = 0; i < mesh.blendShapeCount; i++)
-                    if (!UsernameNameGenerator.IsGeneratedName(mesh.GetBlendShapeName(i)))
-                        report.AuditEntries.Add(new AuditEntry { category = "retained-shape-name", type = "BlendShape", name = mesh.GetBlendShapeName(i),
-                            path = AnimationUtility.CalculateTransformPath(r.transform, root.transform), reason = "Preservation, SDK/world contract or unsupported shape layout" });
+                {
+                    string name = mesh.GetBlendShapeName(i);
+                    if (UsernameNameGenerator.IsGeneratedName(name)) continue;
+                    if (path == null) path = AnimationUtility.CalculateTransformPath(r.transform, root.transform);
+                    report.AuditEntries.Add(new AuditEntry { category = "retained-shape-name", type = "BlendShape", name = name,
+                        path = path, reason = "Preservation, SDK/world contract or unsupported shape layout" });
+                }
             }
             foreach (var marker in root.GetComponentsInChildren<AvatarBuildObfuscator>(true))
                 Audit("editor-marker", marker, "", "Editor-only marker has not yet been removed by the caller");
+            if (identities.Count == 0) return;
+            var sources = identities.Select(item => item.source).ToArray();
+            var ids = new GlobalObjectId[sources.Length];
             try
             {
-                string folder = Path.Combine(Path.GetDirectoryName(Application.dataPath), "Library/AvatarBuildObfuscator/Reports");
-                Directory.CreateDirectory(folder);
-                string json = JsonUtility.ToJson(report, true);
-                File.WriteAllText(Path.Combine(folder, "latest.json"), json);
-                File.WriteAllText(Path.Combine(folder, report.BuildFingerprint + ".json"), json);
-                foreach (var old in new DirectoryInfo(folder).GetFiles("*.json").Where(f => f.Name != "latest.json")
-                    .OrderByDescending(f => f.LastWriteTimeUtc).Skip(12)) old.Delete();
+                GlobalObjectId.GetGlobalObjectIdsSlow(sources, ids);
+                for (int i = 0; i < ids.Length; i++) identities[i].entry.sourceGlobalId = ids[i].ToString();
             }
-            catch (Exception e) { Debug.LogWarning("[Avatar Build Obfuscator] Local audit could not be written: " + e.Message); }
+            catch (Exception)
+            {
+                for (int i = 0; i < sources.Length; i++) identities[i].entry.sourceGlobalId = SourceId(sources[i]);
+            }
         }
-
-        private void Audit(string category, Object asset, string path, string reason) => report.AuditEntries.Add(new AuditEntry
-        { category = category, type = asset.GetType().Name, name = asset.name, path = path, reason = reason, sourceGlobalId = SourceId(asset) });
 
         private static string SourceId(Object asset)
         {
-            try { return GlobalObjectId.GetGlobalObjectIdSlow(nadena.dev.ndmf.ObjectRegistry.GetReference(asset).Object).ToString(); }
+            try { return GlobalObjectId.GetGlobalObjectIdSlow(asset).ToString(); }
             catch (Exception) { return ""; }
         }
 

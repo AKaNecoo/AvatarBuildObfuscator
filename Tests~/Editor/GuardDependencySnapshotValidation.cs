@@ -23,6 +23,7 @@ namespace AvatarTools.Obfuscation.Validation
                 var selected = mode;
                 Run("Audit refreshes changed resource references without modifying them: " + mode, () => SnapshotAudit(selected));
                 Run("Public preparation sees resources added after construction and between calls: " + mode, () => SnapshotPreparation(selected));
+                Run("NDMF preparation shares imports and captures source provenance: " + mode, () => SnapshotNdmfPreparation(selected));
                 foreach (bool audit in new[] { false, true })
                 {
                     bool enabled = audit;
@@ -66,12 +67,45 @@ namespace AvatarTools.Obfuscation.Validation
             processor.AuditOutput("changed-graph");
             Check(report.OutputTextures == initial + 1 && report.AuditEntries.Any(e => e.type == "Texture2D" && e.name == second.name),
                 "Audit missed a resource introduced after the earlier snapshot");
+            Check(report.AuditEntries.Single(e => e.type == "Texture2D" && e.name == second.name).sourceGlobalId ==
+                GlobalObjectId.GetGlobalObjectIdSlow(second).ToString(), "Batched audit changed a persistent source identifier");
+            Check(report.Timings.Any(t => t.Stage == "output-audit" && t.Seconds >= 0), "Output audit timing is missing");
             var entries = report.AuditEntries.Select(e => JsonUtility.ToJson(e)).ToArray();
             processor.AuditOutput("repeated-graph");
             Check(entries.SequenceEqual(report.AuditEntries.Select(e => JsonUtility.ToJson(e))), "Unchanged graph produced different audit entries");
             Check(EditorJsonUtility.ToJson(menu) == menuBefore && EditorJsonUtility.ToJson(first) == sourceBefore &&
                 menu.controls[0].icon == first && menu.controls[1].icon == second && menu.controls[0].subMenu == menu,
                 "Read-only auditing changed resources or cyclic/shared references");
+        }
+
+        private static void SnapshotNdmfPreparation(ProtectionMode mode)
+        {
+            string folder = SnapshotFolder();
+            var first = SnapshotTexture(folder, "Shared");
+            var late = SnapshotTexture(folder, "Late");
+            var root = Root();
+            var marker = root.GetComponent<AvatarBuildObfuscator>();
+            marker.mode = mode;
+            marker.auditBuild = true;
+            var descriptor = root.AddComponent<VRCAvatarDescriptor>();
+            var menu = Track(ScriptableObject.CreateInstance<VRCExpressionsMenu>());
+            descriptor.expressionsMenu = menu;
+            menu.controls.Add(new VRCExpressionsMenu.Control { name = "First", icon = first, subMenu = menu });
+            menu.controls.Add(new VRCExpressionsMenu.Control { name = "Shared", icon = first });
+            Action<UnityEngine.Object> saver = value => Track(value);
+            var prepare = typeof(GuardProcessor).GetMethod("PrepareNdmfBuild", BindingFlags.Static | BindingFlags.NonPublic);
+            var processor = (GuardProcessor)prepare.Invoke(null,
+                new object[] { root, new GuardSettings(marker), saver, folder + "/Generated", false });
+            menu.controls.Add(new VRCExpressionsMenu.Control { name = "Added after preparation", icon = late });
+            processor.PrepareImportedAssets(folder + "/Generated");
+            var report = processor.Run();
+            var controls = descriptor.expressionsMenu.controls;
+            Check(report.ImportedTextureCopies == 2 && controls[0].icon == controls[1].icon &&
+                controls[0].icon != first && controls[2].icon != late && controls[0].subMenu == descriptor.expressionsMenu,
+                "A shared source was duplicated or a later resource was missed");
+            Check(report.Timings.Count(t => t.Stage == "source-audit") == 1 && report.Timings.Count(t => t.Stage == "imports") == 2,
+                "Source capture or fresh public import timing is missing");
+            Check(menu.controls[0].icon == first && menu.controls[2].icon == late, "Source menu changed");
         }
 
         private static void SnapshotPreparation(ProtectionMode mode)

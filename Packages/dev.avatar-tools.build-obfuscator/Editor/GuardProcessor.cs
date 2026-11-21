@@ -154,6 +154,10 @@ namespace AvatarTools.Obfuscation.Editor
         }
 
         public GuardProcessor(GameObject buildCopy, GuardSettings configuration, Action<Object> saver = null)
+            : this(buildCopy, configuration, saver, true)
+        { }
+
+        private GuardProcessor(GameObject buildCopy, GuardSettings configuration, Action<Object> saver, bool captureSourceAudit)
         {
             root = buildCopy != null ? buildCopy : throw new ArgumentNullException(nameof(buildCopy));
             settings = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -175,7 +179,21 @@ namespace AvatarTools.Obfuscation.Editor
             report.PackageVersion = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(AvatarBuildObfuscator).Assembly)?.version ?? "unmanaged";
             foreach (var t in root.GetComponentsInChildren<Transform>(true)) usedNames.Add(t.name);
             saveAsset = saver;
-            if (settings.AuditBuild) TimeStage("source-audit", CaptureAuditSources);
+            if (settings.AuditBuild && captureSourceAudit) TimeStage("source-audit", CaptureAuditSources);
+        }
+
+        internal static GuardProcessor PrepareNdmfBuild(GameObject buildCopy, GuardSettings configuration,
+            Action<Object> saver, string generatedFolder, bool useNativeImportedAudio)
+        {
+            var processor = new GuardProcessor(buildCopy, configuration, saver, false)
+            {
+                DeferUnlockedShaderNames = true,
+                UseNativeImportedAudio = useNativeImportedAudio
+            };
+            // The source capture and import preparation read the same graph here.
+            // Keep the snapshot local so later public calls always see fresh references.
+            processor.PrepareImportedAssets(generatedFolder, processor.CaptureAuditSnapshot("source-audit"));
+            return processor;
         }
 
         private void TimeStage(string stage, Action action)
@@ -189,6 +207,7 @@ namespace AvatarTools.Obfuscation.Editor
         {
             if (PrefabUtility.IsPartOfPrefabAsset(root))
                 throw new InvalidOperationException("Avatar Guard accepts a build copy, not a prefab asset.");
+            renderersByPath.Clear();
             TimeStage("analysis", () => {
                 CollectUsage(); CollectMmdRenderers(); CollectFixedShapeNames(); PlanParameterNames();
                 if (settings.ShuffleHierarchy) PlanSiblingOrder();
@@ -202,6 +221,7 @@ namespace AvatarTools.Obfuscation.Editor
             if (settings.RenameHierarchy) TimeStage("hierarchy-plan", PlanHierarchy);
             else report.PreservedGameObjects = root.GetComponentsInChildren<Transform>(true).Length;
             TimeStage("asset-references", RewriteComponentAssets);
+            renderersByPath.Clear();
             // Binding analysis and all graph copies use the original paths. Rename only
             // after the copied clips/masks have been rewritten successfully.
             foreach (var pair in objectNames) pair.Key.name = pair.Value;
@@ -281,30 +301,44 @@ namespace AvatarTools.Obfuscation.Editor
             // Keep path strings used outside regular animation bindings (e.g. SDK audio
             // behaviours and animation events) instead of guessing how they are resolved.
             var strings = new HashSet<string>(StringComparer.Ordinal);
-            var holders = root.GetComponentsInChildren<Component>(true).Where(x => x != null && !(x is Transform) && !(x is AvatarBuildObfuscator)).Cast<Object>()
-                .Concat(behaviours.Cast<Object>()).Distinct();
-            foreach (var holder in holders)
-                using (var so = new SerializedObject(holder))
-                {
-                    var p = so.GetIterator();
-                    while (p.Next(true))
-                        if (settings.GlobalMode == ProtectionMode.Conservative && p.propertyType == SerializedPropertyType.String &&
-                            p.propertyPath != "m_Name" && p.name != "SourcePath" && !string.IsNullOrEmpty(p.stringValue))
-                            strings.Add(p.stringValue);
-                }
+            bool preserveStrings = settings.GlobalMode == ProtectionMode.Conservative;
+            if (preserveStrings)
+            {
+                var holders = root.GetComponentsInChildren<Component>(true)
+                    .Where(x => x != null && !(x is Transform) && !(x is AvatarBuildObfuscator)).Cast<Object>()
+                    .Concat(behaviours.Cast<Object>()).Distinct();
+                foreach (var holder in holders)
+                    using (var so = new SerializedObject(holder))
+                    {
+                        var p = so.GetIterator();
+                        while (p.Next(true))
+                            if (p.propertyType == SerializedPropertyType.String &&
+                                p.propertyPath != "m_Name" && p.name != "SourcePath" && !string.IsNullOrEmpty(p.stringValue))
+                                strings.Add(p.stringValue);
+                    }
+            }
+            var proxyPaths = new Dictionary<Transform, HashSet<string>>();
             foreach (var site in clips)
             {
-                if (settings.GlobalMode == ProtectionMode.Conservative)
+                if (preserveStrings)
                     foreach (var evt in AnimationUtility.GetAnimationEvents(site.Clip))
                         if (!string.IsNullOrEmpty(evt.stringParameter)) strings.Add(evt.stringParameter);
                 if (IsProxy(site.Clip))
+                {
+                    if (!proxyPaths.TryGetValue(site.Root, out var paths))
+                        proxyPaths.Add(site.Root, paths = new HashSet<string>(StringComparer.Ordinal));
                     foreach (var b in AnimationUtility.GetCurveBindings(site.Clip).Concat(AnimationUtility.GetObjectReferenceCurveBindings(site.Clip)))
-                        foreach (var t in site.Root.GetComponentsInChildren<Transform>(true))
-                            if (AnimationUtility.CalculateTransformPath(t, site.Root) == b.path) protectPath(t);
+                        paths.Add(b.path);
+                }
             }
-            foreach (var relativeRoot in relativeRoots)
-                foreach (var t in relativeRoot.GetComponentsInChildren<Transform>(true))
-                    if (strings.Contains(t.name) || strings.Contains(AnimationUtility.CalculateTransformPath(t, relativeRoot))) protectPath(t);
+            foreach (var pair in proxyPaths)
+                if (pair.Value.Count != 0)
+                    foreach (var t in pair.Key.GetComponentsInChildren<Transform>(true))
+                        if (pair.Value.Contains(AnimationUtility.CalculateTransformPath(t, pair.Key))) protectPath(t);
+            if (strings.Count != 0)
+                foreach (var relativeRoot in relativeRoots)
+                    foreach (var t in relativeRoot.GetComponentsInChildren<Transform>(true))
+                        if (strings.Contains(t.name) || strings.Contains(AnimationUtility.CalculateTransformPath(t, relativeRoot))) protectPath(t);
 
             foreach (var t in all) if (!blocked.Contains(t)) objectNames[t] = NewName();
             PrepareRebuiltAvatars(all, protectTree, t => { blocked.Add(t); protectPath(t); });
@@ -459,11 +493,17 @@ namespace AvatarTools.Obfuscation.Editor
             values.Add(name);
         }
 
-        // Enumerate instead of Transform.Find so ambiguous duplicate paths are kept safe.
-        private static IEnumerable<SkinnedMeshRenderer> ResolveRenderers(Transform relativeRoot, string path)
+        private readonly Dictionary<Transform, ILookup<string, SkinnedMeshRenderer>> renderersByPath =
+            new Dictionary<Transform, ILookup<string, SkinnedMeshRenderer>>();
+
+        // The current hierarchy is stable up to renaming. Keep every candidate
+        // for duplicate paths, including separately scoped Animator roots.
+        private IEnumerable<SkinnedMeshRenderer> ResolveRenderers(Transform relativeRoot, string path)
         {
-            return relativeRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true)
-                .Where(r => AnimationUtility.CalculateTransformPath(r.transform, relativeRoot) == path);
+            if (!renderersByPath.TryGetValue(relativeRoot, out var lookup))
+                renderersByPath.Add(relativeRoot, lookup = relativeRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true)
+                    .ToLookup(r => AnimationUtility.CalculateTransformPath(r.transform, relativeRoot), StringComparer.Ordinal));
+            return lookup[path];
         }
 
         private static bool CompatibilityShape(string name)

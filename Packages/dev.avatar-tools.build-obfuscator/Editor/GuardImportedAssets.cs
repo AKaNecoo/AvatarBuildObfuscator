@@ -60,6 +60,7 @@ namespace AvatarTools.Obfuscation.Editor
             var pending = new List<Tuple<Object, string, string>>();
             int nativeAudioBefore = report.NativeAudioCopies;
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            long nextProgressUpdate = 0;
             // CopyAsset normally refreshes and imports for every single file. Hundreds
             // of avatar textures/audio then repeatedly enter import/postprocessor work.
             // Queue copies as one batch and load the new objects only after imports.
@@ -74,9 +75,13 @@ namespace AvatarTools.Obfuscation.Editor
                     string path = AssetDatabase.GetAssetPath(asset);
                     var importer = AssetImporter.GetAtPath(path);
                     if (!(importer is TextureImporter || importer is AudioImporter)) continue;
-                    if (EditorUtility.DisplayCancelableProgressBar("Avatar Build Obfuscator",
-                        "复制构建资源 " + (i + 1) + "/" + sources.Length + "（完成后统一导入）", (float)i / sources.Length))
-                        throw new OperationCanceledException("用户取消了构建资源复制");
+                    if (watch.ElapsedMilliseconds >= nextProgressUpdate)
+                    {
+                        if (EditorUtility.DisplayCancelableProgressBar("Avatar Build Obfuscator",
+                            "复制构建资源 " + (i + 1) + "/" + sources.Length + "（完成后统一导入）", (float)i / sources.Length))
+                            throw new OperationCanceledException("用户取消了构建资源复制");
+                        nextProgressUpdate = watch.ElapsedMilliseconds + 100;
+                    }
                     if (UseNativeImportedAudio && asset is AudioClip audio)
                     {
                         var native = CopyImportedAudio(audio);
@@ -217,12 +222,7 @@ namespace AvatarTools.Obfuscation.Editor
                     // Audit capture only records identities. Share this local snapshot
                     // with import preparation, then discard it before rewriting references.
                     // Every SDK completion and public preparation starts with a fresh graph.
-                    Object[] dependencies = null;
-                    if (settings.AuditBuild) TimeStage("sdk-source-audit", () => {
-                        dependencies = WalkReferencedAssets().ToArray();
-                        CaptureAuditSources(dependencies);
-                    });
-                    PrepareImportedAssets(importedAssetFolder, dependencies);
+                    PrepareImportedAssets(importedAssetFolder, CaptureAuditSnapshot("sdk-source-audit"));
                     TimeStage("sdk-asset-references", RewriteComponentAssets);
                     // An owned menu/material may have received a new source reference.
                     // Never write into unowned source objects reached through the graph.
@@ -243,7 +243,11 @@ namespace AvatarTools.Obfuscation.Editor
                         if (dirty != null) AssetDatabase.SaveAssetIfDirty(dirty);
                     }
                 }
-                finally { sdkResourceCompletion = false; }
+                finally
+                {
+                    renderersByPath.Clear();
+                    sdkResourceCompletion = false;
+                }
             }
             if (settings.AuditBuild) AuditOutput("sdk-preprocess");
         }

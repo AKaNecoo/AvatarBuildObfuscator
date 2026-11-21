@@ -39,9 +39,12 @@ namespace AvatarTools.Obfuscation.Editor
                 {
                     var property = serialized.GetIterator();
                     while (property.Next(true))
-                        if (property.propertyType == SerializedPropertyType.ObjectReference && property.objectReferenceValue != null &&
-                            !(property.objectReferenceValue is GameObject) && !(property.objectReferenceValue is Component) && !(property.objectReferenceValue is MonoScript))
-                            queue.Enqueue(property.objectReferenceValue);
+                    {
+                        if (property.propertyType != SerializedPropertyType.ObjectReference) continue;
+                        var dependency = property.objectReferenceValue;
+                        if (dependency != null && !(dependency is GameObject || dependency is Component || dependency is MonoScript))
+                            queue.Enqueue(dependency);
+                    }
                 }
             }
             return visited.ToArray();
