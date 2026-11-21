@@ -51,8 +51,7 @@ namespace AvatarTools.Obfuscation.Editor
             if (!settings.RenameAssets) return;
             if (sdkResourceCompletion)
             {
-                // The locker has now consumed the original source/name. If it was
-                // skipped (for example in Play), prepare a readable final copy.
+                // Recheck the current shader contract after the locking callback.
                 foreach (var deferred in deferredShaders) sharedAssets.Remove(deferred);
                 deferredShaders.Clear();
             }
@@ -142,10 +141,16 @@ namespace AvatarTools.Obfuscation.Editor
             {
                 if (owned.Contains(shader) || sharedAssets.ContainsKey(shader) || !RequiresShaderSourceFile(shader)) continue;
                 if (IsLockedShader(shader)) continue; // Its compiled data can be cloned directly.
-                if (DeferUnlockedShaderNames && !sdkResourceCompletion)
+                if (DeferUnlockedShaderNames || sdkResourceCompletion)
                 {
-                    deferredShaders.Add(shader); sharedAssets[shader] = shader;
-                    report.Note("待锁定 Shader 保留稳定源码至 SDK 收尾，再对最终副本改名以复用锁定缓存");
+                    sharedAssets[shader] = shader;
+                    if (sdkResourceCompletion)
+                        report.Note("SDK 收尾仍有未锁定的 Thry/Poiyomi Shader，保留其原名和源码：" + shader.name);
+                    else
+                    {
+                        deferredShaders.Add(shader);
+                        report.Note("待锁定 Shader 保留稳定源码至 SDK 收尾，再对已锁定的副本改名以复用锁定缓存");
+                    }
                     continue;
                 }
                 var copy = CopyShader(shader, true);
