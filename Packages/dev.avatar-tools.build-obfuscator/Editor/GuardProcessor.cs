@@ -82,7 +82,7 @@ namespace AvatarTools.Obfuscation.Editor
         public int ShapesBefore, ShapesAfter, FrozenShapes, RenamedShapes, RenamedAssets, CopiedObjects;
         public int RenamedGameObjects, PreservedGameObjects, RewrittenPaths;
         public int RenamedParameters, RenamedAnimatorNames, RebuiltAvatars, ReorderedMeshes, ImportedTextureCopies;
-        public int NativeAudioCopies;
+        public int NativeAudioCopies, NativeTextureCopies;
         public int ShuffledShapeMeshes, ShuffledSiblingGroups, ReorderedGameObjects;
         public int PrunedEmptyShapes, RemovedEmptyShapeCurves, MergedShapePairs, TransformedUvMeshes;
         public int PreservedMmdRenderers, PreservedMmdShapeNames, RenamedMmdShapeNames;
@@ -183,12 +183,13 @@ namespace AvatarTools.Obfuscation.Editor
         }
 
         internal static GuardProcessor PrepareNdmfBuild(GameObject buildCopy, GuardSettings configuration,
-            Action<Object> saver, string generatedFolder, bool useNativeImportedAudio)
+            Action<Object> saver, string generatedFolder, bool windowsStandalone)
         {
             var processor = new GuardProcessor(buildCopy, configuration, saver, false)
             {
                 DeferUnlockedShaderNames = true,
-                UseNativeImportedAudio = useNativeImportedAudio
+                UseNativeImportedAudio = windowsStandalone,
+                UseNativeImportedTextures = windowsStandalone && SupportsNativeTextureCopies && !configuration.TransformUv
             };
             // The source capture and import preparation read the same graph here.
             // Keep the snapshot local so later public calls always see fresh references.

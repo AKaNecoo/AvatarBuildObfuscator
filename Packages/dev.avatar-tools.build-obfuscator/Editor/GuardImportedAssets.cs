@@ -21,6 +21,7 @@ namespace AvatarTools.Obfuscation.Editor
         private readonly Dictionary<Object, Transform> copiedAnimationRoots = new Dictionary<Object, Transform>();
         internal bool DeferUnlockedShaderNames;
         internal bool UseNativeImportedAudio;
+        internal bool UseNativeImportedTextures;
         private readonly HashSet<Shader> deferredShaders = new HashSet<Shader>();
 
         /// <summary>
@@ -59,6 +60,7 @@ namespace AvatarTools.Obfuscation.Editor
             var sources = dependencies.Where(x => x is Texture || x is AudioClip).ToArray();
             var pending = new List<Tuple<Object, string, string>>();
             int nativeAudioBefore = report.NativeAudioCopies;
+            int nativeTexturesBefore = report.NativeTextureCopies;
             var watch = System.Diagnostics.Stopwatch.StartNew();
             long nextProgressUpdate = 0;
             // CopyAsset normally refreshes and imports for every single file. Hundreds
@@ -87,10 +89,18 @@ namespace AvatarTools.Obfuscation.Editor
                         var native = CopyImportedAudio(audio);
                         if (native != null)
                         {
-                            native.name = NewName();
-                            sharedAssets[asset] = native;
-                            nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(asset), native);
-                            Own(native); report.RenamedAssets++; report.NativeAudioCopies++;
+                            RegisterPreparedCopy(asset, native, NewName());
+                            report.NativeAudioCopies++;
+                            continue;
+                        }
+                    }
+                    if (UseNativeImportedTextures && asset is Texture2D texture && importer is TextureImporter textureImporter)
+                    {
+                        var native = CopyImportedTexture(texture, textureImporter);
+                        if (native != null)
+                        {
+                            RegisterPreparedCopy(asset, native, NewName());
+                            report.NativeTextureCopies++;
                             continue;
                         }
                     }
@@ -130,14 +140,12 @@ namespace AvatarTools.Obfuscation.Editor
                 // The native audio importer still rejects Windows paths >= 260 chars.
                 // Disk names may be compact; the build object's name retains the
                 // complete username prefix and 128-bit homoglyph name used by other assets.
-                copy.name = item.Item3;
-                sharedAssets[asset] = copy;
-                nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(asset), copy);
-                Own(copy); report.RenamedAssets++;
+                RegisterPreparedCopy(asset, copy, item.Item3);
                 if (asset is Texture) report.ImportedTextureCopies++;
             }
             watch.Stop();
             report.Note("批量复制/导入 " + pending.Count + " 个贴图/音频，原生音频副本 " + (report.NativeAudioCopies - nativeAudioBefore) +
+                " 个，原生贴图副本 " + (report.NativeTextureCopies - nativeTexturesBefore) +
                 " 个，用时 " + watch.Elapsed.TotalSeconds.ToString("F2") + " 秒");
             // Source-reading optimizers cannot consume a Shader subasset in a binary
             // NDMF container. Import these independent source files before the caller
@@ -164,6 +172,71 @@ namespace AvatarTools.Obfuscation.Editor
                 nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(shader), copy);
                 Own(copy); report.RenamedAssets++;
             }
+        }
+
+        private void RegisterPreparedCopy(Object source, Object copy, string name)
+        {
+            copy.name = name;
+            sharedAssets[source] = copy;
+            nadena.dev.ndmf.ObjectRegistry.TryRegisterReplacedObject(nadena.dev.ndmf.ObjectRegistry.GetReference(source), copy);
+            Own(copy);
+            report.RenamedAssets++;
+        }
+
+        private static bool SupportsNativeTextureCopies
+        {
+            get
+            {
+#if UNITY_6000_0
+                return Application.platform == RuntimePlatform.WindowsEditor &&
+                    SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Direct3D11;
+#else
+                return false;
+#endif
+            }
+        }
+
+        private Texture2D CopyImportedTexture(Texture2D source, TextureImporter importer)
+        {
+            // Special imports and partially resident textures keep the file/importer route.
+            // NDMF expects generated mipmapped textures to support mip streaming.
+            if (importer.textureShape != TextureImporterShape.Texture2D || importer.vtOnly ||
+                (importer.textureType != TextureImporterType.Default && importer.textureType != TextureImporterType.NormalMap) ||
+                (source.format != TextureFormat.DXT1 && source.format != TextureFormat.DXT5 && source.format != TextureFormat.BC7) ||
+                (source.mipmapCount > 1 && (!source.streamingMipmaps || source.loadedMipmapLevel != 0 ||
+                    source.requestedMipmapLevel > 0 || source.activeMipmapLimit != 0 ||
+                    QualitySettings.globalTextureMipmapLimit != 0 || !string.IsNullOrEmpty(source.mipmapLimitGroup))))
+                return null;
+
+            var hash = source.imageContentsHash;
+            if (!hash.isValid) return null;
+            Texture2D copy = null;
+            try
+            {
+                // Instantiate logs an error for imported textures with Read/Write off.
+                // Copy the serialized import result into a fresh build-owned texture.
+                copy = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+                EditorUtility.CopySerialized(source, copy);
+                if (copy.imageContentsHash == hash &&
+                    copy.width == source.width && copy.height == source.height && copy.format == source.format &&
+                    copy.graphicsFormat == source.graphicsFormat && copy.mipmapCount == source.mipmapCount &&
+                    copy.isReadable == source.isReadable && copy.alphaIsTransparency == source.alphaIsTransparency &&
+                    copy.streamingMipmaps == source.streamingMipmaps && copy.streamingMipmapsPriority == source.streamingMipmapsPriority &&
+                    (!copy.streamingMipmaps || copy.loadedMipmapLevel == 0) && copy.ignoreMipmapLimit == source.ignoreMipmapLimit &&
+                    copy.mipmapLimitGroup == source.mipmapLimitGroup && copy.wrapModeU == source.wrapModeU &&
+                    copy.wrapModeV == source.wrapModeV && copy.wrapModeW == source.wrapModeW &&
+                    copy.filterMode == source.filterMode && copy.anisoLevel == source.anisoLevel && copy.mipMapBias == source.mipMapBias &&
+                    // The importer marks source textures NotEditable. The clone is writable
+                    // and must otherwise keep the same persistence flags.
+                    ((copy.hideFlags ^ source.hideFlags) & ~HideFlags.NotEditable) == HideFlags.None)
+                    return copy;
+            }
+            catch
+            {
+                report.Note("贴图编译数据无法直接复制，回退独立文件导入路线");
+            }
+            if (copy != null) Object.DestroyImmediate(copy);
+            return null;
         }
 
         private AudioClip CopyImportedAudio(AudioClip source)
