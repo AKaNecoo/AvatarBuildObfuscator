@@ -25,6 +25,7 @@ NDMF_REPO = 'https://vpm.nadena.dev/vpm.json'
 VERSION = re.compile(r'^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?$')
 COMPONENT_GUID = b'7c5e3c2dfef2cf4469c50c0ba239aac9'
 MAX_ARCHIVE = 16 * 1024 * 1024
+WITHDRAWN_VERSIONS = frozenset(json.loads(Path(__file__).with_name('withdrawn_versions.json').read_text(encoding='utf-8')))
 
 
 def version_key(value):
@@ -108,6 +109,8 @@ def build_listing(releases, download=fetch, previous=None):
         if release.get('draft') or not release.get('tag_name', '').startswith('v'):
             continue
         version = release['tag_name'][1:]
+        if version in WITHDRAWN_VERSIONS:
+            continue
         key = version_key(version)
         # VPM distribution starts at the existing tested 0.7.0 stable release.
         if key < version_key('0.7.0'):
@@ -139,6 +142,8 @@ def build_listing(releases, download=fetch, previous=None):
     if previous:
         old = previous.get('packages', {}).get(PACKAGE, {}).get('versions', {})
         for version, manifest in old.items():
+            if version in WITHDRAWN_VERSIONS:
+                continue
             if version not in versions or manifest.get('zipSHA256') != versions[version]['zipSHA256']:
                 raise ValueError('A previously listed immutable version disappeared or changed: ' + version)
     return {'name': 'Avatar Build Obfuscator (ABO)', 'id': PACKAGE + '.repository', 'url': INDEX_URL,

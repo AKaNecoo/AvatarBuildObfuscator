@@ -98,6 +98,18 @@ class VpmListingTests(unittest.TestCase):
         release['assets'] = []
         with self.assertRaises(ValueError): VPM.build_listing([release], lambda _: data)
 
+    def test_withdrawn_version_is_removed_from_existing_index(self):
+        current, data = fixture('0.8.6')
+        withdrawn, _ = fixture('0.8.7')
+        previous = VPM.build_listing([current], lambda _: data)
+        previous['packages'][VPM.PACKAGE]['versions']['0.8.7'] = {
+            'zipSHA256': withdrawn['assets'][0]['digest'][7:]
+        }
+        requests = []
+        updated = VPM.build_listing([current, withdrawn], lambda url: requests.append(url) or data, previous)
+        self.assertEqual(set(updated['packages'][VPM.PACKAGE]['versions']), {'0.8.6'})
+        self.assertEqual(requests, [current['assets'][0]['browser_download_url']])
+
     def test_previously_listed_versions_are_immutable(self):
         release, data = fixture(); original = VPM.build_listing([release], lambda _: data)
         VPM.build_listing([release], lambda _: data, original)

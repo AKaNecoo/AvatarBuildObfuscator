@@ -23,6 +23,10 @@ def publish(channel, commit, artifacts):
         raise ValueError("Release publishing is restricted to this repository's main/beta push")
     manifest = json.loads((ROOT / PACKAGE / "package.json").read_text(encoding="utf-8-sig"))
     version = manifest["version"]
+    withdrawn_versions = json.loads(Path(__file__).with_name("withdrawn_versions.json").read_text(encoding="utf-8"))
+    if version in withdrawn_versions:
+        print("Skipping withdrawn release: v" + version)
+        return
     if channel == "main" and "-" in version:
         raise ValueError("main releases must have a stable version")
     tag = "v" + version
