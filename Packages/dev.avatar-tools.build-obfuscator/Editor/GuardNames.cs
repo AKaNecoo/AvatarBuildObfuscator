@@ -61,9 +61,19 @@ namespace AvatarTools.Obfuscation.Editor
             if (unknownDriver && settings.GlobalMode == ProtectionMode.Conservative)
             { report.Note("未知驱动：保守模式保留运行参数与动画内部名称"); return; }
             var all = new HashSet<string>(controllers.SelectMany(BaseControllers).SelectMany(c => c.parameters).Select(p => p.name), StringComparer.Ordinal);
+            var synced = new HashSet<string>(StringComparer.Ordinal);
             foreach (var d in root.GetComponentsInChildren<VRC.SDK3.Avatars.Components.VRCAvatarDescriptor>(true))
-                if (d.expressionParameters != null)
-                    foreach (var p in d.expressionParameters.parameters ?? new VRCExpressionParameters.Parameter[0]) all.Add(p.name);
+            {
+                foreach (var p in d.expressionParameters?.parameters ?? Array.Empty<VRCExpressionParameters.Parameter>())
+                {
+                    if (p == null || string.IsNullOrEmpty(p.name)) continue;
+                    all.Add(p.name);
+                    if (p.networkSynced) synced.Add(p.name);
+                }
+            }
+            // SDK 3.11 matches synced parameters by name across platform builds.
+            // Also preserve the base of any PhysBone parameter family that uses one.
+            bool KeepName(string name) => synced.Contains(name) || KeepParameter(name);
             var prefixes = new HashSet<string>(StringComparer.Ordinal);
             foreach (var component in root.GetComponentsInChildren<Component>(true))
             {
@@ -81,12 +91,12 @@ namespace AvatarTools.Obfuscation.Editor
             foreach (var value in all) if (value != null) usedNames.Add(value);
             foreach (var prefix in prefixes.OrderByDescending(x => x.Length).ThenBy(x => x, StringComparer.Ordinal))
             {
-                if (KeepParameter(prefix) || all.Any(x => x != null && x.StartsWith(prefix + "_", StringComparison.Ordinal) && KeepParameter(x))) continue;
+                if (KeepName(prefix) || all.Any(x => x != null && x.StartsWith(prefix + "_", StringComparison.Ordinal) && KeepName(x))) continue;
                 parameterNames[prefix] = NewName();
             }
             foreach (var name in all.Where(x => !string.IsNullOrEmpty(x)).OrderBy(x => x, StringComparer.Ordinal))
             {
-                if (KeepParameter(name) || parameterNames.ContainsKey(name)) continue;
+                if (KeepName(name) || prefixes.Contains(name) || parameterNames.ContainsKey(name)) continue;
                 var prefix = prefixes.OrderByDescending(x => x.Length).FirstOrDefault(x => name.StartsWith(x + "_", StringComparison.Ordinal));
                 if (prefix != null)
                 {
@@ -96,6 +106,7 @@ namespace AvatarTools.Obfuscation.Editor
                 parameterNames[name] = NewName();
             }
             report.RenamedParameters = parameterNames.Count;
+            if (synced.Count > 0) report.Note("保留 " + synced.Count + " 个网络同步参数的原名，以兼容跨平台构建");
             if (all.Any(KeepParameter)) report.Note("VRChat 内置参数、明确的面捕/OSC 接口及手动保留参数维持契约名称");
         }
 

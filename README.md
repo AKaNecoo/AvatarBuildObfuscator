@@ -12,14 +12,16 @@
 
 ## 功能
 
-- 混淆资源、对象、骨骼、参数、Animator 内部及动态 BlendShape 名称，格式为“用户名＋随机后缀”，后缀使用 Ì、Í、Î、Ï 四种字符。
+- 混淆资源、对象、骨骼、本地参数、Animator 内部及动态 BlendShape 名称，格式为“用户名＋随机后缀”，后缀使用 Ì、Í、Î、Ï 四种字符。网络同步参数保留原名。
 - 烘焙并移除可处理的固定／未使用 BlendShape，清理无效果空形变，保留必要的动态形变。
 - 独立打乱 BlendShape、同级 GameObject、网格顶点和蒙皮骨骼索引表，并更新相关引用。
 - 每次构建可重新随机化，生成本地处理报告；可选嵌入三语授权声明和构建指纹。
 
 ## 安装
 
-需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。请先在软件包管理器中安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
+最低要求为 **Unity 2022.3、Avatar SDK 3.7.0+ 和 NDMF 1.14.8+**。请先在软件包管理器中安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
+
+**Unity 6.0（6000.0.67f1）** 已通过 Windows Avatar 构建验证，使用的是 [VRChat Avatar SDK 3.11.0-beta.1](https://ask.vrchat.com/t/developer-update-19-november-2026/49409)。
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VCL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推荐）**
 

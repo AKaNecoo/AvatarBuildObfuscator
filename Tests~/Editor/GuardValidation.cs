@@ -114,7 +114,12 @@ namespace AvatarTools.Obfuscation.Validation
             Run("Original Humanoid fallback protects rig paths without blocking accessories", HumanoidFallback);
             Run("Original Humanoid fallback independently validates MMD non-bone object names", HumanoidFallbackMmdObjects);
             Run("Original Humanoid fallback refuses interacting nested Avatars", HumanoidFallbackNested);
-            Run("Parameters, menu, driver, Animator fields and PhysBone suffixes stay linked", ParameterGraph);
+            Run("Local parameters, menu, driver, Animator fields and PhysBone suffixes stay linked",
+                () => ParameterGraph(ProtectionMode.Conservative, false));
+            Run("Synced parameters and their PhysBone family keep names in Conservative",
+                () => ParameterGraph(ProtectionMode.Conservative, true));
+            Run("Synced parameters and their PhysBone family keep names with a different parameter list in Aggressive",
+                () => ParameterGraph(ProtectionMode.Aggressive, true));
             Run("Vertex permutation preserves topology, channels, skinning and dynamic shapes", MeshPermutation);
             Run("Block vertex permutation preserves associations across block boundaries", MeshPermutationBlocks);
             Run("Imported unreadable texture clones retain pixels and importer bytes", () => ImportedTexture(false));
@@ -827,42 +832,52 @@ namespace AvatarTools.Obfuscation.Validation
             }
         }
 
-        private static void ParameterGraph()
+        private static void ParameterGraph(ProtectionMode mode, bool synced)
         {
             var root = Root(); var clip = Track(new AnimationClip { name = "ParameterCurve" });
             AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve("", typeof(Animator), "Blend"), AnimationCurve.Linear(0, 0, 1, 1));
             var controller = Controller(root, clip);
             foreach (string p in new[] { "Blend", "Outfit", "Touch", "Hair_IsGrabbed", "FT/v2/JawOpen", "IsLocal", "Keep" })
                 controller.AddParameter(p, AnimatorControllerParameterType.Float);
+            if (mode == ProtectionMode.Aggressive) controller.AddParameter("ExtraLocal", AnimatorControllerParameterType.Bool);
             var state = controller.layers[0].stateMachine.states[0].state; state.speedParameterActive = true; state.speedParameter = "Blend";
             var transition = state.AddExitTransition(); transition.AddCondition(AnimatorConditionMode.Greater, .5f, "Outfit");
             var driver = state.AddStateMachineBehaviour<VRCAvatarParameterDriver>();
             driver.parameters.Add(new VRC.SDKBase.VRC_AvatarParameterDriver.Parameter { name = "Outfit", source = "Blend", type = VRC.SDKBase.VRC_AvatarParameterDriver.ChangeType.Copy });
             var d = root.AddComponent<VRCAvatarDescriptor>();
             var parameters = Track(ScriptableObject.CreateInstance<VRCExpressionParameters>());
-            parameters.parameters = new[] { new VRCExpressionParameters.Parameter { name = "Outfit", valueType = VRCExpressionParameters.ValueType.Float, defaultValue = .3f, saved = true } };
+            var outfit = new VRCExpressionParameters.Parameter {
+                name = "Outfit", valueType = VRCExpressionParameters.ValueType.Float, defaultValue = .3f, saved = true, networkSynced = synced
+            };
+            parameters.parameters = synced ? new[] { outfit, new VRCExpressionParameters.Parameter {
+                name = "Hair_IsGrabbed", valueType = VRCExpressionParameters.ValueType.Bool, networkSynced = true
+            }} : new[] { outfit };
             d.expressionParameters = parameters;
             var menu = Track(ScriptableObject.CreateInstance<VRCExpressionsMenu>());
             menu.controls.Add(new VRCExpressionsMenu.Control { name = "Outfit", parameter = new VRCExpressionsMenu.Control.Parameter { name = "Outfit" } }); d.expressionsMenu = menu;
             var pb = root.AddComponent<VRC.SDK3.Dynamics.PhysBone.Components.VRCPhysBone>(); pb.parameter = "Hair";
             var contact = root.AddComponent<VRC.SDK3.Dynamics.Contact.Components.VRCContactReceiver>(); contact.parameter = "Touch";
-            root.GetComponent<AvatarBuildObfuscator>().preserveParameters = new[] { "Keep" };
-            var report = Process(root);
+            var marker = root.GetComponent<AvatarBuildObfuscator>();
+            marker.preserveParameters = new[] { "Keep" };
+            marker.randomizeEachBuild = true;
+            var report = Process(root, mode);
             var copy = (AnimatorController)root.GetComponent<Animator>().runtimeAnimatorController;
             var copiedState = copy.layers[0].stateMachine.states[0].state;
             var outputName = d.expressionParameters.parameters[0].name;
-            Check(UsernameNameGenerator.IsGeneratedName(outputName) && copy.parameters.Any(p => p.name == outputName), "Parameter definitions disagree");
+            Check(synced ? outputName == "Outfit" : UsernameNameGenerator.IsGeneratedName(outputName), "Parameter identity changed incorrectly");
+            Check(copy.parameters.Any(p => p.name == outputName), "Parameter definitions disagree");
             Check(d.expressionsMenu.controls[0].parameter.name == outputName && d.expressionsMenu.controls[0].name == "Outfit", "Menu binding/visible label wrong");
             Check(copiedState.transitions.Single().conditions.Single().parameter == outputName, "Transition parameter stale");
             var copiedDriver = (VRCAvatarParameterDriver)copiedState.behaviours.Single();
             Check(copiedDriver.parameters[0].name == outputName && copiedDriver.parameters[0].source == copiedState.speedParameter, "Driver or speed parameter stale");
             Check(AnimationUtility.GetCurveBindings(copy.animationClips.Single()).Single().propertyName == copiedState.speedParameter, "Animator parameter curve stale");
-            Check(copy.parameters.Any(p => p.name == pb.parameter + "_IsGrabbed") && UsernameNameGenerator.IsGeneratedName(pb.parameter), "PhysBone suffix contract broken");
-            Check(copy.parameters.Any(p => p.name == contact.parameter), "Contact parameter stale");
+            Check(copy.parameters.Any(p => p.name == pb.parameter + "_IsGrabbed") &&
+                (synced ? pb.parameter == "Hair" : UsernameNameGenerator.IsGeneratedName(pb.parameter)), "PhysBone suffix contract broken");
+            Check(copy.parameters.Any(p => p.name == contact.parameter) && UsernameNameGenerator.IsGeneratedName(contact.parameter), "Contact parameter stale");
             Check(new[] { "IsLocal", "FT/v2/JawOpen", "Keep" }.All(n => copy.parameters.Any(p => p.name == n)), "External/reserved/manual parameter changed");
             Check(UsernameNameGenerator.IsGeneratedName(copiedState.name) && UsernameNameGenerator.IsGeneratedName(copy.layers[0].name), "Animator internals not renamed");
             Check(parameters.parameters[0].name == "Outfit" && menu.controls[0].parameter.name == "Outfit" && driver.parameters[0].name == "Outfit", "Source graph mutated");
-            Check(report.RenamedParameters >= 5 && report.RenamedAnimatorNames >= 3, report.Summary);
+            Check(report.RenamedParameters >= (synced ? 2 : 5) && report.RenamedAnimatorNames >= 3, report.Summary);
         }
 
         private static void MeshPermutation()

@@ -87,6 +87,9 @@ namespace AvatarTools.Obfuscation.Editor
                 "\n" + T("顶点重排／骨骼表／UV 网格", "Vertex / bone-palette / UV meshes", "頂点・ボーン表・UV メッシュ") + ": " + report.ReorderedMeshes + " / " + report.ReorderedBonePalettes + " / " + report.TransformedUvMeshes +
                 "\n" + T("材质声明／指纹／总材质", "Material notices / fingerprints / total materials", "声明・識別子・全マテリアル") + ": " + report.NoticeMaterials + " / " + report.FingerprintMaterials + " / " + report.OutputMaterials);
             summary.text += "\n" + T("输出对象／网格／贴图", "Output objects / meshes / textures", "出力オブジェクト・メッシュ・テクスチャ") + ": " + report.OutputObjects + " / " + report.OutputMeshes + " / " + report.OutputTextures;
+            if (report.NativeTextureCopies > 0)
+                summary.text += "\n" + T("原生贴图副本／文件导入副本", "Native / file-imported texture copies", "ネイティブ・ファイル経由のテクスチャ複製") +
+                    ": " + report.NativeTextureCopies + " / " + report.ImportedTextureCopies;
             if (report.TransformedUvMaterials > 0)
             {
                 summary.text += "\n" + T("采样变换材质／贴图／GPU解码", "Sampling materials / textures / GPU decoded", "サンプリング変換マテリアル・テクスチャ・GPU読出し") + ": " +
@@ -100,6 +103,7 @@ namespace AvatarTools.Obfuscation.Editor
                 summary.text += "\n" + T("子树配置／保守Renderer／激进Renderer／来源回退", "Subtree overrides / conservative / aggressive / provenance fallback", "サブツリー設定・保守Renderer・積極Renderer・由来不明の保持") + ": " +
                     report.SubtreeOverrides + " / " + report.ConservativeScopeRenderers + " / " + report.AggressiveScopeRenderers + " / " + report.ScopeFallbackRenderers;
             summary.style.whiteSpace = WhiteSpace.Normal; summary.style.marginTop = summary.style.marginBottom = 8; content.Add(summary);
+            AddTimings(content);
             var notes = new Foldout { text = T("处理与保留说明", "Processing and preservation notes", "処理と保持の説明"), value = false };
             foreach (var note in report.Notes ?? new List<string>()) { var label = new Label(note); label.style.whiteSpace = WhiteSpace.Normal; notes.Add(label); }
             content.Add(notes);
@@ -115,6 +119,52 @@ namespace AvatarTools.Obfuscation.Editor
             };
             entries.bindItem = (row, i) => { var entry = filtered[i]; row.userData = entry; row.Q<Label>("entry").text = entry.category + " · " + entry.type + " · " + entry.name + "\n" + entry.path + "\n" + entry.reason; };
             content.Add(entries); Filter();
+        }
+
+        private void AddTimings(VisualElement content)
+        {
+            if (report.Timings == null || report.Timings.Count == 0) return;
+            var timings = report.Timings.Where(t => t != null && !string.IsNullOrEmpty(t.Stage) &&
+                    t.Seconds >= 0 && !double.IsInfinity(t.Seconds))
+                .GroupBy(t => t.Stage).Select(g => new { Stage = g.Key, Seconds = g.Sum(t => t.Seconds) })
+                .OrderByDescending(t => t.Seconds).ToArray();
+            if (timings.Length == 0) return;
+            var foldout = new Foldout
+            {
+                text = T("ABO 耗时排行", "ABO processing time", "ABO 処理時間") + " · " +
+                    TimingStage(timings[0].Stage) + " " + timings[0].Seconds.ToString("F1") + " s",
+                value = false
+            };
+            foldout.Add(new Label(T("以下为 ABO 内部计时，SDK 打包和上传另计。",
+                "These timings cover ABO. SDK bundling and upload are measured separately.",
+                "ABO 内部の計測です。SDK のパッケージ化とアップロードは別計測です。"))
+                { style = { whiteSpace = WhiteSpace.Normal } });
+            foreach (var item in timings)
+                foldout.Add(new Label(TimingStage(item.Stage) + "  ·  " + item.Seconds.ToString("F2") + " s"));
+            content.Add(foldout);
+        }
+
+        private string TimingStage(string stage)
+        {
+            switch (stage)
+            {
+                case "analysis": return T("引用与驱动分析", "Reference and driver analysis", "参照とドライバーの解析");
+                case "blendshapes": return T("BlendShape 处理", "BlendShape processing", "BlendShape 処理");
+                case "source-audit": return T("源资源审计", "Source audit", "元アセット監査");
+                case "sdk-source-audit": return T("SDK 阶段源资源审计", "SDK-stage source audit", "SDK 段階の元アセット監査");
+                case "output-audit": return T("构建副本审计", "Build-copy audit", "ビルドコピー監査");
+                case "sdk-output-audit": return T("SDK 阶段产物审计", "SDK-stage output audit", "SDK 段階の出力監査");
+                case "imports": return T("资源复制与导入", "Asset copying and imports", "アセットの複製とインポート");
+                case "sdk-imports": return T("SDK 阶段资源导入", "SDK-stage imports", "SDK 段階のインポート");
+                case "hierarchy-plan": return T("层级规划", "Hierarchy planning", "階層の計画");
+                case "asset-references": return T("资源引用改写", "Asset reference rewriting", "アセット参照の更新");
+                case "sdk-asset-references": return T("SDK 阶段引用改写", "SDK-stage reference rewriting", "SDK 段階の参照更新");
+                case "vertex-order": return T("顶点重排", "Vertex reordering", "頂点の並べ替え");
+                case "bone-palettes": return T("骨骼索引重排", "Bone index reordering", "ボーンインデックスの並べ替え");
+                case "uv-textures": return T("UV 与贴图处理", "UV and texture processing", "UV とテクスチャ処理");
+                case "metadata": return T("声明与指纹", "Notices and fingerprints", "声明とフィンガープリント");
+                default: return stage;
+            }
         }
 
         private void Filter()

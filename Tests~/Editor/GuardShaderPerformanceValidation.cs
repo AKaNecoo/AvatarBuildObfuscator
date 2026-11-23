@@ -19,7 +19,7 @@ namespace AvatarTools.Obfuscation.Validation
             {
                 var captured = mode;
                 Run("Deferred shader names reuse the native lock cache: " + mode, () => ShaderCacheReuse(captured));
-                Run("Skipped locking retains readable final sources: " + mode, () => ShaderCacheReuse(captured, false));
+                Run("Skipped locking keeps the original optimizer shader: " + mode, () => ShaderCacheReuse(captured, false));
             }
             Run("Compiled Unlit source retains rendered pixels and properties", () => {
                 var shader = ShaderSourceFixture(out var path);
@@ -77,16 +77,27 @@ namespace AvatarTools.Obfuscation.Validation
                 {
                     bool success = (bool)optimizer.GetMethod("SetLockedForAllMaterials", BindingFlags.Public | BindingFlags.Static)
                         .Invoke(null, new object[] { new[] { renderer.sharedMaterial }, 1, false, false, false, null });
-                    Check(success, "Native locking failed");
+                    bool locked = (bool)optimizer.GetMethod("IsShaderLocked", BindingFlags.Public | BindingFlags.Static)
+                        .Invoke(null, new object[] { renderer.sharedMaterial.shader });
+                    Check(success && locked, "Native locking failed to produce a recognized locked shader");
                     string lockedPath = AssetDatabase.GetAssetPath(renderer.sharedMaterial.shader);
                     if (i != 0) Check(lockedPath == previousLocked, "Per-build names prevent reuse of the same optimized shader");
                     previousLocked = lockedPath;
                 }
                 typeof(GuardProcessor).GetMethod("FinishSdkBuild", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(processor, null);
                 var outputShader = renderer.sharedMaterial.shader;
-                Check(outputShader != shader && UsernameNameGenerator.IsGeneratedName(outputShader.name) && !ShaderUtil.ShaderHasError(outputShader), "Final shader identity/compilation invalid");
-                if (!lockMaterial) Check(AssetDatabase.GetAssetPath(outputShader).EndsWith(".shader"), "Skipped locker lost readable final source");
-                if (i != 0) Check(outputShader.name != previousOutput, "Final shader randomization was lost");
+                if (lockMaterial)
+                {
+                    Check(outputShader != shader && UsernameNameGenerator.IsGeneratedName(outputShader.name) && !ShaderUtil.ShaderHasError(outputShader),
+                        "Final shader identity/compilation invalid");
+                    if (i != 0) Check(outputShader.name != previousOutput, "Final shader randomization was lost");
+                }
+                else
+                {
+                    Check(outputShader == shader && AssetDatabase.GetAssetPath(outputShader) == sourcePath &&
+                        !Directory.GetFiles(folder, "*.shader").Any(), "Skipped locking created an unlocked shader copy");
+                    Check(report.Notes.Any(n => n.Contains("SDK 收尾") && n.Contains("未锁定")), "Missing reason for retained shader");
+                }
                 previousOutput = outputShader.name;
                 Check(report.Timings.Any(t => t.Stage == "imports") && report.Timings.All(t => t.Seconds >= 0), "Timing data missing or invalid");
             }

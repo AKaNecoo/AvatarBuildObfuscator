@@ -42,7 +42,8 @@ namespace AvatarTools.Obfuscation.Validation
             File.WriteAllText(folder + "/Includes/lil_pipeline_brp.hlsl", "#include \"UnityCG.cginc\"\nfloat4 ABOFixturePosition(float4 p) { return UnityObjectToClipPos(p); }\n");
             path = folder + "/Source.shader";
             File.WriteAllText(path, "Shader \"ABO/SourceRegression_" + Guid.NewGuid().ToString("N") + "\" {\n" +
-                "Properties { [ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled(\"Lock\", Int) = 0 _Color(\"Color\", Color) = (1,1,1,1) }\n" +
+                "Properties {\n[HideInInspector] shader_is_using_thry_editor(\"\", Float) = 0\n" +
+                "[ThryShaderOptimizerLockButton] _ShaderOptimizerEnabled(\"Lock\", Int) = 0\n_Color(\"Color\", Color) = (1,1,1,1)\n}\n" +
                 "SubShader { Pass { CGPROGRAM\n#pragma vertex vert\n#pragma fragment frag\n" +
                 "#include \"Includes/lil_pipeline_brp.hlsl\"\nfloat4 _Color;\n" +
                 "float4 vert(float4 v:POSITION):SV_POSITION { return ABOFixturePosition(v); }\nfloat4 frag():SV_Target { return _Color; }\nENDCG\n} } }\n");
@@ -84,15 +85,20 @@ namespace AvatarTools.Obfuscation.Validation
             AssetDatabase.SaveAssetIfDirty(container);
             var material = renderer.sharedMaterial; var copiedShader = material.shader;
             string copiedPath = AssetDatabase.GetAssetPath(copiedShader);
-            Check(copiedShader != shader && UsernameNameGenerator.IsGeneratedName(copiedShader.name), "Shader not renamed on an independent copy");
-            Check(copiedPath.StartsWith(folder + "/", StringComparison.Ordinal) && copiedPath.EndsWith(".shader", StringComparison.Ordinal),
-                "Optimizer receives a binary asset container instead of a readable .shader source: " + copiedPath);
+            if (late)
+                Check(copiedShader == shader && copiedPath == sourcePath && !Directory.GetFiles(folder, "*.shader").Any(),
+                    "Late unlocked optimizer shader should keep its original readable source");
+            else
+            {
+                Check(copiedShader != shader && UsernameNameGenerator.IsGeneratedName(copiedShader.name), "Shader not renamed on an independent copy");
+                Check(copiedPath.StartsWith(folder + "/", StringComparison.Ordinal) && copiedPath.EndsWith(".shader", StringComparison.Ordinal),
+                    "Optimizer receives a binary asset container instead of a readable .shader source: " + copiedPath);
+                Check(File.ReadAllText(copiedPath).Contains("#include \"" + includePath.Replace('\\', '/') + "\""), "Relative include was not rebased");
+            }
             Check(AssetDatabase.IsMainAsset(copiedShader) && !ShaderUtil.ShaderHasError(copiedShader), "Invalid imported shader copy");
-            string copiedCode = File.ReadAllText(copiedPath);
-            Check(copiedCode.Contains("#include \"" + includePath.Replace('\\', '/') + "\""), "Relative include was not rebased");
             Check(material.GetColor("_Color") == Color.magenta, "Material values changed");
             string beforeRepeat = copiedPath;
-            processor.PrepareImportedAssets(folder);
+            if (!late) processor.PrepareImportedAssets(folder);
             Check(renderer.sharedMaterial.shader == copiedShader && AssetDatabase.GetAssetPath(copiedShader) == beforeRepeat,
                 "Repeated preparation copied the owned source again");
 

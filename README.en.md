@@ -12,14 +12,16 @@
 
 ## Features
 
-- Rename resources, objects, bones, parameters, Animator internals and dynamic BlendShapes using your username followed by a random suffix made from Ì, Í, Î and Ï.
+- Rename resources, objects, bones, local parameters, Animator internals and dynamic BlendShapes using your username followed by a random suffix made from Ì, Í, Î and Ï. Network-synced parameters keep their names.
 - Bake and remove supported fixed/unused BlendShapes and zero-delta shapes, while retaining required dynamic shapes.
 - Independently shuffle BlendShape, sibling GameObject, mesh vertex and skin bone-palette order, updating related references.
 - Randomize each build and write local processing reports; optionally embed multilingual authorization notices and build fingerprints.
 
 ## Install
 
-Requires **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) in your package manager first.
+The minimum requirements are **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) in your package manager first.
+
+Windows avatar builds were also verified on **Unity 6.0 (6000.0.67f1)** with [VRChat Avatar SDK 3.11.0-beta.1](https://ask.vrchat.com/t/developer-update-19-november-2026/49409).
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/) / [VCC](https://vrchat.com/home/download) / [VCL](https://start.gamemode1.com/pages/vrclearnlauncher/) (recommended)**
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.8.7 — 2026-11-23
+
+- Preserve network-synced parameter names and their PhysBone families in both modes. Keep readable source and names for Thry/Poiyomi shaders that are still unlocked at SDK completion.
+- Reduce repeated hierarchy lookups, resource scans and eligible Unity 6.0 Windows texture imports. Show stage timings and texture copy counts in build reports.
+
+## 0.8.7-beta.3 — 2026-11-23
+
+- Reuse eligible DXT1, DXT5 and BC7 texture import results on Unity 6.0 Windows x64 NDMF builds under Direct3D 11. Preserve the compressed format, mip chain, streaming and sampling settings, and use the file importer for other cases.
+- Show native and file-imported texture copy counts in the local build report.
+
+## 0.8.7-beta.2 — 2026-11-22
+
+- Reuse renderer path lookups for animation bindings and share one reference graph across the initial source audit and import preparation.
+- Batch audit source identifiers and show ranked processing times in the report.
+
+## 0.8.7-beta.1 — 2026-11-21
+
+- Preserve network-synced parameters and their PhysBone families in both modes to keep names consistent across platform builds.
+- Keep the original source and name of Thry/Poiyomi shaders that are still unlocked at SDK completion.
+
 ## 0.8.6 — 2026-11-07
 
 - Fix Thry/Poiyomi locking for generated shaders that need readable source and relative includes.

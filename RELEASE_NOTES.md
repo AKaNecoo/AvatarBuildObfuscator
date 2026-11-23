@@ -1,17 +1,14 @@
 ## 中文
 
-- 修复生成 Shader 的 Thry／Poiyomi 锁定兼容问题。
-- 复用 Shader 编译数据、锁定缓存及 Windows 已编码音频，减少重复编译与导入。
-- 减少重复的资源引用扫描，保留对 SDK 后期生成资源的处理。
+- 保留跨平台同步参数名称和仍未锁定的 Thry／Poiyomi Shader 源码。
+- 减少重复扫描和符合条件的 Unity 6.0 Windows 贴图导入。构建报告增加阶段耗时与贴图复制数量。
 
 ## English
 
-- Fix Thry/Poiyomi locking for generated shaders.
-- Reuse compiled shader data, shader lock caches and encoded Windows audio to reduce repeated compilation and imports.
-- Reduce repeated resource-reference scans while covering resources added late in SDK processing.
+- Preserve cross-platform synced parameter names and source files for Thry/Poiyomi shaders that are still unlocked.
+- Reduce repeated scans and eligible Unity 6.0 Windows texture imports. Build reports show stage timings and texture copy counts.
 
 ## 日本語
 
-- 生成されたシェーダーの Thry／Poiyomi ロックに関する互換性を修正。
-- シェーダーのコンパイル済みデータ、ロックキャッシュ、Windows のエンコード済み音声を再利用し、コンパイルとインポートの重複を削減。
-- リソース参照の重複走査を削減し、SDK 処理の後半で追加されたリソースにも対応。
+- プラットフォーム間で同期するパラメーター名と、未ロックの Thry／Poiyomi シェーダーのソースを保持。
+- 重複した走査と Unity 6.0 Windows での対象テクスチャの再インポートを削減。ビルドレポートに工程別の処理時間とテクスチャの複製数を表示。

@@ -12,14 +12,16 @@
 
 ## 機能
 
-- リソース、オブジェクト、ボーン、パラメーター、Animator 内部、動的 BlendShape を「ユーザー名＋ランダムな接尾辞」で改名。接尾辞には Ì・Í・Î・Ï の4文字を使用。
+- リソース、オブジェクト、ボーン、ローカルパラメーター、Animator 内部、動的 BlendShape を「ユーザー名＋ランダムな接尾辞」で改名。接尾辞には Ì・Í・Î・Ï の4文字を使用。ネットワーク同期パラメーターの名前は維持します。
 - 対応可能な固定・未使用 BlendShape をベイクして除去し、変化のない形状を削除。必要な動的形状は保持。
 - BlendShape、兄弟 GameObject、メッシュ頂点、スキニングのボーン表を個別に並べ替え、関連参照を更新。
 - ビルドごとのランダム化とローカルレポートに対応。三言語の許諾声明とビルド識別子も任意で埋め込み可能。
 
 ## インストール
 
-**Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先にパッケージマネージャーで SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
+最低動作環境は **Unity 2022.3、Avatar SDK 3.7.0 以降、NDMF 1.14.8 以降**です。先にパッケージマネージャーで SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
+
+**Unity 6.0（6000.0.67f1）** でも [VRChat Avatar SDK 3.11.0-beta.1](https://ask.vrchat.com/t/developer-update-19-november-2026/49409) を使った Windows 向けアバタービルドを検証済みです。
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VCL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推奨）**
 

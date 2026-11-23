@@ -1,5 +1,34 @@
 # Testing and validation
 
+## 0.8.7
+
+The release ships the processing code and Unity asset GUIDs from 0.8.7-beta.3. The basic VRChat model-function smoke test was completed before promotion. The 137 Unity Editor cases and Windows bundle comparison below cover the promoted code. PC-to-mobile synchronization and runtime texture streaming still need separate client checks.
+
+## 0.8.7-beta.3
+
+- All 137 Editor cases passed on Unity 6000.0.67f1 with Windows x64, Direct3D 11 and Avatar SDK 3.11.0-beta.1. The 12 new texture cases cover both modes, DXT1/DXT5/BC7, Read/Write on and off, late SDK icons, shared references, source-file isolation and importer fallback.
+- A same-avatar comparison against beta.2 changed 188 of 199 imported texture copies to the native route. ABO asset preparation took 13.20 s and 5.37 s respectively. The SDK preprocess callbacks took 195.80 s and 170.04 s, and local LZMA packaging took 86.01 s and 69.88 s. These are two sequential runs with possible cache and order effects. Upload time was outside the measurement.
+- Both Windows bundles reopened. All 322 referenced Texture2Ds matched by name, Unity image hash, storage and sampling settings. GPU sampling matched across all 161 mip levels from 16 selected textures. All 3,750 material texture-slot records matched, including scale, offset and 343 populated slots. Both runs had 87 supported materials, 172 synced parameters, a valid Humanoid and no ABO build marker. They logged the same two texture-stat messages and one duplicate-Spine message.
+- The local LZMA package sizes were 91,229,635 bytes for beta.2 and 89,376,723 bytes for beta.3. Runtime streaming behavior, VRAM use and VRChat client behavior are outside this local comparison.
+
+## 0.8.7-beta.2
+
+- 125 Editor cases passed on Unity 6000.0.67f1 and Avatar SDK 3.11.0-beta.1. The checks include shared textures, late resources, retained-source identifiers, nested Animator roots, duplicate paths and Poiyomi shader locking.
+- In a 3,325-query renderer-binding probe across 22 Animator roots, all resolved renderer sets matched. Median time was 187 ms for repeated hierarchy walks and 0.54 ms with a fresh per-root index. This measures only path lookups.
+- A separate preparation and audit comparison copied 334 textures and 291 encoded audio clips on each run. The first pair's 8,343 audit rows matched exactly. Warm preparation did not speed up in that comparison. Beta.2 used Unity's file import route for textures.
+- On one Windows avatar, sequential SDK preprocess callbacks took 176.81 s with the candidate and 180.24 s with beta.1. The hierarchy stage took 0.11 s and 6.04 s respectively. Both outputs had 87 materials with supported shaders, 172 synced parameters that retained their names, and matching rename counts. These runs exclude AssetBundle packaging and upload. Cache and run-order effects remain.
+
+## 0.8.7-beta.1
+
+On Unity 6000.0.67f1 with Avatar SDK 3.11.0-beta.1, 115 Editor cases passed. They cover the core build processor, Thry/Poiyomi shader handling, late SDK resources and dependency snapshots.
+
+- Both modes keep the same network-synced expression names under randomized builds with different parameter lists. The cases check menu and Animator bindings, parameter drivers, PhysBone suffixes and continued renaming of local parameters.
+- If locking is skipped, SDK completion keeps the original readable shader. If locking succeeds, the randomized compiled copy retains its lock status. The tests also check locking cache reuse and rendered pixels.
+- A Windows avatar bundle built through the SDK's local Build API reopened successfully. All 172 synced parameters avoided ABO renaming and 81 local parameters were obfuscated. All 87 renderer materials had supported shaders, including the six materials on the previously affected prop. The run produced no unlocked-shader stripping messages. It used Poiyomi Toon 10.0.29.
+- PC-to-mobile synchronization in the VRChat client remains open.
+
+## 0.8.6
+
 **0.8.6** promotes the processing code from **0.8.6-beta.4**. Only release metadata differs within the distributed package. The Editor and bundle results below come from the tested beta.4 code and earlier checks identified by version. The release also includes the Thry/Poiyomi locking fix and the shader, audio and resource-scan optimizations.
 
 ## Current results
@@ -50,9 +79,9 @@ python Tools/ci_package.py
 
 `ci_package.py` validates the package identity, license, GUIDs and metadata, then builds and reads back reproducible TGZ, ZIP and unitypackage archives. Its output is placed under the local `Artifacts/` directory.
 
-Unity Editor checks are opt-in. In a disposable Unity 2022.3 project with the VRChat Avatar SDK and NDMF installed, copy `Tests~/Editor` and `Tests~/Runtime` with their assembly definitions under `Assets`. An Editor script can call `AvatarTools.Obfuscation.Validation.GuardValidation.RunAll(outputJsonPath)` to create and run synthetic fixtures. Full-avatar comparison uses `FullAvatarValidation` with an avatar you are authorized to test; it creates temporary validation assets. Review the output and remove the fixture after testing. These Editor checks are separate from the commands above and require a Unity installation.
+Unity Editor checks are opt-in. In a disposable Unity 2022.3 project or a Unity 6.0 project using the matching Avatar SDK, install NDMF and copy `Tests~/Editor` and `Tests~/Runtime` with their assembly definitions under `Assets`. An Editor script can call `AvatarTools.Obfuscation.Validation.GuardValidation.RunAll(outputJsonPath)` to create and run synthetic fixtures. Run `RunNativeTextureCopies(outputJsonPath)` on Unity 6.0 with Windows x64 and Direct3D 11 to exercise the native texture route. Full-avatar comparison uses `FullAvatarValidation` with an avatar you are authorized to test. Review the output and remove the temporary fixture assets after testing.
 
-The same `GuardValidation` class provides `RunEnhanced(outputJsonPath)`, `RunMaterialReferences(outputJsonPath)` and `RunLateResources(outputJsonPath)` for the enhancement, saved-material and late-resource suites. `RunShaderSources(outputJsonPath)` adds nine opt-in source/locker integration cases requiring ThryEditor and Poiyomi Toon. `RunShaderPerformance(outputJsonPath)` adds seven cache and rendered-copy checks; it also requires lilToon and a loaded, locked Poiyomi shader. `RunAudioPerformance(outputJsonPath)` adds eight native-audio and late-persistence checks. `RunDependencySnapshots(outputJsonPath)` adds eight audit/import freshness cases. The eight suites contain 159 cases in total. Use a separate JSON output path for each suite. Import the test assembly through Unity for AssetPostprocessor-dependent checks; loading its DLL alone does not register the import observer.
+The same `GuardValidation` class provides `RunEnhanced(outputJsonPath)`, `RunMaterialReferences(outputJsonPath)` and `RunLateResources(outputJsonPath)` for the enhancement, saved-material and late-resource suites. `RunShaderSources(outputJsonPath)` adds nine opt-in source and locking cases requiring ThryEditor and Poiyomi Toon. `RunShaderPerformance(outputJsonPath)` adds seven cache and rendered-copy checks and requires lilToon and a loaded, locked Poiyomi shader. `RunAudioPerformance(outputJsonPath)` adds eight native-audio and late-persistence checks. `RunDependencySnapshots(outputJsonPath)` adds eight audit and import freshness cases. Use a separate JSON output path for each suite. Import the test assembly through Unity to register the AssetPostprocessor used by the tests.
 
 Local audit JSON includes a `Timings` array with stage names and elapsed seconds for ABO processing. Measure the SDK's AssetBundle stage and network upload separately. For a performance comparison, keep avatar/settings, build target, compression, hardware and cache state equivalent; first builds and shader/package changes can take longer.
 
