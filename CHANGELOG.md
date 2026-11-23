@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.8-beta.1 — 2026-11-23
+
+- Preserve Animator audio references in Unity 6.0 Windows builds that mix imported audio and textures by using one native copy route per build.
+
 ## 0.8.7 — 2026-11-23
 
 - Preserve network-synced parameter names and their PhysBone families in both modes. Keep readable source and names for Thry/Poiyomi shaders that are still unlocked at SDK completion.

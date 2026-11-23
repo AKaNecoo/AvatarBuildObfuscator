@@ -1,15 +1,23 @@
 # Testing and validation
 
+## 0.8.8-beta.1
+
+- All 149 Editor cases passed on Unity 6000.0.67f1 with Avatar SDK 3.11.0-beta.1. The mixed-resource cases cover both modes, including file imports for audio first encountered during SDK completion after native textures have been saved.
+- The Windows test avatar retained 291 AudioClips and all 326 populated Animator audio slots after SDK preprocessing and in the reopened LZMA bundle. The build used 291 native audio copies and 199 file-imported texture copies. All 145 Animator audio behaviour slots aligned with the full reference bundle.
+- All 213 clips shared by the reproduced failure and the fix in the same Editor session have identical encoded payloads and playback metadata. Comparing the fix to the older complete baseline found 17 encoded payload differences and identical playback metadata. The 322 texture records, 3,750 material texture slot records, and 161 sampled mip levels matched the older baseline. The test covers local bundle content. VRChat client audio playback still needs its own check.
+
 ## 0.8.7
 
 The release ships the processing code and Unity asset GUIDs from 0.8.7-beta.3. The basic VRChat model-function smoke test was completed before promotion. The 137 Unity Editor cases and Windows bundle comparison below cover the promoted code. PC-to-mobile synchronization and runtime texture streaming still need separate client checks.
+
+A subsequent Windows comparison reproduced missing Animator audio references when both native copy routes ran. The same 0.8.7 processing code retained all 291 AudioClips and 326 populated Animator audio slots when only native texture copying was disabled. The audio loss was already present when SDK preprocessing returned.
 
 ## 0.8.7-beta.3
 
 - All 137 Editor cases passed on Unity 6000.0.67f1 with Windows x64, Direct3D 11 and Avatar SDK 3.11.0-beta.1. The 12 new texture cases cover both modes, DXT1/DXT5/BC7, Read/Write on and off, late SDK icons, shared references, source-file isolation and importer fallback.
 - A same-avatar comparison against beta.2 changed 188 of 199 imported texture copies to the native route. ABO asset preparation took 13.20 s and 5.37 s respectively. The SDK preprocess callbacks took 195.80 s and 170.04 s, and local LZMA packaging took 86.01 s and 69.88 s. These are two sequential runs with possible cache and order effects. Upload time was outside the measurement.
 - Both Windows bundles reopened. All 322 referenced Texture2Ds matched by name, Unity image hash, storage and sampling settings. GPU sampling matched across all 161 mip levels from 16 selected textures. All 3,750 material texture-slot records matched, including scale, offset and 343 populated slots. Both runs had 87 supported materials, 172 synced parameters, a valid Humanoid and no ABO build marker. They logged the same two texture-stat messages and one duplicate-Spine message.
-- The local LZMA package sizes were 91,229,635 bytes for beta.2 and 89,376,723 bytes for beta.3. Runtime streaming behavior, VRAM use and VRChat client behavior are outside this local comparison.
+- The local LZMA package sizes were 91,229,635 bytes for beta.2 and 89,376,723 bytes for beta.3. The latter package omitted 78 AudioClips. The two packages establish texture and material parity only, and their total size and time differences cannot be attributed to texture copying alone. Runtime streaming and VRAM use need separate client checks.
 
 ## 0.8.7-beta.2
 
