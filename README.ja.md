@@ -19,7 +19,9 @@
 
 ## インストール
 
-**Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+** が必要です。先にパッケージマネージャーで SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
+最低動作環境は **Unity 2022.3、Avatar SDK 3.7.0 以降、NDMF 1.14.8 以降**です。先にパッケージマネージャーで SDK と [NDMF](https://github.com/bdunderscore/ndmf) を導入してください。
+
+**Unity 6.0（6000.0.67f1）** でも [VRChat Avatar SDK 3.11.0-beta.1](https://ask.vrchat.com/t/developer-update-19-november-2026/49409) を使った Windows 向けアバタービルドを検証済みです。
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VCL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推奨）**
 

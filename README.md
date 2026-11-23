@@ -19,7 +19,9 @@
 
 ## 安装
 
-需要 **Unity 2022.3、Avatar SDK 3.7.0+、NDMF 1.14.8+**。请先在软件包管理器中安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
+最低要求为 **Unity 2022.3、Avatar SDK 3.7.0+ 和 NDMF 1.14.8+**。请先在软件包管理器中安装 SDK 和 [NDMF](https://github.com/bdunderscore/ndmf)。
+
+**Unity 6.0（6000.0.67f1）** 已通过 Windows Avatar 构建验证，使用的是 [VRChat Avatar SDK 3.11.0-beta.1](https://ask.vrchat.com/t/developer-update-19-november-2026/49409)。
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/)／[VCC](https://vrchat.com/home/download)／[VCL](https://start.gamemode1.com/pages/vrclearnlauncher/)（推荐）**
 

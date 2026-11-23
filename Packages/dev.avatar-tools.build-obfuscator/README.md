@@ -90,7 +90,9 @@ Git の `#main`／`#beta` は個別に更新されます。安定版へ切り替
 
 ---
 
-Requires / 需要 / 必要環境: **Unity 2022.3 · Avatar SDK 3.7.0+ · NDMF 1.14.8+**.
+**Unity 2022.3 · Avatar SDK 3.7.0+ · NDMF 1.14.8+** (minimum / 最低要求 / 最低動作環境)
+
+**Unity 6.0 (6000.0.67f1) · Avatar SDK 3.11.0-beta.1** (Windows builds verified / 已验证 Windows 构建 / Windows ビルド検証済み)
 
 [Installation and full documentation / 安装与完整说明 / 導入・詳細](https://github.com/AKaNecoo/AvatarBuildObfuscator)
 

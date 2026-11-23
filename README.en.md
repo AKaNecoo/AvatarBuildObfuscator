@@ -19,7 +19,9 @@
 
 ## Install
 
-Requires **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) in your package manager first.
+The minimum requirements are **Unity 2022.3, Avatar SDK 3.7.0+ and NDMF 1.14.8+**. Install the SDK and [NDMF](https://github.com/bdunderscore/ndmf) in your package manager first.
+
+Windows avatar builds were also verified on **Unity 6.0 (6000.0.67f1)** with [VRChat Avatar SDK 3.11.0-beta.1](https://ask.vrchat.com/t/developer-update-19-november-2026/49409).
 
 **[ALCOM](https://vrc-get.anatawa12.com/zh-hans/alcom/) / [VCC](https://vrchat.com/home/download) / [VCL](https://start.gamemode1.com/pages/vrclearnlauncher/) (recommended)**
 
