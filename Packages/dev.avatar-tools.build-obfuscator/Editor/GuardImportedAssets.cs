@@ -58,6 +58,12 @@ namespace AvatarTools.Obfuscation.Editor
             }
             dependencies = dependencies ?? WalkReferencedAssets().ToArray();
             var sources = dependencies.Where(x => x is Texture || x is AudioClip).ToArray();
+            // The Windows NDMF saver can lose audio subassets when both native routes
+            // write to its generated assets in one build. Prefer native audio on a
+            // mixed graph, and keep the first route if the SDK adds resources later.
+            bool useNativeAudio = UseNativeImportedAudio && report.NativeTextureCopies == 0;
+            bool useNativeTextures = UseNativeImportedTextures && report.NativeAudioCopies == 0 &&
+                (!useNativeAudio || !sources.Any(asset => asset is AudioClip));
             var pending = new List<Tuple<Object, string, string>>();
             int nativeAudioBefore = report.NativeAudioCopies;
             int nativeTexturesBefore = report.NativeTextureCopies;
@@ -84,7 +90,7 @@ namespace AvatarTools.Obfuscation.Editor
                             throw new OperationCanceledException("用户取消了构建资源复制");
                         nextProgressUpdate = watch.ElapsedMilliseconds + 100;
                     }
-                    if (UseNativeImportedAudio && asset is AudioClip audio)
+                    if (useNativeAudio && asset is AudioClip audio)
                     {
                         var native = CopyImportedAudio(audio);
                         if (native != null)
@@ -94,7 +100,7 @@ namespace AvatarTools.Obfuscation.Editor
                             continue;
                         }
                     }
-                    if (UseNativeImportedTextures && asset is Texture2D texture && importer is TextureImporter textureImporter)
+                    if (useNativeTextures && asset is Texture2D texture && importer is TextureImporter textureImporter)
                     {
                         var native = CopyImportedTexture(texture, textureImporter);
                         if (native != null)

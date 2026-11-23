@@ -34,6 +34,10 @@ namespace AvatarTools.Obfuscation.Validation
                     () => NativeTextureCopy(selected, TextureImporterFormat.DXT5, false, false, false, false));
                 Run("Unsupported format keeps its importer: " + mode,
                     () => NativeTextureCopy(selected, TextureImporterFormat.RGBA32, true, false, false, false));
+                Run("Imported audio keeps the native route when textures are also present: " + mode,
+                    () => NativeTextureCopy(selected, TextureImporterFormat.DXT1, true, true, false, false, withAudio: true));
+                Run("Late SDK audio uses its importer when a native texture was already saved: " + mode,
+                    () => NativeTextureCopy(selected, TextureImporterFormat.DXT1, true, true, false, true, withAudio: true, lateAudio: true));
             }
             Directory.CreateDirectory(Path.GetDirectoryName(output));
             string json = JsonUtility.ToJson(results, true);
@@ -42,7 +46,8 @@ namespace AvatarTools.Obfuscation.Validation
         }
 
         private static void NativeTextureCopy(ProtectionMode mode, TextureImporterFormat format, bool streaming,
-            bool readable, bool normal, bool expectNative, bool late = false, bool mipmapped = true)
+            bool readable, bool normal, bool expectNative, bool late = false, bool mipmapped = true,
+            bool withAudio = false, bool lateAudio = false)
         {
             string folder = Folder + "/Fixtures/NativeTexture_" + Guid.NewGuid().ToString("N");
             Directory.CreateDirectory(folder + "/Generated");
@@ -78,6 +83,15 @@ namespace AvatarTools.Obfuscation.Validation
             var root = Root();
             var marker = root.GetComponent<AvatarBuildObfuscator>();
             marker.mode = mode;
+            AudioSource speaker = null;
+            AudioClip originalAudio = null;
+            if (withAudio)
+            {
+                originalAudio = CreateNativeAudioFixture(folder + "/Input.wav", AudioClipLoadType.DecompressOnLoad);
+                Check(originalAudio != null, "Invalid audio fixture");
+                speaker = root.AddComponent<AudioSource>();
+                if (!lateAudio) speaker.clip = originalAudio;
+            }
             var descriptor = root.AddComponent<VRCAvatarDescriptor>();
             var menu = Track(ScriptableObject.CreateInstance<VRCExpressionsMenu>());
             menu.controls.Add(new VRCExpressionsMenu.Control { name = "First", icon = late ? null : source, subMenu = menu });
@@ -91,6 +105,7 @@ namespace AvatarTools.Obfuscation.Validation
             });
             const BindingFlags hidden = BindingFlags.Instance | BindingFlags.NonPublic;
             typeof(GuardProcessor).GetField("UseNativeImportedTextures", hidden).SetValue(processor, true);
+            typeof(GuardProcessor).GetField("UseNativeImportedAudio", hidden).SetValue(processor, withAudio);
             processor.PrepareImportedAssets(folder + "/Generated");
             var report = processor.Run();
             var finish = typeof(GuardProcessor).GetMethod("FinishSdkBuild", hidden);
@@ -98,6 +113,11 @@ namespace AvatarTools.Obfuscation.Validation
             {
                 descriptor.expressionsMenu.controls[0].icon = source;
                 descriptor.expressionsMenu.controls[1].icon = source;
+                finish.Invoke(processor, null);
+            }
+            if (lateAudio)
+            {
+                speaker.clip = originalAudio;
                 finish.Invoke(processor, null);
             }
             var copy = descriptor.expressionsMenu.controls[0].icon as Texture2D;
@@ -113,6 +133,15 @@ namespace AvatarTools.Obfuscation.Validation
                 copy.wrapModeU == source.wrapModeU && copy.wrapModeV == source.wrapModeV && copy.imageContentsHash == sourceHash,
                 "Texture storage or sampling settings changed");
             if (readable) Check(copy.GetRawTextureData().SequenceEqual(source.GetRawTextureData()), "Encoded mip data changed");
+            if (withAudio)
+            {
+                var copiedAudio = speaker.clip;
+                Check(copiedAudio != null && copiedAudio != originalAudio && copiedAudio.loadType == originalAudio.loadType,
+                    "Audio reference or import settings changed");
+                Check(report.NativeAudioCopies == (lateAudio ? 0 : 1) &&
+                    (AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(copiedAudio)) is AudioImporter) == lateAudio,
+                    "Audio and texture copies did not keep independent routes");
+            }
             finish.Invoke(processor, null);
             Check(copy == descriptor.expressionsMenu.controls[0].icon && report.NativeTextureCopies + report.ImportedTextureCopies == 1,
                 "Repeated SDK completion copied the texture again");

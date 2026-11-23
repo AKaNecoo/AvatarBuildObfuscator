@@ -29,10 +29,8 @@ namespace AvatarTools.Obfuscation.Validation
             return JsonUtility.ToJson(results, true);
         }
 
-        private static void NativeAudio(ProtectionMode mode, AudioClipLoadType loadType, bool late)
+        private static AudioClip CreateNativeAudioFixture(string path, AudioClipLoadType loadType)
         {
-            string folder = Folder + "/Fixtures/NativeAudio_" + Guid.NewGuid().ToString("N"); Directory.CreateDirectory(folder);
-            string path = folder + "/Source.wav";
             using (var writer = new BinaryWriter(File.Create(path)))
             {
                 const int count = 4096, channels = 2, frequency = 22050;
@@ -47,7 +45,14 @@ namespace AvatarTools.Obfuscation.Validation
             var importer = (AudioImporter)AssetImporter.GetAtPath(path); var sample = importer.defaultSampleSettings;
             sample.loadType = loadType; sample.compressionFormat = loadType == AudioClipLoadType.DecompressOnLoad ? AudioCompressionFormat.PCM : AudioCompressionFormat.Vorbis;
             sample.preloadAudioData = true; importer.defaultSampleSettings = sample; importer.loadInBackground = false; importer.SaveAndReimport();
-            var source = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+            return AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+        }
+
+        private static void NativeAudio(ProtectionMode mode, AudioClipLoadType loadType, bool late)
+        {
+            string folder = Folder + "/Fixtures/NativeAudio_" + Guid.NewGuid().ToString("N"); Directory.CreateDirectory(folder);
+            string path = folder + "/Source.wav";
+            var source = CreateNativeAudioFixture(path, loadType);
             var bytes = File.ReadAllBytes(path); var meta = File.ReadAllBytes(path + ".meta"); string original = EditorJsonUtility.ToJson(source);
             var root = Root(); var marker = root.GetComponent<AvatarBuildObfuscator>(); marker.mode = mode; marker.userName = new string('禾', 32);
             var a = root.AddComponent<AudioSource>(); var child = new GameObject("SharedAudio"); child.transform.SetParent(root.transform); var b = child.AddComponent<AudioSource>();
