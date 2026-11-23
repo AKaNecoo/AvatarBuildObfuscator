@@ -1,5 +1,9 @@
 # Testing and validation
 
+## 0.8.7
+
+The release ships the processing code and Unity asset GUIDs from 0.8.7-beta.3. The basic VRChat model-function smoke test was completed before promotion. The 137 Unity Editor cases and Windows bundle comparison below cover the promoted code. PC-to-mobile synchronization and runtime texture streaming still need separate client checks.
+
 ## 0.8.7-beta.3
 
 - All 137 Editor cases passed on Unity 6000.0.67f1 with Windows x64, Direct3D 11 and Avatar SDK 3.11.0-beta.1. The 12 new texture cases cover both modes, DXT1/DXT5/BC7, Read/Write on and off, late SDK icons, shared references, source-file isolation and importer fallback.
