@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.7-beta.3 — 2026-11-23
+
+- Reuse eligible DXT1, DXT5 and BC7 texture import results on Unity 6.0 Windows x64 NDMF builds under Direct3D 11. Preserve the compressed format, mip chain, streaming and sampling settings, and use the file importer for other cases.
+- Show native and file-imported texture copy counts in the local build report.
+
 ## 0.8.7-beta.2 — 2026-11-22
 
 - Reuse renderer path lookups for animation bindings and share one reference graph across the initial source audit and import preparation.
